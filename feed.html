@@ -611,8 +611,6 @@
   </div>
 </nav>
 
-<!-- TEST MATCH BUTTON (remove before production) -->
-<button id="test-match-btn" onclick="testMatch()" style="position:fixed;bottom:120px;right:16px;z-index:100;padding:8px 14px;background:rgba(201,169,110,0.15);border:1px solid rgba(201,169,110,0.4);border-radius:4px;color:var(--gold);font-family:'Jost',sans-serif;font-size:10px;letter-spacing:0.2em;cursor:pointer;display:none">TEST MATCH</button>
 
 <!-- UNKNOWN ORIGIN BANNER -->
 <div class="unknown-banner" id="unknown-banner">
@@ -1007,14 +1005,8 @@
 
     renderCards()
 
-    // Показать тестовую кнопку мэтча
-    document.getElementById('test-match-btn').style.display = 'block'
   })
 
-  function testMatch() {
-    const testProfile = profiles[currentIndex] || profiles[0]
-    if (testProfile) showMatch(testProfile)
-  }
 
   function viewCurrentProfile() {
     const profile = profiles[currentIndex]
