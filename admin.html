@@ -1,0 +1,465 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>Twin Frequency — Admin</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;1,300;1,400&family=Jost:wght@200;300;400&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  :root {
+    --gold: #c9a96e; --gold-soft: #e8d5b0;
+    --deep: #04030a; --mid: #0d0b18; --surface: #100e1c;
+    --text: #e8e0d5; --muted: #6b6478; --border: rgba(201,169,110,0.12);
+    --red: #e07070; --green: #70c090;
+  }
+  html, body { min-height: 100%; background: var(--deep); color: var(--text); font-family: 'Jost', sans-serif; font-weight: 200; }
+
+  /* ── LOADER ── */
+  .loader { position: fixed; inset: 0; z-index: 999; display: flex; align-items: center; justify-content: center; background: var(--deep); transition: opacity 0.4s; }
+  .loader.hide { opacity: 0; pointer-events: none; }
+  .loader-pulse { width: 40px; height: 40px; border-radius: 50%; border: 1px solid rgba(201,169,110,0.3); border-top-color: var(--gold); animation: spin 1s linear infinite; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  /* ── ACCESS DENIED ── */
+  .access-denied { display: none; position: fixed; inset: 0; align-items: center; justify-content: center; flex-direction: column; gap: 16px; text-align: center; padding: 40px; }
+  .access-denied.show { display: flex; }
+  .access-denied h1 { font-family: 'Cormorant Garamond', serif; font-size: 32px; font-weight: 300; color: var(--red); }
+  .access-denied p { font-size: 12px; color: var(--muted); letter-spacing: 0.1em; }
+
+  /* ── LAYOUT ── */
+  .admin-wrap { max-width: 900px; margin: 0 auto; padding: 24px 20px 60px; }
+
+  /* ── HEADER ── */
+  .admin-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 32px; padding-bottom: 20px; border-bottom: 1px solid var(--border); }
+  .admin-logo { font-family: 'Cormorant Garamond', serif; font-size: 22px; font-weight: 300; }
+  .admin-logo em { color: var(--gold); font-style: normal; }
+  .admin-badge { font-size: 9px; letter-spacing: 0.3em; text-transform: uppercase; color: var(--gold); background: rgba(201,169,110,0.1); border: 1px solid rgba(201,169,110,0.25); padding: 4px 10px; border-radius: 12px; }
+  .logout-btn { font-size: 10px; letter-spacing: 0.2em; text-transform: uppercase; color: var(--muted); background: none; border: none; cursor: pointer; transition: color 0.2s; }
+  .logout-btn:hover { color: var(--text); }
+
+  /* ── STATS GRID ── */
+  .stats-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 12px; margin-bottom: 32px; }
+  .stat-card { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 18px 16px; text-align: center; }
+  .stat-value { font-family: 'Cormorant Garamond', serif; font-size: 36px; font-weight: 300; color: var(--gold); line-height: 1; margin-bottom: 6px; }
+  .stat-label { font-size: 9px; letter-spacing: 0.25em; text-transform: uppercase; color: var(--muted); }
+
+  /* ── TABS ── */
+  .tabs { display: flex; gap: 0; margin-bottom: 24px; border-bottom: 1px solid var(--border); }
+  .tab { padding: 10px 20px; font-size: 10px; letter-spacing: 0.25em; text-transform: uppercase; color: var(--muted); cursor: pointer; border-bottom: 2px solid transparent; transition: all 0.2s; background: none; border-top: none; border-left: none; border-right: none; font-family: 'Jost', sans-serif; }
+  .tab.active { color: var(--gold); border-bottom-color: var(--gold); }
+  .tab-panel { display: none; }
+  .tab-panel.active { display: block; }
+
+  /* ── TABLE ── */
+  .data-table { width: 100%; border-collapse: collapse; }
+  .data-table th { font-size: 9px; letter-spacing: 0.25em; text-transform: uppercase; color: var(--muted); padding: 10px 12px; text-align: left; border-bottom: 1px solid var(--border); }
+  .data-table td { padding: 12px 12px; font-size: 12px; border-bottom: 1px solid rgba(201,169,110,0.06); vertical-align: middle; }
+  .data-table tr:hover td { background: rgba(201,169,110,0.03); }
+
+  /* ── BADGES ── */
+  .badge { display: inline-block; padding: 3px 10px; border-radius: 12px; font-size: 9px; letter-spacing: 0.15em; text-transform: uppercase; }
+  .badge-pending { background: rgba(201,169,110,0.1); color: var(--gold); border: 1px solid rgba(201,169,110,0.25); }
+  .badge-reviewed { background: rgba(112,192,144,0.1); color: var(--green); border: 1px solid rgba(112,192,144,0.25); }
+  .badge-banned { background: rgba(224,112,112,0.1); color: var(--red); border: 1px solid rgba(224,112,112,0.25); }
+  .badge-active { background: rgba(112,192,144,0.08); color: var(--green); border: 1px solid rgba(112,192,144,0.2); }
+
+  /* ── ACTION BUTTONS ── */
+  .action-btn { padding: 5px 12px; border-radius: 2px; font-family: 'Jost', sans-serif; font-size: 9px; letter-spacing: 0.2em; text-transform: uppercase; cursor: pointer; transition: all 0.2s; border: 1px solid; }
+  .btn-review { color: var(--gold); border-color: rgba(201,169,110,0.3); background: transparent; }
+  .btn-review:hover { background: rgba(201,169,110,0.08); }
+  .btn-ban { color: var(--red); border-color: rgba(224,112,112,0.3); background: transparent; }
+  .btn-ban:hover { background: rgba(224,112,112,0.08); }
+  .btn-unban { color: var(--green); border-color: rgba(112,192,144,0.3); background: transparent; }
+  .btn-unban:hover { background: rgba(112,192,144,0.08); }
+  .btn-actions { display: flex; gap: 6px; flex-wrap: wrap; }
+
+  /* ── USER AVATAR ── */
+  .user-avatar { width: 32px; height: 32px; border-radius: 50%; object-fit: cover; border: 1px solid var(--border); background: var(--surface); }
+  .user-cell { display: flex; align-items: center; gap: 10px; }
+  .user-name { font-size: 13px; }
+  .user-sub { font-size: 10px; color: var(--muted); margin-top: 2px; letter-spacing: 0.05em; }
+
+  /* ── EMPTY ── */
+  .empty-state { text-align: center; padding: 48px 20px; color: var(--muted); font-size: 12px; letter-spacing: 0.1em; }
+  .empty-icon { font-size: 28px; margin-bottom: 12px; opacity: 0.4; }
+
+  /* ── TOAST ── */
+  @keyframes fadeUp { from { opacity:0; transform:translateX(-50%) translateY(10px); } to { opacity:1; transform:translateX(-50%) translateY(0); } }
+
+  /* ── MODAL ── */
+  .modal-overlay { position: fixed; inset: 0; z-index: 400; background: rgba(4,3,10,0.85); backdrop-filter: blur(8px); display: flex; align-items: flex-end; justify-content: center; opacity: 0; pointer-events: none; transition: opacity 0.25s; }
+  .modal-overlay.show { opacity: 1; pointer-events: all; }
+  .modal-sheet { width: 100%; max-width: 480px; background: var(--surface); border-radius: 16px 16px 0 0; border: 1px solid var(--border); border-bottom: none; padding: 24px 24px 40px; transform: translateY(100%); transition: transform 0.3s cubic-bezier(0.4,0,0.2,1); }
+  .modal-overlay.show .modal-sheet { transform: translateY(0); }
+  .modal-handle { width: 36px; height: 3px; border-radius: 2px; background: rgba(201,169,110,0.2); margin: 0 auto 20px; }
+  .modal-title { font-family: 'Cormorant Garamond', serif; font-size: 20px; font-weight: 300; margin-bottom: 8px; }
+  .modal-sub { font-size: 11px; color: var(--muted); letter-spacing: 0.1em; line-height: 1.6; margin-bottom: 20px; }
+  .modal-btn { width: 100%; padding: 14px; background: transparent; border: 1px solid rgba(201,169,110,0.3); border-radius: 2px; color: var(--gold); font-family: 'Jost', sans-serif; font-size: 10px; letter-spacing: 0.3em; text-transform: uppercase; cursor: pointer; transition: all 0.2s; margin-bottom: 10px; }
+  .modal-btn.danger { color: var(--red); border-color: rgba(224,112,112,0.3); }
+  .modal-btn.danger:hover { background: rgba(224,112,112,0.06); }
+  .modal-cancel { width: 100%; padding: 12px; background: none; border: none; color: var(--muted); font-family: 'Jost', sans-serif; font-size: 10px; letter-spacing: 0.25em; text-transform: uppercase; cursor: pointer; }
+
+  /* ── NEBULA ── */
+  .nebula { position: fixed; border-radius: 50%; filter: blur(80px); pointer-events: none; z-index: 0; opacity: 0.03; }
+  .nebula-1 { width: 400px; height: 400px; background: radial-gradient(circle, #c9a96e, transparent); top: -100px; right: -100px; }
+  .nebula-2 { width: 300px; height: 300px; background: radial-gradient(circle, #7060a8, transparent); bottom: 0; left: -80px; }
+</style>
+</head>
+<body>
+
+<div class="loader" id="loader"><div class="loader-pulse"></div></div>
+<div class="access-denied" id="access-denied">
+  <h1>Access Denied</h1>
+  <p>You do not have administrator privileges.</p>
+</div>
+
+<div class="nebula nebula-1"></div>
+<div class="nebula nebula-2"></div>
+
+<div class="admin-wrap" id="admin-wrap" style="display:none">
+
+  <!-- Header -->
+  <div class="admin-header">
+    <div style="display:flex;align-items:center;gap:12px">
+      <div class="admin-logo">Twin<em>F</em></div>
+      <div class="admin-badge">Admin Panel</div>
+    </div>
+    <button class="logout-btn" onclick="window.location.href='index.html'">← Back to app</button>
+  </div>
+
+  <!-- Stats -->
+  <div class="stats-grid">
+    <div class="stat-card">
+      <div class="stat-value" id="stat-users">—</div>
+      <div class="stat-label">Total Users</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-value" id="stat-matches">—</div>
+      <div class="stat-label">Total Matches</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-value" id="stat-messages">—</div>
+      <div class="stat-label">Messages</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-value" id="stat-reports">—</div>
+      <div class="stat-label">Pending Reports</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-value" id="stat-active">—</div>
+      <div class="stat-label">Active Today</div>
+    </div>
+    <div class="stat-card">
+      <div class="stat-value" id="stat-banned">—</div>
+      <div class="stat-label">Banned</div>
+    </div>
+  </div>
+
+  <!-- Tabs -->
+  <div class="tabs">
+    <button class="tab active" onclick="switchTab('reports')">Reports</button>
+    <button class="tab" onclick="switchTab('users')">Users</button>
+  </div>
+
+  <!-- Reports Tab -->
+  <div class="tab-panel active" id="tab-reports">
+    <div id="reports-container"></div>
+  </div>
+
+  <!-- Users Tab -->
+  <div class="tab-panel" id="tab-users">
+    <div id="users-container"></div>
+  </div>
+
+</div>
+
+<!-- Modal -->
+<div class="modal-overlay" id="modal-overlay" onclick="closeModal(event)">
+  <div class="modal-sheet">
+    <div class="modal-handle"></div>
+    <div class="modal-title" id="modal-title">—</div>
+    <div class="modal-sub" id="modal-sub">—</div>
+    <div id="modal-actions"></div>
+    <button class="modal-cancel" onclick="closeModal()">Cancel</button>
+  </div>
+</div>
+
+<script>
+  const SUPABASE_URL = 'https://pewgupxikbswhaqxjrwk.supabase.co'
+  const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBld2d1cHhpa2Jzd2hhcXhqcndrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzUyNjY0MTEsImV4cCI6MjA5MDg0MjQxMX0.rQIz0R_4Oz6VqHgSvjx9YAtF8BojdcMU7RcqDiVP1NU'
+  const { createClient } = supabase
+  const sb = createClient(SUPABASE_URL, SUPABASE_ANON_KEY)
+
+  let myUser = null
+  let currentTab = 'reports'
+
+  ;(async () => {
+    const { data: { user } } = await sb.auth.getUser()
+    if (!user) { window.location.href = 'index.html'; return }
+    myUser = user
+
+    const { data: profile } = await sb.from('profiles').select('is_admin').eq('id', user.id).single()
+    if (!profile?.is_admin) {
+      document.getElementById('loader').classList.add('hide')
+      document.getElementById('access-denied').classList.add('show')
+      return
+    }
+
+    document.getElementById('admin-wrap').style.display = 'block'
+    document.getElementById('loader').classList.add('hide')
+
+    await Promise.all([loadStats(), loadReports()])
+  })()
+
+  // ─── Stats ─────────────────────────────────────────────────
+  async function loadStats() {
+    const today = new Date().toISOString().split('T')[0]
+
+    const [users, matches, messages, reports, active, banned] = await Promise.all([
+      sb.from('profiles').select('id', { count: 'exact', head: true }),
+      sb.from('matches').select('id', { count: 'exact', head: true }),
+      sb.from('messages').select('id', { count: 'exact', head: true }),
+      sb.from('reports').select('id', { count: 'exact', head: true }).eq('status', 'pending'),
+      sb.from('profiles').select('id', { count: 'exact', head: true }).gte('last_active_at', today + 'T00:00:00'),
+      sb.from('profiles').select('id', { count: 'exact', head: true }).eq('is_banned', true),
+    ])
+
+    document.getElementById('stat-users').textContent = users.count ?? '—'
+    document.getElementById('stat-matches').textContent = matches.count ?? '—'
+    document.getElementById('stat-messages').textContent = messages.count ?? '—'
+    document.getElementById('stat-reports').textContent = reports.count ?? '—'
+    document.getElementById('stat-active').textContent = active.count ?? '—'
+    document.getElementById('stat-banned').textContent = banned.count ?? '—'
+  }
+
+  // ─── Reports ───────────────────────────────────────────────
+  async function loadReports() {
+    const { data: reports } = await sb
+      .from('reports')
+      .select('*, reporter:reporter_id(id,name,photo_url), reported:reported_id(id,name,photo_url,is_banned)')
+      .order('created_at', { ascending: false })
+
+    const container = document.getElementById('reports-container')
+
+    if (!reports || reports.length === 0) {
+      container.innerHTML = `<div class="empty-state"><div class="empty-icon">✦</div>No reports yet</div>`
+      return
+    }
+
+    container.innerHTML = `
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>Reporter</th>
+            <th>Reported</th>
+            <th>Reason</th>
+            <th>Date</th>
+            <th>Status</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody id="reports-tbody"></tbody>
+      </table>`
+
+    const tbody = document.getElementById('reports-tbody')
+    for (const r of reports) {
+      const tr = document.createElement('tr')
+      tr.id = 'report-' + r.id
+      tr.innerHTML = `
+        <td>
+          <div class="user-cell">
+            <img class="user-avatar" src="${r.reporter?.photo_url || ''}" onerror="this.style.display='none'">
+            <div>
+              <div class="user-name">${r.reporter?.name || 'Unknown'}</div>
+            </div>
+          </div>
+        </td>
+        <td>
+          <div class="user-cell">
+            <img class="user-avatar" src="${r.reported?.photo_url || ''}" onerror="this.style.display='none'">
+            <div>
+              <div class="user-name">${r.reported?.name || 'Unknown'}</div>
+              ${r.reported?.is_banned ? '<div class="user-sub" style="color:var(--red)">Banned</div>' : ''}
+            </div>
+          </div>
+        </td>
+        <td><span style="font-size:11px;text-transform:capitalize;letter-spacing:0.05em">${r.reason}</span></td>
+        <td style="color:var(--muted);font-size:11px">${formatDate(r.created_at)}</td>
+        <td><span class="badge badge-${r.status === 'pending' ? 'pending' : 'reviewed'}">${r.status}</span></td>
+        <td>
+          <div class="btn-actions">
+            ${r.status === 'pending' ? `<button class="action-btn btn-review" onclick="markReviewed('${r.id}')">Reviewed</button>` : ''}
+            ${r.reported?.id && !r.reported?.is_banned
+              ? `<button class="action-btn btn-ban" onclick="banUser('${r.reported.id}', '${escHtml(r.reported.name || '')}', '${r.id}')">Ban</button>`
+              : r.reported?.is_banned
+              ? `<button class="action-btn btn-unban" onclick="unbanUser('${r.reported.id}', '${escHtml(r.reported.name || '')}')">Unban</button>`
+              : ''}
+          </div>
+        </td>`
+      tbody.appendChild(tr)
+    }
+  }
+
+  // ─── Users ─────────────────────────────────────────────────
+  async function loadUsers() {
+    const { data: users } = await sb
+      .from('profiles')
+      .select('id, name, photo_url, gender, origin, created_at, last_active_at, is_banned, is_admin')
+      .order('created_at', { ascending: false })
+
+    const container = document.getElementById('users-container')
+
+    if (!users || users.length === 0) {
+      container.innerHTML = `<div class="empty-state"><div class="empty-icon">✦</div>No users</div>`
+      return
+    }
+
+    container.innerHTML = `
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>User</th>
+            <th>Origin</th>
+            <th>Joined</th>
+            <th>Last Active</th>
+            <th>Status</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody id="users-tbody"></tbody>
+      </table>`
+
+    const tbody = document.getElementById('users-tbody')
+    for (const u of users) {
+      const tr = document.createElement('tr')
+      tr.id = 'user-' + u.id
+      tr.innerHTML = `
+        <td>
+          <div class="user-cell">
+            <img class="user-avatar" src="${u.photo_url || ''}" onerror="this.style.display='none'">
+            <div>
+              <div class="user-name">${u.name || '—'}</div>
+              <div class="user-sub">${u.gender || ''}</div>
+            </div>
+          </div>
+        </td>
+        <td style="font-size:11px;color:var(--gold-soft)">${u.origin || '—'}</td>
+        <td style="color:var(--muted);font-size:11px">${formatDate(u.created_at)}</td>
+        <td style="color:var(--muted);font-size:11px">${u.last_active_at ? formatDate(u.last_active_at) : '—'}</td>
+        <td>
+          ${u.is_admin ? '<span class="badge badge-reviewed">Admin</span>' : ''}
+          ${u.is_banned ? '<span class="badge badge-banned">Banned</span>' : (!u.is_admin ? '<span class="badge badge-active">Active</span>' : '')}
+        </td>
+        <td>
+          <div class="btn-actions">
+            ${u.id !== myUser.id && !u.is_admin
+              ? u.is_banned
+                ? `<button class="action-btn btn-unban" onclick="unbanUser('${u.id}', '${escHtml(u.name || '')}')">Unban</button>`
+                : `<button class="action-btn btn-ban" onclick="banUser('${u.id}', '${escHtml(u.name || '')}', null)">Ban</button>`
+              : ''}
+          </div>
+        </td>`
+      tbody.appendChild(tr)
+    }
+  }
+
+  // ─── Actions ───────────────────────────────────────────────
+  async function markReviewed(reportId) {
+    const { error } = await sb.from('reports').update({ status: 'reviewed' }).eq('id', reportId)
+    if (error) { showToast('Error'); return }
+    const row = document.getElementById('report-' + reportId)
+    if (row) {
+      const badge = row.querySelector('.badge')
+      if (badge) { badge.className = 'badge badge-reviewed'; badge.textContent = 'reviewed' }
+      const reviewBtn = row.querySelector('.btn-review')
+      if (reviewBtn) reviewBtn.remove()
+    }
+    document.getElementById('stat-reports').textContent =
+      Math.max(0, parseInt(document.getElementById('stat-reports').textContent || '0') - 1)
+    showToast('Marked as reviewed')
+  }
+
+  function banUser(userId, userName, reportId) {
+    showModal(
+      `Ban ${userName}`,
+      'This user will be banned and will not be able to use the app. Their matches will be removed.',
+      [{ text: 'Ban User', danger: true, action: async () => {
+        await sb.from('profiles').update({ is_banned: true }).eq('id', userId)
+        // Remove their matches
+        await sb.from('matches').delete().or(`user1.eq.${userId},user2.eq.${userId}`)
+        if (reportId) await markReviewed(reportId)
+        closeModal()
+        showToast(`${userName} banned`)
+        await loadStats()
+        if (currentTab === 'users') await loadUsers()
+        else await loadReports()
+      }}]
+    )
+  }
+
+  function unbanUser(userId, userName) {
+    showModal(
+      `Unban ${userName}`,
+      'This user will be able to use the app again.',
+      [{ text: 'Unban User', action: async () => {
+        await sb.from('profiles').update({ is_banned: false }).eq('id', userId)
+        closeModal()
+        showToast(`${userName} unbanned`)
+        await loadStats()
+        if (currentTab === 'users') await loadUsers()
+        else await loadReports()
+      }}]
+    )
+  }
+
+  // ─── Tabs ──────────────────────────────────────────────────
+  function switchTab(tab) {
+    currentTab = tab
+    document.querySelectorAll('.tab').forEach((t, i) => {
+      t.classList.toggle('active', ['reports','users'][i] === tab)
+    })
+    document.querySelectorAll('.tab-panel').forEach((p, i) => {
+      p.classList.toggle('active', ['reports','users'][i] === tab)
+    })
+    if (tab === 'users' && !document.getElementById('users-tbody')) loadUsers()
+  }
+
+  // ─── Modal ─────────────────────────────────────────────────
+  function showModal(title, sub, actions) {
+    document.getElementById('modal-title').textContent = title
+    document.getElementById('modal-sub').textContent = sub
+    const el = document.getElementById('modal-actions')
+    el.innerHTML = ''
+    for (const a of actions) {
+      const btn = document.createElement('button')
+      btn.className = 'modal-btn' + (a.danger ? ' danger' : '')
+      btn.textContent = a.text
+      btn.onclick = a.action
+      el.appendChild(btn)
+    }
+    document.getElementById('modal-overlay').classList.add('show')
+  }
+  function closeModal(e) {
+    if (e && e.target !== document.getElementById('modal-overlay')) return
+    document.getElementById('modal-overlay').classList.remove('show')
+  }
+
+  // ─── Helpers ───────────────────────────────────────────────
+  function formatDate(iso) {
+    if (!iso) return '—'
+    const d = new Date(iso)
+    return d.toLocaleDateString('en', { month: 'short', day: 'numeric', year: 'numeric' })
+  }
+  function escHtml(s) { return s.replace(/'/g, "\\'").replace(/"/g, '&quot;') }
+  function showToast(text) {
+    const t = document.createElement('div')
+    t.style.cssText = `position:fixed;bottom:40px;left:50%;transform:translateX(-50%);background:var(--surface);border:1px solid var(--border);border-radius:20px;padding:10px 20px;font-size:11px;letter-spacing:0.15em;color:var(--gold);z-index:500;animation:fadeUp 0.3s ease;pointer-events:none;`
+    t.textContent = text
+    document.body.appendChild(t)
+    setTimeout(() => t.remove(), 2500)
+  }
+</script>
+</body>
+</html>
