@@ -1046,26 +1046,40 @@
       stamp.classList.add('show')
       setTimeout(() => stamp.classList.remove('show'), 400)
 
-      // ── Записать лайк и проверить взаимность через Edge Function
+      // ── Записать лайк и проверить взаимность напрямую через Supabase SDK
       ;(async () => {
         try {
-          const resp = await fetch(`${SUPABASE_URL}/functions/v1/record-swipe`, {
-            method: 'POST',
-            headers: {
-              'Authorization': `Bearer ${accessToken}`,
-              'Content-Type': 'application/json'
-            },
-            body: JSON.stringify({ target_id: profile.id, action: 'like' })
-          })
-          if (resp.ok) {
-            const result = await resp.json()
-            if (result.matched) setTimeout(() => showMatch(profile, result.connection_type), 500)
-          } else {
-            // Фолбэк: прямой INSERT в likes (без демо-мэтча)
-            await sb.from('likes').insert({ from_user: myUser.id, to_user: profile.id }).catch(() => {})
+          // 1. Записать лайк
+          const { error: likeErr } = await sb.from('likes').insert({ from_user: myUser.id, to_user: profile.id })
+          if (likeErr && likeErr.code !== '23505') {
+            console.error('Like insert error:', likeErr)
+            return
+          }
+          // 2. Проверить взаимный лайк
+          const { data: mutual } = await sb.from('likes')
+            .select('id')
+            .eq('from_user', profile.id)
+            .eq('to_user', myUser.id)
+            .maybeSingle()
+          if (mutual) {
+            // 3. Проверить нет ли уже матча
+            const { data: existingMatch } = await sb.from('matches')
+              .select('id')
+              .or(`and(user1.eq.${myUser.id},user2.eq.${profile.id}),and(user1.eq.${profile.id},user2.eq.${myUser.id})`)
+              .maybeSingle()
+            if (!existingMatch) {
+              // 4. Создать матч
+              const connType = getConnectionType(myProfile?.origin, profile.origin)
+              await sb.from('matches').insert({
+                user1: myUser.id,
+                user2: profile.id,
+                connection_type: connType
+              })
+              setTimeout(() => showMatch(profile, connType), 500)
+            }
           }
         } catch (e) {
-          await sb.from('likes').insert({ from_user: myUser.id, to_user: profile.id }).catch(() => {})
+          console.error('Swipe error:', e)
         }
       })()
     } else {
