@@ -956,7 +956,8 @@
     if (!feedLoaded) {
       const { data: realProfiles } = await sb.from('profiles').select('*').neq('id', myUser.id).order('created_at')
       const { data: testProfiles } = await sb.from('test_profiles').select('*').order('created_at')
-      profiles = [...(realProfiles || []), ...(testProfiles || [])]
+      const markedTestProfiles = (testProfiles || []).map(p => ({ ...p, is_test: true }))
+      profiles = [...(realProfiles || []), ...markedTestProfiles]
     }
 
     document.getElementById('loader').classList.add('hide')
@@ -1049,6 +1050,25 @@
       // ── Записать лайк и проверить взаимность напрямую через Supabase SDK
       ;(async () => {
         try {
+          const connType = getConnectionType(myProfile?.origin, profile.origin)
+
+          // Тест-профили всегда отвечают взаимностью — сразу показываем матч
+          if (profile.is_test) {
+            const { data: existingMatch } = await sb.from('matches')
+              .select('id')
+              .or(`and(user1.eq.${myUser.id},user2.eq.${profile.id}),and(user1.eq.${profile.id},user2.eq.${myUser.id})`)
+              .maybeSingle()
+            if (!existingMatch) {
+              await sb.from('matches').insert({
+                user1: myUser.id,
+                user2: profile.id,
+                connection_type: connType
+              })
+            }
+            setTimeout(() => showMatch(profile, connType), 500)
+            return
+          }
+
           // 1. Записать лайк
           const { error: likeErr } = await sb.from('likes').insert({ from_user: myUser.id, to_user: profile.id })
           if (likeErr && likeErr.code !== '23505') {
@@ -1069,14 +1089,14 @@
               .maybeSingle()
             if (!existingMatch) {
               // 4. Создать матч
-              const connType = getConnectionType(myProfile?.origin, profile.origin)
               await sb.from('matches').insert({
                 user1: myUser.id,
                 user2: profile.id,
                 connection_type: connType
               })
-              setTimeout(() => showMatch(profile, connType), 500)
             }
+            // 5. Показать экран матча (даже если матч уже существовал)
+            setTimeout(() => showMatch(profile, connType), 500)
           }
         } catch (e) {
           console.error('Swipe error:', e)

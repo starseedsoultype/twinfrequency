@@ -155,7 +155,6 @@ serve(async (req) => {
     let query = supabase
       .from("profiles")
       .select("id, name, age, gender, photo_url, origin, location_name, last_active_at")
-      .eq("onboarding_completed", true)
       .gte("age", me.pref_age_min ?? 18)
       .lte("age", me.pref_age_max ?? 80)
 
@@ -177,6 +176,7 @@ serve(async (req) => {
       location_name: p.location || null,
       last_active_at: p.created_at,
       onboarding_completed: true,
+      is_test: true,
     }))
 
     const candidates = [...(realCandidates || []), ...normalizedTest]
