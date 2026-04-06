@@ -176,8 +176,21 @@ serve(async (req) => {
       .from("test_profiles")
       .select("id, name, age, gender, photo_url, origin, location, created_at")
 
+    // Apply gender filter to test profiles too
+    const genderFilterValues: Record<string, string[]> = {
+      'women': ['female', 'woman', 'Female', 'Woman'],
+      'men':   ['male',   'man',   'Male',   'Man'],
+    }
+    const allowedGenders = (me.search_gender && me.search_gender !== 'everyone')
+      ? genderFilterValues[me.search_gender]
+      : null
+
+    const filteredTestCandidates = allowedGenders
+      ? (testCandidates || []).filter((p: any) => allowedGenders.includes(p.gender))
+      : (testCandidates || [])
+
     // Normalize test profiles to match real profile shape
-    const normalizedTest = (testCandidates || []).map((p: any) => ({
+    const normalizedTest = filteredTestCandidates.map((p: any) => ({
       ...p,
       location_name: p.location || null,
       last_active_at: p.created_at,

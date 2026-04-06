@@ -632,6 +632,12 @@
       <path d="M18 6L6 18M6 6l12 12" stroke="#e07070" stroke-width="1.5" stroke-linecap="round"/>
     </svg>
   </button>
+  <button class="btn-action btn-info" onclick="viewCurrentProfile()" title="View profile" style="width:48px;height:48px;border:1px solid rgba(255,255,255,0.12);">
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+      <circle cx="12" cy="8" r="3" stroke="rgba(232,224,213,0.6)" stroke-width="1.5"/>
+      <path d="M6 20c0-3.314 2.686-6 6-6s6 2.686 6 6" stroke="rgba(232,224,213,0.6)" stroke-width="1.5" stroke-linecap="round"/>
+    </svg>
+  </button>
   <button class="btn-action btn-like" onclick="swipe('like')" title="Like">
     <svg width="26" height="26" viewBox="0 0 24 24" fill="none">
       <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" stroke="var(--gold)" stroke-width="1.2" stroke-linecap="round" fill="rgba(201,169,110,0.1)"/>
@@ -1000,6 +1006,14 @@
   function testMatch() {
     const testProfile = profiles[currentIndex] || profiles[0]
     if (testProfile) showMatch(testProfile)
+  }
+
+  function viewCurrentProfile() {
+    const profile = profiles[currentIndex]
+    if (!profile) return
+    // Store profile data in sessionStorage to avoid extra DB query
+    sessionStorage.setItem('viewProfile', JSON.stringify(profile))
+    window.location.href = 'view-profile.html?id=' + profile.id
   }
 
   // ─── Cards ────────────────────────────────────────────────

@@ -1,0 +1,467 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>Twin Frequency — Profile</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;1,300;1,400&family=Jost:wght@200;300;400&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  :root {
+    --gold: #c9a96e;
+    --gold-soft: #e8d5b0;
+    --deep: #04030a;
+    --mid: #0d0b18;
+    --surface: #0d0b18;
+    --text: #e8e0d5;
+    --muted: #6b6478;
+    --border: rgba(201,169,110,0.12);
+  }
+
+  html, body {
+    height: 100%;
+    background: var(--deep);
+    color: var(--text);
+    font-family: 'Jost', sans-serif;
+    font-weight: 200;
+    overflow: hidden;
+  }
+
+  /* ── LOADING ── */
+  .loader {
+    position: fixed; inset: 0; z-index: 999;
+    display: flex; align-items: center; justify-content: center;
+    background: var(--deep);
+    transition: opacity 0.4s;
+  }
+  .loader.hide { opacity: 0; pointer-events: none; }
+  .loader-pulse {
+    width: 40px; height: 40px; border-radius: 50%;
+    border: 1px solid rgba(201,169,110,0.3);
+    border-top-color: var(--gold);
+    animation: spin 1s linear infinite;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  /* ── BACK BUTTON ── */
+  .back-btn {
+    position: fixed; top: 16px; left: 16px; z-index: 100;
+    width: 40px; height: 40px; border-radius: 50%;
+    background: rgba(4,3,10,0.7); backdrop-filter: blur(10px);
+    border: 1px solid rgba(255,255,255,0.1);
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer; transition: all 0.2s;
+  }
+  .back-btn:hover { background: rgba(201,169,110,0.1); border-color: rgba(201,169,110,0.3); }
+
+  /* ── HERO PHOTO ── */
+  .hero {
+    position: fixed; top: 0; left: 0; right: 0;
+    height: 55vh;
+    background-size: cover; background-position: center top;
+    z-index: 0;
+  }
+  .hero::after {
+    content: '';
+    position: absolute; inset: 0;
+    background: linear-gradient(to bottom, rgba(4,3,10,0.1) 0%, rgba(4,3,10,0.7) 70%, var(--deep) 100%);
+  }
+
+  /* ── SCROLL CONTENT ── */
+  .scroll-content {
+    position: fixed; inset: 0;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .spacer { height: 42vh; }
+
+  .profile-card {
+    position: relative; z-index: 10;
+    background: var(--deep);
+    border-radius: 20px 20px 0 0;
+    padding: 28px 24px 160px;
+    min-height: 60vh;
+  }
+
+  /* ── CONNECTION BADGE ── */
+  .conn-badge {
+    display: inline-flex; align-items: center; gap: 6px;
+    padding: 5px 14px; border-radius: 20px;
+    margin-bottom: 16px;
+    font-size: 10px; letter-spacing: 0.25em; text-transform: uppercase;
+    border: 1px solid rgba(201,169,110,0.3);
+    background: rgba(201,169,110,0.1);
+    color: var(--gold);
+  }
+  .conn-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--gold); }
+
+  /* ── NAME / AGE ── */
+  .profile-name {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 38px; font-weight: 300; line-height: 1;
+    margin-bottom: 6px;
+  }
+  .profile-age {
+    font-family: 'Jost', sans-serif;
+    font-size: 20px; font-weight: 200;
+    color: rgba(232,224,213,0.5);
+    margin-left: 12px;
+  }
+
+  /* ── META ── */
+  .profile-meta {
+    display: flex; align-items: center; gap: 12px;
+    margin-top: 8px; margin-bottom: 24px;
+  }
+  .meta-origin {
+    font-size: 11px; letter-spacing: 0.25em;
+    text-transform: uppercase; color: var(--gold-soft); opacity: 0.8;
+  }
+  .meta-dot { color: var(--muted); font-size: 8px; }
+  .meta-location { font-size: 11px; letter-spacing: 0.1em; color: var(--muted); }
+
+  /* ── DIVIDER ── */
+  .divider {
+    height: 1px; background: var(--border);
+    margin: 20px 0;
+  }
+
+  /* ── SECTION LABEL ── */
+  .section-label {
+    font-size: 9px; letter-spacing: 0.3em;
+    text-transform: uppercase; color: var(--muted);
+    margin-bottom: 10px;
+  }
+
+  /* ── BIO ── */
+  .bio-text {
+    font-size: 14px; line-height: 1.7;
+    color: rgba(232,224,213,0.75);
+    letter-spacing: 0.02em;
+  }
+
+  /* ── ORIGIN CARD ── */
+  .origin-card {
+    background: rgba(201,169,110,0.05);
+    border: 1px solid rgba(201,169,110,0.12);
+    border-radius: 12px;
+    padding: 16px 18px;
+    margin-top: 8px;
+  }
+  .origin-name {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 20px; font-weight: 300;
+    color: var(--gold-soft);
+    margin-bottom: 4px;
+  }
+  .origin-desc {
+    font-size: 11px; color: var(--muted);
+    letter-spacing: 0.05em; line-height: 1.6;
+  }
+
+  /* ── NEBULA ── */
+  .nebula {
+    position: fixed; border-radius: 50%;
+    filter: blur(80px); pointer-events: none; z-index: 0; opacity: 0.04;
+  }
+  .nebula-1 { width: 300px; height: 300px; background: radial-gradient(circle, #c9a96e, transparent); top: -100px; right: -100px; }
+  .nebula-2 { width: 250px; height: 250px; background: radial-gradient(circle, #7060a8, transparent); bottom: 100px; left: -80px; }
+
+  /* ── ACTIONS ── */
+  .actions {
+    position: fixed; bottom: 0; left: 0; right: 0; z-index: 100;
+    padding: 16px 24px 40px;
+    background: linear-gradient(to top, rgba(4,3,10,0.98) 60%, transparent);
+    display: flex; gap: 12px;
+  }
+  .btn-pass {
+    flex: 1; padding: 15px;
+    background: transparent;
+    border: 1px solid rgba(224,112,112,0.3);
+    border-radius: 2px;
+    color: #e07070;
+    font-family: 'Jost', sans-serif;
+    font-size: 10px; letter-spacing: 0.3em; text-transform: uppercase;
+    cursor: pointer; transition: all 0.2s;
+  }
+  .btn-pass:hover { background: rgba(224,112,112,0.08); border-color: rgba(224,112,112,0.6); }
+  .btn-like {
+    flex: 2; padding: 15px;
+    background: rgba(201,169,110,0.08);
+    border: 1px solid rgba(201,169,110,0.35);
+    border-radius: 2px;
+    color: var(--gold);
+    font-family: 'Jost', sans-serif;
+    font-size: 10px; letter-spacing: 0.3em; text-transform: uppercase;
+    cursor: pointer; transition: all 0.2s;
+  }
+  .btn-like:hover { background: rgba(201,169,110,0.18); border-color: rgba(201,169,110,0.7); }
+
+  /* ── TOAST ── */
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateX(-50%) translateY(10px); }
+    to   { opacity: 1; transform: translateX(-50%) translateY(0); }
+  }
+</style>
+</head>
+<body>
+
+<div class="loader" id="loader"><div class="loader-pulse"></div></div>
+
+<div class="nebula nebula-1"></div>
+<div class="nebula nebula-2"></div>
+
+<!-- Back button -->
+<button class="back-btn" onclick="history.back()">
+  <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+    <path d="M19 12H5M12 5l-7 7 7 7" stroke="rgba(232,224,213,0.7)" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/>
+  </svg>
+</button>
+
+<!-- Hero photo -->
+<div class="hero" id="hero-photo"></div>
+
+<!-- Scrollable content -->
+<div class="scroll-content">
+  <div class="spacer"></div>
+  <div class="profile-card">
+
+    <!-- Connection type badge -->
+    <div class="conn-badge" id="conn-badge" style="display:none">
+      <div class="conn-dot" id="conn-dot"></div>
+      <span id="conn-name"></span>
+    </div>
+
+    <!-- Name & age -->
+    <div class="profile-name" id="profile-name">—<span class="profile-age" id="profile-age"></span></div>
+
+    <!-- Meta -->
+    <div class="profile-meta">
+      <span class="meta-origin" id="meta-origin"></span>
+      <span class="meta-dot" id="meta-dot" style="display:none">●</span>
+      <span class="meta-location" id="meta-location"></span>
+    </div>
+
+    <div class="divider"></div>
+
+    <!-- Origin section -->
+    <div id="origin-section">
+      <div class="section-label">Stellar Origin</div>
+      <div class="origin-card">
+        <div class="origin-name" id="origin-name">—</div>
+        <div class="origin-desc" id="origin-desc">—</div>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- Action buttons -->
+<div class="actions">
+  <button class="btn-pass" id="btn-pass" onclick="doSwipe('pass')">Pass</button>
+  <button class="btn-like" id="btn-like" onclick="doSwipe('like')">✦ Like</button>
+</div>
+
+<script>
+  const SUPABASE_URL = 'https://pewgupxikbswhaqxjrwk.supabase.co'
+  const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBld2d1cHhpa2Jzd2hhcXhqcndrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzUyNjY0MTEsImV4cCI6MjA5MDg0MjQxMX0.rQIz0R_4Oz6VqHgSvjx9YAtF8BojdcMU7RcqDiVP1NU'
+
+  const { createClient } = supabase
+  const sb = createClient(SUPABASE_URL, SUPABASE_ANON_KEY)
+
+  const ORIGIN_GROUP = {
+    Siriusian:1, Pleiadian:1, Lemurian:1, Cassiopeian:1, Procyonian:1, Lyran:1,
+    Arcturian:2, Orion:2, Vegan:2, 'Zeta Reticulan':2, 'Epsilon Eridan':2, Atlantean:2,
+    Andromedan:3, Polarisian:3, Nibiruan:3, Egyptian:3, Titan:3, 'Blue Avian':3,
+    'Tau Cetian':4, Aldebaran:4, Centaurian:4, Herculean:4, Anunnaki:4, Hyperborean:4,
+  }
+
+  const MATCH_THEMES = {
+    'Frequency Twins':  { badgeColor: '#c9a96e' },
+    'Eternal Reflection':{ badgeColor: '#d4a0b0' },
+    'Twin Stars':       { badgeColor: '#d4a0b0' },
+    'Cosmic Flow':      { badgeColor: '#b090c8' },
+    'Star Alchemy':     { badgeColor: '#90b8c8' },
+    'Mirror Portals':   { badgeColor: '#a080c0' },
+    'Celestial Mentor': { badgeColor: '#80a0d0' },
+    'Karmic Bonds':     { badgeColor: '#c8a060' },
+    'Shadow Contracts': { badgeColor: '#9080a0' },
+    'Black Holes':      { badgeColor: '#706080' },
+    'Unknown':          { badgeColor: '#6b6478' },
+  }
+
+  const ORIGIN_DESCRIPTIONS = {
+    Pleiadian: 'Heart-centered beings from the Pleiades. Masters of emotional healing and unconditional love.',
+    Sirian: 'Ancient wisdom keepers from Sirius. Guardians of sacred geometry and cosmic law.',
+    Siriusian: 'Ancient wisdom keepers from Sirius. Guardians of sacred geometry and cosmic law.',
+    Arcturian: 'Advanced healers and architects of light. Builders of energetic structures across dimensions.',
+    Andromedan: 'Freedom-seeking souls from Andromeda. Champions of sovereignty and multidimensional awareness.',
+    Lyran: 'The ancient ancestors of many star races. Pioneers carrying the original spark of creation.',
+    Orion: 'Polarised souls who have mastered the dance between shadow and light.',
+    Vegan: 'Deeply individualistic souls with strong creative and artistic expression.',
+    Lemurian: 'Ancient Earth keepers. Holders of the original feminine wisdom and nature connection.',
+    Atlantean: 'Technologically advanced souls balancing science and spirit.',
+    Polarisian: 'Navigators of cosmic currents, attuned to the poles of existence.',
+    Nibiruan: 'Cosmic engineers with deep knowledge of planetary cycles and DNA.',
+    Egyptian: 'Initiates of ancient mystery schools, keepers of esoteric knowledge.',
+    Titan: 'Primordial giants of consciousness, holding vast reserves of power.',
+    'Blue Avian': 'Avian beings of higher density, messengers of cosmic truth.',
+    'Tau Cetian': 'Diplomatic and peace-oriented beings from Tau Ceti.',
+    Aldebaran: 'Noble and regal souls carrying codes of leadership and vision.',
+    Centaurian: 'Bridgers of worlds, skilled in navigation between dimensions.',
+    Herculean: 'Warrior-healers with immense strength and protective energy.',
+    Anunnaki: 'Ancient architects who seeded civilisations across the cosmos.',
+    Hyperborean: 'Beings from the golden age, carrying frequencies of paradise.',
+    Cassiopeian: 'Cosmic storytellers and seers with prophetic gifts.',
+    Procyonian: 'Joyful and playful beings who bring lightness to heavy energies.',
+    'Zeta Reticulan': 'Analytical and curious beings focused on consciousness research.',
+    'Epsilon Eridan': 'Deep-sea explorers of the emotional and psychic realms.',
+  }
+
+  function getConnectionType(o1, o2) {
+    if (!o1 || !o2 || o1 === 'Unknown' || o2 === 'Unknown') return 'Unknown'
+    if (o1 === o2) return 'Frequency Twins'
+    const g1 = ORIGIN_GROUP[o1], g2 = ORIGIN_GROUP[o2]
+    if (!g1 || !g2) return 'Unknown'
+    const diff = Math.abs(g1 - g2)
+    if (diff === 0) return 'Eternal Reflection'
+    if (diff === 1) {
+      const lower = Math.min(g1, g2)
+      if (lower === 1) return 'Twin Stars'
+      if (lower === 2) return 'Cosmic Flow'
+      if (lower === 3) return 'Star Alchemy'
+    }
+    if (diff === 2) {
+      const lower = Math.min(g1, g2)
+      if (lower === 1) return 'Mirror Portals'
+      if (lower === 2) return 'Celestial Mentor'
+    }
+    if (diff === 3) {
+      const hash = (o1.charCodeAt(0) + o2.charCodeAt(0)) % 3
+      if (hash === 0) return 'Karmic Bonds'
+      if (hash === 1) return 'Shadow Contracts'
+      return 'Black Holes'
+    }
+    return 'Unknown'
+  }
+
+  let profile = null
+  let myProfile = null
+  let myUser = null
+
+  ;(async () => {
+    const { data: { user } } = await sb.auth.getUser()
+    if (!user) { window.location.href = 'index.html'; return }
+    myUser = user
+
+    const { data: me } = await sb.from('profiles').select('*').eq('id', user.id).single()
+    myProfile = me
+
+    // Try sessionStorage first (fast path from feed)
+    const cached = sessionStorage.getItem('viewProfile')
+    const params = new URLSearchParams(location.search)
+    const profileId = params.get('id')
+
+    if (cached) {
+      try {
+        const parsed = JSON.parse(cached)
+        if (parsed.id === profileId) {
+          profile = parsed
+          sessionStorage.removeItem('viewProfile')
+          render()
+          return
+        }
+      } catch(e) {}
+    }
+
+    // Fallback: fetch from DB
+    if (profileId) {
+      // Try real profiles first
+      let { data } = await sb.from('profiles').select('*').eq('id', profileId).single()
+      if (!data) {
+        // Try test profiles
+        const { data: tp } = await sb.from('test_profiles').select('*').eq('id', profileId).single()
+        if (tp) data = { ...tp, location_name: tp.location, is_test: true }
+      }
+      profile = data
+    }
+
+    if (!profile) { history.back(); return }
+    render()
+  })()
+
+  function render() {
+    // Hero photo
+    if (profile.photo_url) {
+      document.getElementById('hero-photo').style.backgroundImage = `url('${profile.photo_url}')`
+    }
+
+    // Name & age
+    document.getElementById('profile-name').innerHTML =
+      `${profile.name}<span class="profile-age">${profile.age || ''}</span>`
+
+    // Origin & location
+    const origin = profile.origin || ''
+    const location = profile.location_name || profile.location || ''
+    document.getElementById('meta-origin').textContent = origin
+    if (location) {
+      document.getElementById('meta-location').textContent = location
+      document.getElementById('meta-dot').style.display = ''
+    }
+
+    // Connection type badge
+    const connType = profile.connection_type || getConnectionType(myProfile?.origin, origin)
+    if (connType && connType !== 'Unknown') {
+      const theme = MATCH_THEMES[connType] || MATCH_THEMES['Cosmic Flow']
+      document.getElementById('conn-dot').style.background = theme.badgeColor
+      document.getElementById('conn-name').textContent = connType
+      document.getElementById('conn-name').style.color = theme.badgeColor
+      document.getElementById('conn-badge').style.display = 'inline-flex'
+      document.getElementById('conn-badge').style.borderColor = theme.badgeColor + '33'
+      document.getElementById('conn-badge').style.background = theme.badgeColor + '18'
+    }
+
+    // Origin description
+    document.getElementById('origin-name').textContent = origin || '—'
+    document.getElementById('origin-desc').textContent =
+      ORIGIN_DESCRIPTIONS[origin] || 'A unique stellar traveller on their cosmic journey.'
+
+    document.getElementById('loader').classList.add('hide')
+  }
+
+  async function doSwipe(action) {
+    if (!profile || !myUser) return
+
+    const btn = document.getElementById(action === 'like' ? 'btn-like' : 'btn-pass')
+    btn.disabled = true
+    btn.style.opacity = '0.5'
+
+    if (action === 'like' && !profile.is_test) {
+      // Insert like
+      await sb.from('likes').upsert({
+        from_user: myUser.id,
+        to_user: profile.id,
+        created_at: new Date().toISOString()
+      }, { onConflict: 'from_user,to_user' })
+    }
+
+    showToast(action === 'like' ? '✦ Liked' : 'Passed')
+    setTimeout(() => history.back(), 700)
+  }
+
+  function showToast(text) {
+    const t = document.createElement('div')
+    t.style.cssText = `position:fixed;bottom:120px;left:50%;transform:translateX(-50%);
+      background:rgba(13,11,24,0.95);border:1px solid var(--border);border-radius:20px;
+      padding:10px 20px;font-size:11px;letter-spacing:0.15em;color:var(--gold);
+      z-index:500;animation:fadeUp 0.3s ease;pointer-events:none;`
+    t.textContent = text
+    document.body.appendChild(t)
+    setTimeout(() => t.remove(), 2000)
+  }
+</script>
+</body>
+</html>
