@@ -272,7 +272,7 @@
           <div class="user-cell">
             <img class="user-avatar" src="${r.reporter?.photo_url || ''}" onerror="this.style.display='none'">
             <div>
-              <div class="user-name">${r.reporter?.name || 'Unknown'}</div>
+              <div class="user-name">${escHtml(r.reporter?.name || 'Unknown')}</div>
             </div>
           </div>
         </td>
@@ -280,12 +280,12 @@
           <div class="user-cell">
             <img class="user-avatar" src="${r.reported?.photo_url || ''}" onerror="this.style.display='none'">
             <div>
-              <div class="user-name">${r.reported?.name || 'Unknown'}</div>
+              <div class="user-name">${escHtml(r.reported?.name || 'Unknown')}</div>
               ${r.reported?.is_banned ? '<div class="user-sub" style="color:var(--red)">Banned</div>' : ''}
             </div>
           </div>
         </td>
-        <td><span style="font-size:11px;text-transform:capitalize;letter-spacing:0.05em">${r.reason}</span></td>
+        <td><span style="font-size:11px;text-transform:capitalize;letter-spacing:0.05em">${escHtml(r.reason)}</span></td>
         <td style="color:var(--muted);font-size:11px">${formatDate(r.created_at)}</td>
         <td><span class="badge badge-${r.status === 'pending' ? 'pending' : 'reviewed'}">${r.status}</span></td>
         <td>
@@ -340,12 +340,12 @@
           <div class="user-cell">
             <img class="user-avatar" src="${u.photo_url || ''}" onerror="this.style.display='none'">
             <div>
-              <div class="user-name">${u.name || '—'}</div>
-              <div class="user-sub">${u.gender || ''}</div>
+              <div class="user-name">${escHtml(u.name || '—')}</div>
+              <div class="user-sub">${escHtml(u.gender || '')}</div>
             </div>
           </div>
         </td>
-        <td style="font-size:11px;color:var(--gold-soft)">${u.origin || '—'}</td>
+        <td style="font-size:11px;color:var(--gold-soft)">${escHtml(u.origin || '—')}</td>
         <td style="color:var(--muted);font-size:11px">${formatDate(u.created_at)}</td>
         <td style="color:var(--muted);font-size:11px">${u.last_active_at ? formatDate(u.last_active_at) : '—'}</td>
         <td>
@@ -452,7 +452,7 @@
     const d = new Date(iso)
     return d.toLocaleDateString('en', { month: 'short', day: 'numeric', year: 'numeric' })
   }
-  function escHtml(s) { return s.replace(/'/g, "\\'").replace(/"/g, '&quot;') }
+  function escHtml(s) { return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;') }
   function showToast(text) {
     const t = document.createElement('div')
     t.style.cssText = `position:fixed;bottom:40px;left:50%;transform:translateX(-50%);background:var(--surface);border:1px solid var(--border);border-radius:20px;padding:10px 20px;font-size:11px;letter-spacing:0.15em;color:var(--gold);z-index:500;animation:fadeUp 0.3s ease;pointer-events:none;`

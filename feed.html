@@ -1021,6 +1021,8 @@
     const stack = document.getElementById('card-stack')
     stack.innerHTML = ''
 
+    function esc(s) { return String(s || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;') }
+
     profiles.forEach((profile, i) => {
       const card = document.createElement('div')
       card.className = 'card' + (i === 0 ? ' active' : '')
@@ -1034,19 +1036,19 @@
       const dotStyle = isUnknown ? 'border: 1px dashed ' + dotColor + '; background: transparent;' : 'background: ' + dotColor
 
       card.innerHTML = `
-        <div class="card-photo" style="background-image: url('${profile.photo_url}')"></div>
+        <div class="card-photo" style="background-image: url('${esc(profile.photo_url)}')"></div>
         <div class="stamp stamp-like">✦ Like</div>
         <div class="stamp stamp-pass">Pass</div>
         <div class="card-info">
           <div class="card-connection" onclick="${isUnknown ? 'void(0)' : "openLibrary('" + connectionType + "')" }" style="border-color: ${dotColor}${isUnknown ? '55' : '33'}; background: ${dotColor}${isUnknown ? '10' : '18'}; ${isUnknown ? 'cursor:default;' : ''}">
             <div class="connection-dot" style="${dotStyle}"></div>
-            <span class="connection-name" style="color: ${dotColor}; ${isUnknown ? 'font-style:italic;letter-spacing:0.15em;' : ''}">${displayType}</span>
+            <span class="connection-name" style="color: ${dotColor}; ${isUnknown ? 'font-style:italic;letter-spacing:0.15em;' : ''}">${esc(displayType)}</span>
           </div>
-          <h2 class="card-name">${profile.name}<span class="card-age" style="font-family:'Jost';font-size:20px;font-weight:200;margin-left:12px">${profile.age}</span></h2>
+          <h2 class="card-name">${esc(profile.name)}<span class="card-age" style="font-family:'Jost';font-size:20px;font-weight:200;margin-left:12px">${esc(profile.age)}</span></h2>
           <div class="card-meta">
-            <span class="card-origin">${profile.origin}</span>
+            <span class="card-origin">${esc(profile.origin)}</span>
             <span class="card-dot">●</span>
-            <span class="card-location">${profile.location || ''}</span>
+            <span class="card-location">${esc(profile.location)}</span>
           </div>
         </div>
       `
