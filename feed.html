@@ -963,7 +963,15 @@
         b.blocker_id === myUser.id ? b.blocked_id : b.blocker_id
       ))
 
-      const { data: realProfiles } = await sb.from('profiles').select('*').neq('id', myUser.id).order('created_at')
+      // Gender filter
+      const genderMap = { women: ['female','woman','Female','Woman'], men: ['male','man','Male','Man'] }
+      const searchGender = myProfile?.search_gender
+      let realQuery = sb.from('profiles').select('*').neq('id', myUser.id)
+      if (searchGender && searchGender !== 'everyone') {
+        const allowed = genderMap[searchGender]
+        if (allowed) realQuery = realQuery.in('gender', allowed)
+      }
+      const { data: realProfiles } = await realQuery.order('created_at')
       const { data: testProfiles } = await sb.from('test_profiles').select('*').order('created_at')
       const markedTestProfiles = (testProfiles || []).map(p => ({ ...p, is_test: true }))
       profiles = [...(realProfiles || []), ...markedTestProfiles].filter(p => !blockedIds.has(p.id))

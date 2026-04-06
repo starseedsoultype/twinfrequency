@@ -158,9 +158,15 @@ serve(async (req) => {
       .gte("age", me.pref_age_min ?? 18)
       .lte("age", me.pref_age_max ?? 80)
 
-    // Gender filter
-    if (me.pref_gender && me.pref_gender.length > 0 && me.pref_gender.length < 4) {
-      query = query.in("gender", me.pref_gender)
+    // Gender filter — search_gender: 'women' | 'men' | 'everyone' (null = everyone)
+    if (me.search_gender && me.search_gender !== 'everyone') {
+      // Map UI value to actual gender values stored in profiles
+      const genderMap: Record<string, string[]> = {
+        'women': ['female', 'woman', 'Female', 'Woman'],
+        'men':   ['male',   'man',   'Male',   'Man'],
+      }
+      const allowed = genderMap[me.search_gender]
+      if (allowed) query = query.in('gender', allowed)
     }
 
     const { data: realCandidates } = await query
