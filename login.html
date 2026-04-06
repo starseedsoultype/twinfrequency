@@ -416,7 +416,7 @@
 
  sb.auth.onAuthStateChange((event, session) => {
     if (session) {
-      window.location.href = 'https://starseedsoultype.github.io/starseed/onboarding.html'
+      window.location.href = 'onboarding.html'
     } else if (event === 'INITIAL_SESSION') {
       document.getElementById('loader').classList.add('hide')
     }
@@ -500,7 +500,7 @@
     setMsg('Aligning frequencies...')
     const { error } = await sb.auth.signInWithPassword({ email, password })
     if (error) return setMsg(error.message, true)
-    window.location.href = 'https://starseedsoultype.github.io/starseed/onboarding.html'
+    window.location.href = 'onboarding.html'
   }
 
   // Forgot Password
@@ -513,7 +513,7 @@
   async function resetPassword(email) {
     setMsg('Sending reset link...')
     const { error } = await sb.auth.resetPasswordForEmail(email, {
-      redirectTo: window.location.origin + '/login.html'
+      redirectTo: 'https://twinfrequency.io/reset-password.html'
     })
     if (error) return setMsg(error.message, true)
     setMsg('Reset link sent — check your email ✦')
@@ -546,7 +546,7 @@
   async function signInGoogle() {
     const { error } = await sb.auth.signInWithOAuth({
       provider: 'google',
-      options: { redirectTo: 'https://starseedsoultype.github.io/starseed/onboarding.html' }
+      options: { redirectTo: 'https://twinfrequency.io/onboarding.html' }
     })
     if (error) setMsg(error.message, true)
   }
