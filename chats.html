@@ -657,8 +657,39 @@
     const { data: me } = await sb.from('profiles').select('*').eq('id', myUser.id).single()
     myProfile = me
 
+    const params = new URLSearchParams(window.location.search)
+    const tabParam = params.get('tab')
+    const matchIdParam = params.get('match_id')
+    const userIdParam = params.get('user_id')
+
+    // Switch to Circle tab if requested
+    if (tabParam === 'circle') switchTab('circle')
+
     await loadMatches()
     renderCircle()
+
+    // Deep-link: open specific match chat right away
+    if (matchIdParam || userIdParam) {
+      const { data: matches } = await sb
+        .from('matches')
+        .select('*, profile1:profiles!matches_user1_fkey(*), profile2:profiles!matches_user2_fkey(*)')
+        .or(`user1.eq.${myUser.id},user2.eq.${myUser.id}`)
+        .order('created_at', { ascending: false })
+      if (matches) {
+        const target = matches.find(m =>
+          (matchIdParam && m.id === matchIdParam) ||
+          (userIdParam && (m.user1 === userIdParam || m.user2 === userIdParam))
+        )
+        if (target) {
+          const other = target.user1 === myUser.id ? target.profile2 : target.profile1
+          if (other) {
+            const connType = target.connection_type || getConnectionType(myProfile?.origin, other.origin)
+            const color = CONNECTION_COLORS[connType] || CONNECTION_COLORS['Cosmic Flow']
+            await openMatchChat(target, other, connType, color)
+          }
+        }
+      }
+    }
 
     document.getElementById('loader').classList.add('hide')
   })

@@ -598,7 +598,7 @@
         <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z" stroke="var(--gold-soft)" stroke-width="1" stroke-linecap="round"/>
       </svg>
     </div>
-    <div class="nav-icon" onclick="window.location.href='chats.html'" title="Chats">
+    <div class="nav-icon" onclick="window.location.href='chats.html?tab=circle'" title="Chats">
       <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
         <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" stroke="var(--gold-soft)" stroke-width="1" stroke-linecap="round"/>
       </svg>
@@ -644,7 +644,7 @@
   <p style="font-size:32px;margin-bottom:20px">✦</p>
   <h2 class="empty-title">You've seen everyone</h2>
   <p class="empty-sub">Come back tomorrow — or join<br>your circle while you wait.</p>
-  <button class="btn-circle" onclick="window.location.href='chats.html'">Go to my circle</button>
+  <button class="btn-circle" onclick="window.location.href='chats.html?tab=circle'">Go to my circle</button>
 </div>
 
 <!-- ═══════════════════════════════════════════
@@ -923,6 +923,7 @@
   let matchAnimFrame = null
   let flameAnimFrame = null
   let currentMatchType = null
+  let currentMatchedUserId = null
 
   // ─── Load ─────────────────────────────────────────────────
   window.addEventListener('load', async () => {
@@ -1126,6 +1127,7 @@
   function showMatch(profile, serverConnectionType) {
     const connectionType = serverConnectionType || profile.connection_type || getConnectionType(myProfile?.origin, profile.origin)
     currentMatchType = connectionType
+    currentMatchedUserId = profile.id
 
     const theme = MATCH_THEMES[connectionType] || MATCH_THEMES['Cosmic Flow']
 
@@ -1162,7 +1164,12 @@
     if (flameAnimFrame) { cancelAnimationFrame(flameAnimFrame); flameAnimFrame = null }
 
     document.getElementById('match-overlay').classList.remove('show')
-    if (goToChat) window.location.href = 'chats.html'
+    if (goToChat) {
+      const url = currentMatchedUserId
+        ? `chats.html?user_id=${encodeURIComponent(currentMatchedUserId)}`
+        : 'chats.html'
+      window.location.href = url
+    }
   }
 
   function openLibraryFromMatch() {
