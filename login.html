@@ -362,6 +362,9 @@
       <div class="input-group">
         <input type="password" id="signin-password" placeholder="Password" autocomplete="current-password">
       </div>
+      <div style="text-align:right; margin-top:-8px; margin-bottom:4px;">
+        <a href="#" onclick="showForgot(); return false;" style="font-size:10px; color:var(--muted); letter-spacing:0.15em; text-transform:uppercase; text-decoration:none; transition:color 0.3s;" onmouseover="this.style.color='var(--gold)'" onmouseout="this.style.color='var(--muted)'">Forgot password?</a>
+      </div>
       <button class="btn-primary" onclick="signIn()">Enter the frequency</button>
       <div class="separator"><span>or</span></div>
       <button class="btn-google" onclick="signInGoogle()">
@@ -498,6 +501,22 @@
     const { error } = await sb.auth.signInWithPassword({ email, password })
     if (error) return setMsg(error.message, true)
     window.location.href = 'https://starseedsoultype.github.io/starseed/onboarding.html'
+  }
+
+  // Forgot Password
+  function showForgot() {
+    const email = document.getElementById('signin-email').value.trim()
+    if (!email) return setMsg('Enter your email above first', true)
+    resetPassword(email)
+  }
+
+  async function resetPassword(email) {
+    setMsg('Sending reset link...')
+    const { error } = await sb.auth.resetPasswordForEmail(email, {
+      redirectTo: window.location.origin + '/login.html'
+    })
+    if (error) return setMsg(error.message, true)
+    setMsg('Reset link sent — check your email ✦')
   }
 
   // Sign Up
