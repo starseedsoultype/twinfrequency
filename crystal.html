@@ -1,0 +1,380 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="Explore the StarSeedSoul Origin Crystal — a visual map of your soul frequency across all 24 Origins.">
+<title>Soul Crystal — StarSeedSoul</title>
+<style>
+* { margin:0; padding:0; box-sizing:border-box; }
+body {
+  background:#04020a;
+  display:flex; flex-direction:column; align-items:center;
+  min-height:100vh; font-family:'Georgia',serif; padding:48px 20px 60px;
+  color:#f0eaff;
+}
+.header { text-align:center; margin-bottom:20px; }
+.eyebrow {
+  font-size:11px; letter-spacing:5px; text-transform:uppercase;
+  color:#7755aa; margin-bottom:16px; max-width:520px; width:100%;
+}
+.type-name { font-size:38px; font-weight:normal; color:#ffffff; letter-spacing:2px; margin-bottom:4px; }
+.type-sub { font-size:13px; letter-spacing:3px; text-transform:uppercase; color:#aa88cc; }
+
+.selector {
+display:flex; gap:6px; flex-wrap:wrap; justify-content:center;
+margin-bottom:32px; max-width:600px; width:100%;
+}
+.type-btn {
+padding:6px 12px; border:1px solid #2a1540; background:transparent;
+color:#9977bb; cursor:pointer; font-family:Georgia,serif;
+font-size:11px; letter-spacing:0.5px; transition:all 0.2s; border-radius:2px;
+}
+.type-btn:hover { border-color:#7744aa; color:#ddbbff; }
+.type-btn.active { border-color:#aa66ee; background:#160830; color:#ffffff; }
+
+.stage { position:relative; width:480px; height:480px; max-width:100%; }
+canvas { width:100%; height:100%; }
+.caption { text-align:center; margin:20px 0 20px; max-width:520px; width:100%; }
+
+.desc-unlock-btn {
+display:block; margin-top:20px; padding:14px 24px; text-align:center;
+background:linear-gradient(135deg,#4a2a88,#6a3aaa);
+color:#fff; font-family:Georgia,serif; font-size:13px;
+letter-spacing:3px; text-transform:uppercase; text-decoration:none;
+border-radius:3px; transition:all 0.2s;
+}
+.desc-unlock-btn:hover { background:linear-gradient(135deg,#5a3a98,#7a4abb); }
+
+.description-wrap {
+max-width:520px; width:100%;
+border:1px solid #1e1030; background:#07040e;
+border-radius:4px; padding:32px 28px; margin-bottom:40px;
+}
+.desc-section { margin-bottom:28px; padding-bottom:28px; border-bottom:1px solid #1e1030; }
+.desc-section:last-child { margin-bottom:0; padding-bottom:0; border-bottom:none; }
+.desc-text { font-size:17px; color:#e8e0f8; line-height:1.9; }
+.desc-text.blurred {
+filter:blur(5px); user-select:none; -webkit-user-select:none;
+pointer-events:none; color:#c0b8d8;
+}
+
+.btn-row { display:flex; gap:12px; flex-wrap:wrap; justify-content:center; max-width:520px; width:100%; }
+.btn-gold {
+flex:1; min-width:180px; padding:16px 20px; text-align:center;
+background:transparent; border:1px solid #aa8822; color:#d4a843;
+font-family:Georgia,serif; font-size:13px; letter-spacing:2px; text-transform:uppercase;
+text-decoration:none; border-radius:3px; transition:all 0.2s;
+}
+.btn-gold:hover { background:rgba(212,168,67,0.08); border-color:#d4a843; }
+.btn-purple {
+flex:1; min-width:180px; padding:16px 20px; text-align:center;
+background:linear-gradient(135deg,#4a2a88,#6a3aaa);
+border:none; color:#fff; font-family:Georgia,serif;
+font-size:13px; letter-spacing:2px; text-transform:uppercase;
+text-decoration:none; border-radius:3px; transition:all 0.2s;
+}
+.btn-purple:hover { background:linear-gradient(135deg,#5a3a98,#7a4abb); }
+
+@media(max-width:520px) {
+.stage { width:340px; height:340px; }
+.type-name { font-size:30px; }
+.desc-text { font-size:17px; }
+.description-wrap { padding:26px 20px; }
+}
+</style>
+
+</head>
+<body>
+
+<div class="header">
+  <div class="eyebrow">StarSeedSoul · Origin System</div>
+</div>
+
+<div class="selector" id="typeSelector"></div>
+
+<div class="stage">
+  <canvas id="crystalCanvas" width="480" height="480"></canvas>
+</div>
+
+<div class="caption">
+  <div class="type-name" id="typeName">Andromedan</div>
+  <div class="type-sub">Soul Origin Crystal</div>
+</div>
+
+<div class="eyebrow" id="readingEyebrow">Soul Reading · Andromedan</div>
+
+<div class="description-wrap">
+  <div class="desc-section">
+    <div class="desc-text" id="desc1text"></div>
+  </div>
+  <div class="desc-section">
+    <div class="desc-text" id="desc2text"></div>
+  </div>
+  <div class="desc-section">
+    <div class="desc-text blurred" id="desc3text"></div>
+  </div>
+  <div class="desc-section">
+    <div class="desc-text blurred" id="desc4text"></div>
+    <a href="quiz.html" id="unlockBtn" class="desc-unlock-btn">✦ &nbsp; Unlock Full Reading &nbsp; ✦</a>
+  </div>
+</div>
+
+<div class="btn-row">
+  <a href="index.html" class="btn-gold">← StarSeedSoul System</a>
+  <a href="quiz.html" class="btn-purple">Find Your Origin</a>
+</div>
+
+<script>
+const TYPES = [
+  {name:"Siriusian",      funcs:["R","E","M","L"]},
+  {name:"Pleiadian",      funcs:["R","M","L","E"]},
+  {name:"Lemurian",       funcs:["R","E","L","M"]},
+  {name:"Cassiopeian",    funcs:["R","L","M","E"]},
+  {name:"Procyonian",     funcs:["R","M","E","L"]},
+  {name:"Lyran",          funcs:["R","L","E","M"]},
+  {name:"Arcturian",      funcs:["L","E","M","R"]},
+  {name:"Orion",          funcs:["L","M","R","E"]},
+  {name:"Vegan",          funcs:["L","E","R","M"]},
+  {name:"Zeta Reticulan", funcs:["L","R","E","M"]},
+  {name:"Epsilon Eridan", funcs:["L","M","E","R"]},
+  {name:"Atlantean",      funcs:["L","R","M","E"]},
+  {name:"Andromedan",     funcs:["E","R","L","M"]},
+  {name:"Polarisian",     funcs:["E","L","M","R"]},
+  {name:"Nibiruan",       funcs:["E","M","R","L"]},
+  {name:"Egyptian",       funcs:["E","L","R","M"]},
+  {name:"Titanian",          funcs:["E","M","L","R"]},
+  {name:"Blue Avian",     funcs:["E","R","M","L"]},
+  {name:"Tau Cetian",     funcs:["M","R","E","L"]},
+  {name:"Aldebaran",      funcs:["M","L","R","E"]},
+  {name:"Centaurian",     funcs:["M","L","E","R"]},
+  {name:"Herculean",      funcs:["M","E","R","L"]},
+  {name:"Anunnaki",       funcs:["M","E","L","R"]},
+  {name:"Hyperborean",    funcs:["M","R","L","E"]},
+];
+
+const FC = {
+  E:{r:255,g:185,b:0,   hex:"#ffb900",name:"Energy",   element:"Fire"},
+  M:{r:220,g:40, b:40,  hex:"#dc2828",name:"Matter",   element:"Earth"},
+  R:{r:40, g:190,b:80,  hex:"#28be50",name:"Relationships", element:"Water"},
+  L:{r:60, g:130,b:255, hex:"#3c82ff",name:"Logic",    element:"Air"},
+};
+
+const AXIS={E:-Math.PI/2, M:Math.PI/2, R:0, L:Math.PI};
+const RADII=[0,155,108,66,32];
+const WEIGHTS=[0,0.60,0.25,0.12,0.03];
+
+const PREVIEWS={
+  R:{
+    1:"Connection is the medium you live in. You read the space between people the way others read words on a page. Your greatest gift is invisible to you. For you, it has always simply been there.",
+    2:"You bring people into contact with something real in themselves. In conversation, in presence, in the quality of attention you offer, you are a catalyst for genuine meeting.",
+    3:"Relationships are where your deepest learning happens. You are drawn to the complexity of human connection, sometimes more than is comfortable. This territory is your transformation.",
+    4:"You receive connection easily, without much analysis. When someone offers warmth or belonging, you absorb it naturally, trusting what arrives without needing to verify it first.",
+  },
+  E:{
+    1:"You were born already knowing what you want. The desire runs underneath everything and does not ask permission. Others often feel more alive in your presence without knowing why.",
+    2:"Your aliveness is visible. When you move toward something you want, the room notices. You bring energy into spaces that needed it. This is your creative contribution.",
+    3:"The question of desire, what you truly want, whether you are living your actual life, runs through everything you do. This territory is the ground of your growth.",
+    4:"You receive energy from your environment freely. You absorb it naturally. Other people's charge becomes available to you without resistance.",
+  },
+  M:{
+    1:"You understand the physical world, money, the body, space, time, with an authority that is simply native to you. You arrived here already knowing how to be real.",
+    2:"You make things real. Ideas that float in other people's minds land in the physical world when you are involved. This is your specific creative power, the capacity to bring things into form.",
+    3:"The material world is where you work hardest on yourself, money, health, physical stability. You think deeply about these things. That depth is the gift inside the wound.",
+    4:"In material matters, you receive what comes easily. Someone handles the food, the space, the logistics, and you absorb it, trusting the provision without needing to direct it.",
+  },
+  L:{
+    1:"You understand how things work, the way a fish understands water. Structure, causality, the architecture of systems, this is your native language, arrived before any effort.",
+    2:"You generate ideas and frameworks that others find clarifying. When you speak your thinking aloud, something in the room settles. This is your creative gift.",
+    3:"You are drawn to other people's systems and ideas, evaluating them, questioning them, weighing them. This intelligence is most alive when it is fed by those who think at the deepest level.",
+    4:"You receive frameworks and explanations readily. When something is presented to you coherently, you absorb it and use it, trusting the structure you are given rather than needing to build it from scratch.",
+  },
+};
+
+const GUMROAD_LINKS = {
+  "Siriusian":       "https://starseedsoul.gumroad.com/l/soul-20",
+  "Pleiadian":       "https://starseedsoul.gumroad.com/l/soul-17",
+  "Lemurian":        "https://starseedsoul.gumroad.com/l/soul-13",
+  "Cassiopeian":     "https://starseedsoul.gumroad.com/l/soul-7",
+  "Procyonian":      "https://starseedsoul.gumroad.com/l/soul-19",
+  "Lyran":           "https://starseedsoul.gumroad.com/l/soul-14",
+  "Arcturian":       "https://starseedsoul.gumroad.com/l/soul-4",
+  "Orion":           "https://starseedsoul.gumroad.com/l/soul-16",
+  "Vegan":           "https://starseedsoul.gumroad.com/l/soul-23",
+  "Zeta Reticulan":  "https://starseedsoul.gumroad.com/l/soul-24",
+  "Epsilon Eridan":  "https://starseedsoul.gumroad.com/l/soul-10",
+  "Atlantean":       "https://starseedsoul.gumroad.com/l/soul-5",
+  "Andromedan":      "https://starseedsoul.gumroad.com/l/soul-2",
+  "Polarisian":      "https://starseedsoul.gumroad.com/l/soul-18",
+  "Nibiruan":        "https://starseedsoul.gumroad.com/l/soul-15",
+  "Egyptian":        "https://starseedsoul.gumroad.com/l/soul-9",
+  "Titanian":        "https://starseedsoul.gumroad.com/l/soul-22",
+  "Blue Avian":      "https://starseedsoul.gumroad.com/l/soul-6",
+  "Tau Cetian":      "https://starseedsoul.gumroad.com/l/soul-21",
+  "Aldebaran":       "https://starseedsoul.gumroad.com/l/soul-1",
+  "Centaurian":      "https://starseedsoul.gumroad.com/l/soul-8",
+  "Herculean":       "https://starseedsoul.gumroad.com/l/soul-11",
+  "Anunnaki":        "https://starseedsoul.gumroad.com/l/soul-3",
+  "Hyperborean":     "https://starseedsoul.gumroad.com/l/soul-12",
+};
+
+let current=12;
+
+function getChannels(idx){
+  const ch={};
+  TYPES[idx].funcs.forEach((f,i)=>{ch[f]=i+1;});
+  return ch;
+}
+
+function blend(ch){
+  let r=0,g=0,b=0;
+  for(const[f,c]of Object.entries(ch)){const w=WEIGHTS[c],fc=FC[f];r+=fc.r*w;g+=fc.g*w;b+=fc.b*w;}
+  return{r:Math.round(r),g:Math.round(g),b:Math.round(b)};
+}
+
+function draw(idx){
+  const canvas=document.getElementById('crystalCanvas');
+  const ctx=canvas.getContext('2d');
+  const W=canvas.width,H=canvas.height,cx=W/2,cy=H/2;
+  ctx.clearRect(0,0,W,H);
+
+  const ch=getChannels(idx);
+  const bl=blend(ch);
+
+  // tips
+  const tips={};
+  for(const[f,c]of Object.entries(ch)){
+    tips[f]={x:cx+Math.cos(AXIS[f])*RADII[c],y:cy+Math.sin(AXIS[f])*RADII[c]};
+  }
+
+  // bg glow
+  const bg=ctx.createRadialGradient(cx,cy,0,cx,cy,200);
+  bg.addColorStop(0,`rgba(${bl.r},${bl.g},${bl.b},0.07)`);
+  bg.addColorStop(1,'rgba(4,2,10,0)');
+  ctx.fillStyle=bg; ctx.fillRect(0,0,W,H);
+
+  const tE=tips.E,tM=tips.M,tR=tips.R,tL=tips.L;
+
+  // faces — screen blend for vivid colors
+  ctx.save(); ctx.globalCompositeOperation='screen';
+  [{pts:[cx,cy,tE.x,tE.y,tR.x,tR.y],f1:'E',f2:'R',b:.85},
+   {pts:[cx,cy,tE.x,tE.y,tL.x,tL.y],f1:'E',f2:'L',b:.65},
+   {pts:[cx,cy,tM.x,tM.y,tR.x,tR.y],f1:'M',f2:'R',b:.55},
+   {pts:[cx,cy,tM.x,tM.y,tL.x,tL.y],f1:'M',f2:'L',b:.38}
+  ].forEach(({pts,f1,f2,b})=>{
+    const c1=FC[f1],c2=FC[f2];
+    const bf={r:Math.round((c1.r+c2.r)/2),g:Math.round((c1.g+c2.g)/2),b:Math.round((c1.b+c2.b)/2)};
+    const a=0.22+b*0.30;
+    const g=ctx.createLinearGradient(pts[0],pts[1],pts[4],pts[5]);
+    g.addColorStop(0,`rgba(${bf.r},${bf.g},${bf.b},${a+.1})`);
+    g.addColorStop(1,`rgba(${Math.round(bl.r*.5)},${Math.round(bl.g*.5)},${Math.round(bl.b*.5)},${a*.35})`);
+    ctx.beginPath();ctx.moveTo(pts[0],pts[1]);ctx.lineTo(pts[2],pts[3]);ctx.lineTo(pts[4],pts[5]);
+    ctx.closePath();ctx.fillStyle=g;ctx.fill();
+    ctx.strokeStyle=`rgba(${bf.r+80},${bf.g+80},${bf.b+80},.5)`;ctx.lineWidth=.9;ctx.stroke();
+  });
+  ctx.restore();
+
+  // outer edge
+  ctx.beginPath();ctx.moveTo(tE.x,tE.y);ctx.lineTo(tR.x,tR.y);
+  ctx.lineTo(tM.x,tM.y);ctx.lineTo(tL.x,tL.y);ctx.closePath();
+  ctx.strokeStyle=`rgba(${bl.r+100},${bl.g+100},${bl.b+100},.65)`;ctx.lineWidth=1.5;ctx.stroke();
+
+  // axis dashes
+  [[tE,tM],[tR,tL]].forEach(([a,b])=>{
+    ctx.beginPath();ctx.moveTo(a.x,a.y);ctx.lineTo(b.x,b.y);
+    ctx.strokeStyle='rgba(220,200,255,.1)';ctx.lineWidth=.5;
+    ctx.setLineDash([3,8]);ctx.stroke();ctx.setLineDash([]);
+  });
+
+  // core glow
+  const core=ctx.createRadialGradient(cx,cy,0,cx,cy,50);
+  core.addColorStop(0,`rgba(${bl.r},${bl.g},${bl.b},.6)`);
+  core.addColorStop(.5,`rgba(${bl.r},${bl.g},${bl.b},.2)`);
+  core.addColorStop(1,'rgba(4,2,10,0)');
+  ctx.fillStyle=core;ctx.fillRect(0,0,W,H);
+
+  // tips + glows
+  ctx.save();ctx.globalCompositeOperation='screen';
+  for(const[f,c]of Object.entries(ch)){
+    const t=tips[f],fc=FC[f];
+    const sz=[0,12,8.5,6,4][c];
+    const gr=[0,34,22,14,9][c];
+    const al=[0,.6,.42,.27,.16][c];
+    const gw=ctx.createRadialGradient(t.x,t.y,0,t.x,t.y,gr);
+    gw.addColorStop(0,`rgba(${fc.r},${fc.g},${fc.b},${al})`);
+    gw.addColorStop(1,'rgba(0,0,0,0)');
+    ctx.fillStyle=gw;ctx.beginPath();ctx.arc(t.x,t.y,gr,0,Math.PI*2);ctx.fill();
+    ctx.beginPath();ctx.arc(t.x,t.y,sz,0,Math.PI*2);
+    ctx.fillStyle=`rgba(${fc.r},${fc.g},${fc.b},.95)`;ctx.fill();
+    ctx.beginPath();ctx.arc(t.x-sz*.3,t.y-sz*.3,sz*.4,0,Math.PI*2);
+    ctx.fillStyle=`rgba(255,255,255,${.55-c*.1})`;ctx.fill();
+  }
+  ctx.restore();
+
+  // labels — element names, italic, same size for all
+  for(const[f,c]of Object.entries(ch)){
+    const t=tips[f],fc=FC[f],angle=AXIS[f];
+    const off=[0,40,30,24,18][c];
+    const lx=t.x+Math.cos(angle)*off;
+    const ly=t.y+Math.sin(angle)*off;
+    ctx.save();
+    ctx.textAlign='center';ctx.textBaseline='middle';
+    ctx.shadowColor='rgba(0,0,0,0.95)';
+    ctx.shadowBlur=10;
+    ctx.font='italic 22px Georgia';
+    ctx.fillStyle='#ffffff';
+    ctx.globalAlpha=[0,1,.85,.68,.48][c];
+    ctx.fillText(fc.element,lx,ly);
+    ctx.restore();
+  }
+
+  // center star
+  const star=ctx.createRadialGradient(cx,cy,0,cx,cy,15);
+  star.addColorStop(0,'rgba(255,255,255,.95)');
+  star.addColorStop(.4,`rgba(${bl.r+80},${bl.g+80},${bl.b+80},.5)`);
+  star.addColorStop(1,'rgba(4,2,10,0)');
+  ctx.fillStyle=star;ctx.beginPath();ctx.arc(cx,cy,15,0,Math.PI*2);ctx.fill();
+
+  // update header
+  const typeName = TYPES[idx].name;
+  document.getElementById('typeName').textContent = typeName;
+  document.getElementById('readingEyebrow').textContent = `Soul Reading · ${typeName}`;
+  document.title = `${typeName} Soul Crystal — StarSeedSoul`;
+
+  // update unlock button link
+  const unlockBtn = document.getElementById('unlockBtn');
+  const gumroadUrl = GUMROAD_LINKS[typeName];
+  if (gumroadUrl && gumroadUrl.includes('REPLACE')) {
+    unlockBtn.href = 'quiz.html';
+  } else {
+    unlockBtn.href = gumroadUrl;
+  }
+
+  // update descriptions
+  const funcs=TYPES[idx].funcs;
+  [0,1,2,3].forEach(i=>{
+    const f=funcs[i];
+    document.getElementById(`desc${i+1}text`).textContent=PREVIEWS[f][i+1];
+  });
+}
+
+// build selector
+const sel=document.getElementById('typeSelector');
+TYPES.forEach((t,i)=>{
+  const btn=document.createElement('button');
+  btn.className='type-btn'+(i===current?' active':'');
+  btn.textContent=t.name;
+  btn.onclick=()=>{
+    document.querySelectorAll('.type-btn').forEach(b=>b.classList.remove('active'));
+    btn.classList.add('active');
+    current=i;draw(i);
+  };
+  sel.appendChild(btn);
+});
+
+draw(current);
+</script>
+
+</body>
+</html>

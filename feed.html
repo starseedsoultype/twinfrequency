@@ -1,0 +1,1572 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>Twin Frequency — Feed</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;1,300;1,400&family=Jost:wght@200;300;400&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  :root {
+    --gold: #c9a96e;
+    --gold-soft: #e8d5b0;
+    --deep: #04030a;
+    --text: #e8e0d5;
+    --muted: #6b6478;
+  }
+
+  html, body {
+    height: 100%;
+    background: #000;
+    color: var(--text);
+    font-family: 'Jost', sans-serif;
+    font-weight: 200;
+    overflow: hidden;
+    touch-action: none;
+  }
+
+  /* TOP NAV */
+  .top-nav {
+    position: fixed;
+    top: 0; left: 0; right: 0;
+    z-index: 50;
+    height: 56px;
+    padding: 0 20px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: rgba(4,3,10,0.95);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+    border-bottom: 1px solid rgba(201,169,110,0.08);
+  }
+
+  .nav-logo {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 18px;
+    font-weight: 300;
+    letter-spacing: 0.15em;
+    color: var(--gold-soft);
+  }
+
+  .nav-logo em { font-style: italic; color: var(--gold); }
+
+  .nav-icons {
+    display: flex;
+    gap: 20px;
+    align-items: center;
+  }
+
+  .nav-icon {
+    width: 36px; height: 36px;
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer;
+    opacity: 0.7;
+    transition: opacity 0.2s;
+  }
+  .nav-icon:hover { opacity: 1; }
+
+  /* CARD STACK */
+  .card-stack {
+    position: fixed;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .card {
+    position: absolute;
+    inset: 0;
+    opacity: 0;
+    transition: opacity 0.4s ease;
+    pointer-events: none;
+  }
+
+  .card.active {
+    opacity: 1;
+    pointer-events: all;
+  }
+
+  .card-photo {
+    position: absolute;
+    inset: 0;
+    background-size: contain;
+    background-color: #04030a;
+    background-position: center 20%;
+    background-repeat: no-repeat;
+  }
+
+  .card-photo::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(
+      to bottom,
+      rgba(4,3,10,0.1) 0%,
+      transparent 30%,
+      transparent 45%,
+      rgba(4,3,10,0.7) 70%,
+      rgba(4,3,10,0.95) 100%
+    );
+  }
+
+  /* CARD INFO */
+  .card-info {
+    position: absolute;
+    bottom: 0; left: 0; right: 0;
+    padding: 24px 24px 120px;
+    z-index: 2;
+  }
+
+  .card-connection {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 5px 12px;
+    background: rgba(201,169,110,0.12);
+    border: 1px solid rgba(201,169,110,0.3);
+    border-radius: 20px;
+    margin-bottom: 12px;
+    cursor: pointer;
+    transition: background 0.2s;
+  }
+
+  .card-connection:hover { background: rgba(201,169,110,0.2); }
+
+  .connection-dot {
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    background: var(--gold);
+  }
+
+  .connection-name {
+    font-size: 10px;
+    letter-spacing: 0.25em;
+    text-transform: uppercase;
+    color: var(--gold);
+  }
+
+  .card-name {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 36px;
+    font-weight: 300;
+    color: var(--text);
+    line-height: 1;
+    margin-bottom: 4px;
+  }
+
+  .card-age {
+    font-size: 13px;
+    font-weight: 300;
+    color: rgba(232,224,213,0.6);
+    letter-spacing: 0.05em;
+  }
+
+  .card-meta {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-top: 10px;
+  }
+
+  .card-origin {
+    font-size: 11px;
+    letter-spacing: 0.25em;
+    text-transform: uppercase;
+    color: var(--gold-soft);
+    opacity: 0.8;
+  }
+
+  .card-dot { color: var(--muted); font-size: 8px; }
+
+  .card-location {
+    font-size: 11px;
+    letter-spacing: 0.1em;
+    color: var(--muted);
+  }
+
+  /* UNKNOWN ORIGIN BANNER */
+  .unknown-banner {
+    position: fixed;
+    top: 56px; left: 0; right: 0;
+    z-index: 45;
+    padding: 10px 20px;
+    background: rgba(4,3,10,0.85);
+    border-bottom: 1px solid rgba(201,169,110,0.15);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    backdrop-filter: blur(8px);
+    transform: translateY(-100%);
+    transition: transform 0.4s ease;
+  }
+  .unknown-banner.show { transform: translateY(0); }
+  .unknown-banner-text {
+    font-size: 11px;
+    letter-spacing: 0.15em;
+    color: rgba(232,224,213,0.6);
+    line-height: 1.5;
+  }
+  .unknown-banner-text em { color: var(--gold); font-style: normal; }
+  .unknown-banner-btn {
+    flex-shrink: 0;
+    padding: 7px 14px;
+    background: transparent;
+    border: 1px solid rgba(201,169,110,0.35);
+    border-radius: 2px;
+    color: var(--gold);
+    font-family: 'Jost', sans-serif;
+    font-size: 10px;
+    letter-spacing: 0.25em;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: all 0.2s;
+    white-space: nowrap;
+  }
+  .unknown-banner-btn:hover {
+    background: rgba(201,169,110,0.1);
+    border-color: rgba(201,169,110,0.6);
+  }
+  .unknown-banner-close {
+    flex-shrink: 0;
+    background: none;
+    border: none;
+    color: var(--muted);
+    font-size: 16px;
+    cursor: pointer;
+    padding: 4px;
+    line-height: 1;
+  }
+
+  /* ACTION BUTTONS */
+  .actions {
+    position: fixed;
+    bottom: 0; left: 0; right: 0;
+    z-index: 50;
+    padding: 20px 24px 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 20px;
+    background: linear-gradient(to top, rgba(4,3,10,0.9), transparent);
+  }
+
+  .btn-action {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    cursor: pointer;
+    transition: all 0.2s;
+    border: none;
+    background: rgba(255,255,255,0.06);
+    backdrop-filter: blur(10px);
+  }
+
+  .btn-pass {
+    width: 64px; height: 64px;
+    border: 1px solid rgba(255,255,255,0.1);
+  }
+
+  .btn-pass:hover {
+    background: rgba(255,100,100,0.15);
+    border-color: rgba(255,100,100,0.3);
+    transform: scale(1.05);
+  }
+
+  .btn-like {
+    width: 64px; height: 64px;
+    border: 1px solid rgba(201,169,110,0.3);
+    background: rgba(201,169,110,0.08);
+  }
+
+  .btn-like:hover {
+    background: rgba(201,169,110,0.2);
+    border-color: rgba(201,169,110,0.6);
+    transform: scale(1.05);
+  }
+
+  /* LIKE/PASS STAMP */
+  .stamp {
+    position: absolute;
+    top: 30%;
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 48px;
+    font-weight: 300;
+    letter-spacing: 0.2em;
+    border: 2px solid;
+    padding: 8px 20px;
+    border-radius: 4px;
+    opacity: 0;
+    transform: rotate(-15deg);
+    transition: opacity 0.15s;
+    pointer-events: none;
+    z-index: 10;
+  }
+
+  .stamp-like {
+    left: 20px;
+    color: var(--gold);
+    border-color: var(--gold);
+    transform: rotate(-15deg);
+  }
+
+  .stamp-pass {
+    right: 20px;
+    color: #e07070;
+    border-color: #e07070;
+    transform: rotate(15deg);
+  }
+
+  .stamp.show { opacity: 0.9; }
+
+  /* EMPTY STATE */
+  .empty-state {
+    display: none;
+    position: fixed;
+    inset: 0;
+    z-index: 20;
+    background: var(--deep);
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: 40px;
+  }
+
+  .empty-state.show { display: flex; }
+
+  .empty-title {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 32px;
+    font-weight: 300;
+    color: var(--gold-soft);
+    margin-bottom: 12px;
+  }
+
+  .empty-sub {
+    font-size: 13px;
+    color: var(--muted);
+    line-height: 1.7;
+    margin-bottom: 32px;
+  }
+
+  .btn-circle {
+    padding: 14px 32px;
+    background: rgba(201,169,110,0.1);
+    border: 1px solid rgba(201,169,110,0.3);
+    border-radius: 2px;
+    color: var(--gold-soft);
+    font-family: 'Jost', sans-serif;
+    font-size: 11px;
+    letter-spacing: 0.35em;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: all 0.3s;
+  }
+
+  .btn-circle:hover { background: rgba(201,169,110,0.2); }
+
+  /* LOADING */
+  .loading-screen {
+    position: fixed;
+    inset: 0;
+    z-index: 100;
+    background: var(--deep);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: opacity 0.6s ease;
+  }
+  .loading-screen.hide { opacity: 0; pointer-events: none; }
+  .loading-pulse {
+    width: 36px; height: 36px;
+    border: 1px solid rgba(201,169,110,0.3);
+    border-top-color: var(--gold);
+    border-radius: 50%;
+    animation: spin 1.2s linear infinite;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  /* ═══════════════════════════════════════════
+     MATCH OVERLAY — полный редизайн
+  ═══════════════════════════════════════════ */
+  .match-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 200;
+    background: #04030a;
+    display: none;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: 40px 32px;
+    overflow: hidden;
+  }
+
+  .match-overlay.show { display: flex; }
+
+  /* Фоновый canvas для анимации */
+  #match-canvas {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+  }
+
+  /* Контент поверх canvas */
+  .match-content {
+    position: relative;
+    z-index: 2;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    opacity: 0;
+    transform: translateY(20px);
+    transition: opacity 0.8s ease 0.6s, transform 0.8s ease 0.6s;
+  }
+
+  .match-overlay.show .match-content {
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  .match-label {
+    font-size: 10px;
+    letter-spacing: 0.6em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 6px;
+  }
+
+  .match-name {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: clamp(36px, 8vw, 56px);
+    font-weight: 300;
+    color: var(--gold-soft);
+    margin-bottom: 4px;
+    line-height: 1.1;
+  }
+
+  /* Тип связи — кликабельный */
+  .match-connection-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 16px;
+    border-radius: 20px;
+    border: 1px solid rgba(201,169,110,0.35);
+    background: rgba(201,169,110,0.08);
+    margin-bottom: 36px;
+    cursor: pointer;
+    transition: background 0.2s;
+  }
+
+  .match-connection-badge:hover { background: rgba(201,169,110,0.15); }
+
+  .match-connection-dot {
+    width: 5px; height: 5px;
+    border-radius: 50%;
+  }
+
+  .match-connection-text {
+    font-size: 10px;
+    letter-spacing: 0.3em;
+    text-transform: uppercase;
+  }
+
+  /* Два портрета + пламя между ними */
+  .match-portraits {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0;
+    margin-bottom: 36px;
+    position: relative;
+  }
+
+  .match-portrait {
+    width: 96px; height: 96px;
+    border-radius: 50%;
+    background-size: cover;
+    background-position: center;
+    background-color: #0d0b18;
+    flex-shrink: 0;
+    position: relative;
+    transition: transform 1s cubic-bezier(0.34, 1.56, 0.64, 1);
+  }
+
+  .match-portrait-them {
+    transform: translateX(40px);
+    border: 1px solid rgba(255,255,255,0.1);
+  }
+
+  .match-portrait-me {
+    transform: translateX(-40px);
+    border: 1px solid rgba(255,255,255,0.1);
+  }
+
+  .match-overlay.show .match-portrait-them {
+    transform: translateX(8px);
+  }
+
+  .match-overlay.show .match-portrait-me {
+    transform: translateX(-8px);
+  }
+
+  /* Пламя между портретами */
+  .match-flame-wrap {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -62%);
+    z-index: 3;
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 0.8s ease 0.9s;
+  }
+
+  .match-overlay.show .match-flame-wrap {
+    opacity: 1;
+  }
+
+  #flame-canvas {
+    display: block;
+  }
+
+  /* Кнопки действий */
+  .match-actions {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+    justify-content: center;
+  }
+
+  .btn-match {
+    padding: 14px 28px;
+    border-radius: 2px;
+    font-family: 'Jost', sans-serif;
+    font-size: 11px;
+    letter-spacing: 0.3em;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: all 0.3s;
+  }
+
+  .btn-message {
+    background: rgba(201,169,110,0.15);
+    border: 1px solid rgba(201,169,110,0.4);
+    color: var(--gold-soft);
+  }
+
+  .btn-message:hover {
+    background: rgba(201,169,110,0.25);
+    border-color: rgba(201,169,110,0.7);
+  }
+
+  .btn-continue {
+    background: none;
+    border: 1px solid rgba(255,255,255,0.1);
+    color: var(--muted);
+  }
+
+  .btn-continue:hover {
+    border-color: rgba(255,255,255,0.2);
+    color: var(--text);
+  }
+</style>
+</head>
+<body>
+
+<div class="loading-screen" id="loader">
+  <div class="loading-pulse"></div>
+</div>
+
+<!-- TOP NAV -->
+<nav class="top-nav">
+  <div class="nav-logo">Twin<em>F</em></div>
+  <div class="nav-icons">
+    <div class="nav-icon" onclick="window.location.href='library.html'" title="Library">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
+        <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20" stroke="var(--gold-soft)" stroke-width="1" stroke-linecap="round"/>
+        <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z" stroke="var(--gold-soft)" stroke-width="1" stroke-linecap="round"/>
+      </svg>
+    </div>
+    <div class="nav-icon" onclick="window.location.href='chats.html'" title="Chats">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
+        <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" stroke="var(--gold-soft)" stroke-width="1" stroke-linecap="round"/>
+      </svg>
+    </div>
+    <div class="nav-icon" onclick="window.location.href='profile.html'" title="Profile">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
+        <circle cx="12" cy="8" r="4" stroke="var(--gold-soft)" stroke-width="1"/>
+        <path d="M4 20c0-4 3.6-7 8-7s8 3 8 7" stroke="var(--gold-soft)" stroke-width="1" stroke-linecap="round"/>
+      </svg>
+    </div>
+  </div>
+</nav>
+
+<!-- TEST MATCH BUTTON (remove before production) -->
+<button id="test-match-btn" onclick="testMatch()" style="position:fixed;bottom:120px;right:16px;z-index:100;padding:8px 14px;background:rgba(201,169,110,0.15);border:1px solid rgba(201,169,110,0.4);border-radius:4px;color:var(--gold);font-family:'Jost',sans-serif;font-size:10px;letter-spacing:0.2em;cursor:pointer;display:none">TEST MATCH</button>
+
+<!-- UNKNOWN ORIGIN BANNER -->
+<div class="unknown-banner" id="unknown-banner">
+  <div class="unknown-banner-text">Your Origin is <em>unknown</em> — discover it to unlock full compatibility</div>
+  <button class="unknown-banner-btn" onclick="window.location.href='quiz.html?redirect=onboarding'">Take the quiz</button>
+  <button class="unknown-banner-close" onclick="document.getElementById('unknown-banner').classList.remove('show')">×</button>
+</div>
+
+<!-- CARD STACK -->
+<div class="card-stack" id="card-stack"></div>
+
+<!-- ACTION BUTTONS -->
+<div class="actions">
+  <button class="btn-action btn-pass" onclick="swipe('pass')" title="Pass">
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
+      <path d="M18 6L6 18M6 6l12 12" stroke="#e07070" stroke-width="1.5" stroke-linecap="round"/>
+    </svg>
+  </button>
+  <button class="btn-action btn-like" onclick="swipe('like')" title="Like">
+    <svg width="26" height="26" viewBox="0 0 24 24" fill="none">
+      <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" stroke="var(--gold)" stroke-width="1.2" stroke-linecap="round" fill="rgba(201,169,110,0.1)"/>
+    </svg>
+  </button>
+</div>
+
+<!-- EMPTY STATE -->
+<div class="empty-state" id="empty-state">
+  <p style="font-size:32px;margin-bottom:20px">✦</p>
+  <h2 class="empty-title">You've seen everyone</h2>
+  <p class="empty-sub">Come back tomorrow — or join<br>your circle while you wait.</p>
+  <button class="btn-circle" onclick="window.location.href='chats.html'">Go to my circle</button>
+</div>
+
+<!-- ═══════════════════════════════════════════
+     MATCH OVERLAY
+═══════════════════════════════════════════ -->
+<div class="match-overlay" id="match-overlay">
+
+  <!-- Фоновая анимация (частицы/туманность) -->
+  <canvas id="match-canvas"></canvas>
+
+  <div class="match-content">
+
+    <p class="match-label">A new frequency aligned</p>
+    <h2 class="match-name" id="match-name">—</h2>
+
+    <!-- Тип связи — кликабельный, ведёт в библиотеку -->
+    <div class="match-connection-badge" id="match-connection-badge" onclick="openLibraryFromMatch()">
+      <div class="match-connection-dot" id="match-connection-dot"></div>
+      <span class="match-connection-text" id="match-connection-text">—</span>
+    </div>
+
+    <!-- Два портрета с пламенем между ними -->
+    <div class="match-portraits">
+      <div class="match-portrait match-portrait-them" id="match-photo-them"></div>
+
+      <!-- Canvas для пламени между портретами -->
+      <div class="match-flame-wrap">
+        <canvas id="flame-canvas" width="120" height="200"></canvas>
+      </div>
+
+      <div class="match-portrait match-portrait-me" id="match-photo-me"></div>
+    </div>
+
+    <div class="match-actions">
+      <button class="btn-match btn-message" onclick="closeMatch(true)">Send a message</button>
+      <button class="btn-match btn-continue" onclick="closeMatch(false)">Keep exploring</button>
+    </div>
+
+  </div>
+</div>
+
+<script>
+  // ─── CONFIG ───────────────────────────────────────────────
+  const SUPABASE_URL = 'https://pewgupxikbswhaqxjrwk.supabase.co'
+  const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBld2d1cHhpa2Jzd2hhcXhqcndrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzUyNjY0MTEsImV4cCI6MjA5MDg0MjQxMX0.rQIz0R_4Oz6VqHgSvjx9YAtF8BojdcMU7RcqDiVP1NU'
+  // ──────────────────────────────────────────────────────────
+
+  const { createClient } = supabase
+  const sb = createClient(SUPABASE_URL, SUPABASE_ANON_KEY)
+
+  // ═══════════════════════════════════════════════════════════
+  // 10 типов связи — цвета, характер пламени, фоновые частицы
+  // ═══════════════════════════════════════════════════════════
+  const MATCH_THEMES = {
+    'Frequency Twins': {
+      // Золотой — мощный, ровный, высокий
+      badgeColor: '#c9a96e',
+      flame: {
+        colors: ['#ffe066', '#c9a96e', '#fff0b0', '#f0c040'],
+        style: 'steady',       // ровный высокий
+        intensity: 1.0,
+        height: 1.0,
+        speed: 0.8
+      },
+      bg: {
+        colors: ['rgba(201,169,110,0.28)', 'rgba(255,220,80,0.16)'],
+        particleCount: 80,
+        style: 'radiate'       // расходятся от центра
+      }
+    },
+    'Twin Stars': {
+      // Золотисто-розовый — два огня тянутся друг к другу
+      badgeColor: '#d4a0c0',
+      flame: {
+        colors: ['#d4a0c0', '#c9a96e', '#f0c0d8', '#ffe0b0'],
+        style: 'reaching',     // два огня тянутся навстречу
+        intensity: 0.85,
+        height: 0.9,
+        speed: 0.7
+      },
+      bg: {
+        colors: ['rgba(212,160,192,0.28)', 'rgba(201,169,110,0.18)'],
+        particleCount: 70,
+        style: 'drift'
+      }
+    },
+    'Cosmic Flow': {
+      // Розово-сиреневый — плавный, текучий, как туманность
+      badgeColor: '#c0a0d4',
+      flame: {
+        colors: ['#c0a0d4', '#d4a0c0', '#a080c0', '#e0c0f0'],
+        style: 'flowing',      // текучий, волнистый
+        intensity: 0.75,
+        height: 0.85,
+        speed: 0.5
+      },
+      bg: {
+        colors: ['rgba(192,160,212,0.28)', 'rgba(212,160,192,0.18)'],
+        particleCount: 90,
+        style: 'nebula'        // туманность
+      }
+    },
+    'Mirror Portals': {
+      // Сиреневый — мерцающий, зеркальный
+      badgeColor: '#a080c8',
+      flame: {
+        colors: ['#a080c8', '#c0a0e0', '#8060b0', '#d0b0f0'],
+        style: 'shimmer',      // мерцающий
+        intensity: 0.7,
+        height: 0.8,
+        speed: 0.6
+      },
+      bg: {
+        colors: ['rgba(160,128,200,0.30)', 'rgba(128,96,176,0.18)'],
+        particleCount: 60,
+        style: 'mirror'        // симметричные частицы
+      }
+    },
+    'Celestial Mentor': {
+      // Лавандово-белый — спокойный, ровный, мудрый
+      badgeColor: '#c0b8e8',
+      flame: {
+        colors: ['#c0b8e8', '#e8e4f8', '#a8a0d8', '#f0eeff'],
+        style: 'calm',         // спокойный, почти неподвижный
+        intensity: 0.6,
+        height: 0.75,
+        speed: 0.35
+      },
+      bg: {
+        colors: ['rgba(192,184,232,0.24)', 'rgba(240,238,255,0.14)'],
+        particleCount: 50,
+        style: 'gentle'
+      }
+    },
+    'Karmic Bonds': {
+      // Фиолетово-синий — неустойчивый, пульсирующий
+      badgeColor: '#7060c0',
+      flame: {
+        colors: ['#7060c0', '#5080d0', '#9070d0', '#4060b0'],
+        style: 'pulse',        // пульсирующий
+        intensity: 0.8,
+        height: 0.85,
+        speed: 1.1
+      },
+      bg: {
+        colors: ['rgba(112,96,192,0.30)', 'rgba(80,128,208,0.18)'],
+        particleCount: 65,
+        style: 'pulse'
+      }
+    },
+    'Shadow Contracts': {
+      // Тёмно-фиолетовый — тусклый, неравномерный
+      badgeColor: '#604880',
+      flame: {
+        colors: ['#604880', '#503870', '#705890', '#402860'],
+        style: 'dim',          // тусклый, неравномерный
+        intensity: 0.55,
+        height: 0.7,
+        speed: 0.9
+      },
+      bg: {
+        colors: ['rgba(96,72,128,0.26)', 'rgba(64,40,96,0.16)'],
+        particleCount: 40,
+        style: 'sparse'
+      }
+    },
+    'Black Holes': {
+      // Глубокий индиго — почти угасающий, засасывающий
+      badgeColor: '#304070',
+      flame: {
+        colors: ['#304070', '#203060', '#405080', '#102040'],
+        style: 'implode',      // засасывающий, к центру
+        intensity: 0.45,
+        height: 0.6,
+        speed: 0.7
+      },
+      bg: {
+        colors: ['rgba(48,64,112,0.30)', 'rgba(16,32,64,0.22)'],
+        particleCount: 35,
+        style: 'vortex'        // вихрь к центру
+      }
+    },
+    'Star Alchemy': {
+      // Холодный синий — два огня сталкиваются, не сливаются
+      badgeColor: '#4080c0',
+      flame: {
+        colors: ['#4080c0', '#60a0e0', '#2060a0', '#80c0ff'],
+        style: 'collide',      // сталкиваются
+        intensity: 0.9,
+        height: 0.9,
+        speed: 1.2
+      },
+      bg: {
+        colors: ['rgba(64,128,192,0.30)', 'rgba(96,160,224,0.18)'],
+        particleCount: 75,
+        style: 'clash'         // частицы разлетаются
+      }
+    },
+    'Eternal Reflection': {
+      // Серебристо-белый — идеально симметричный, статичный
+      badgeColor: '#d0d0e8',
+      flame: {
+        colors: ['#d0d0e8', '#e8e8f8', '#b8b8d8', '#f0f0ff'],
+        style: 'mirror_static', // симметричный, почти статичный
+        intensity: 0.65,
+        height: 0.8,
+        speed: 0.2
+      },
+      bg: {
+        colors: ['rgba(208,208,232,0.24)', 'rgba(232,232,248,0.14)'],
+        particleCount: 55,
+        style: 'symmetric'     // идеально симметричные
+      }
+    },
+    'Unknown': {
+      // Туманный серо-фиолетовый — неопределённость, тайна
+      badgeColor: '#7a7090',
+      flame: {
+        colors: ['#7a7090', '#9a90b0', '#5a5070', '#b0a8c8'],
+        style: 'flowing',
+        intensity: 0.5,
+        height: 0.7,
+        speed: 0.4
+      },
+      bg: {
+        colors: ['rgba(122,112,144,0.22)', 'rgba(90,80,112,0.14)'],
+        particleCount: 45,
+        style: 'nebula'
+      }
+    }
+  }
+
+  // ─── Origin Groups ────────────────────────────────────────
+  // Full matrix — used as fallback when server doesn't return connection_type
+  const ORIGIN_GROUP = {
+    Siriusian: 1, Pleiadian: 1, Lemurian: 1, Cassiopeian: 1, Procyonian: 1, Lyran: 1,
+    Arcturian: 2, Orion: 2, Vegan: 2, 'Zeta Reticulan': 2, 'Epsilon Eridan': 2, Atlantean: 2,
+    Andromedan: 3, Polarisian: 3, Nibiruan: 3, Egyptian: 3, Titan: 3, 'Blue Avian': 3,
+    'Tau Cetian': 4, Aldebaran: 4, Centaurian: 4, Herculean: 4, Anunnaki: 4, Hyperborean: 4,
+  }
+  function getConnectionType(origin1, origin2) {
+    if (!origin1 || !origin2 || origin1 === 'Unknown' || origin2 === 'Unknown') return 'Unknown'
+    if (origin1 === origin2) return 'Frequency Twins'
+    const g1 = ORIGIN_GROUP[origin1]
+    const g2 = ORIGIN_GROUP[origin2]
+    if (!g1 || !g2) return 'Unknown'
+    const diff = Math.abs(g1 - g2)
+    if (diff === 0) return 'Eternal Reflection'
+    if (diff === 1) {
+      const lower = Math.min(g1, g2)
+      if (lower === 1) return 'Twin Stars'
+      if (lower === 2) return 'Cosmic Flow'
+      if (lower === 3) return 'Star Alchemy'
+    }
+    if (diff === 2) {
+      const lower = Math.min(g1, g2)
+      if (lower === 1) return 'Mirror Portals'
+      if (lower === 2) return 'Celestial Mentor'
+    }
+    if (diff === 3) {
+      const hash = (origin1.charCodeAt(0) + origin2.charCodeAt(0)) % 3
+      if (hash === 0) return 'Karmic Bonds'
+      if (hash === 1) return 'Shadow Contracts'
+      return 'Black Holes'
+    }
+    return 'Unknown'
+  }
+
+  // ─── State ────────────────────────────────────────────────
+  let profiles = []
+  let currentIndex = 0
+  let myProfile = null
+  let myUser = null
+  let accessToken = null
+  let isAnimating = false
+  let matchAnimFrame = null
+  let flameAnimFrame = null
+  let currentMatchType = null
+
+  // ─── Load ─────────────────────────────────────────────────
+  window.addEventListener('load', async () => {
+    const { data: sessionData } = await sb.auth.getSession()
+    if (!sessionData.session) {
+      window.location.href = 'login.html'
+      return
+    }
+    myUser = sessionData.session.user
+    accessToken = sessionData.session.access_token
+
+    const { data: me } = await sb.from('profiles').select('*').eq('id', myUser.id).single()
+    myProfile = me
+
+    // ── Загрузка ленты через Edge Function (алгоритм совместимости на сервере)
+    let feedLoaded = false
+    try {
+      const feedResp = await fetch(`${SUPABASE_URL}/functions/v1/get-feed`, {
+        headers: {
+          'Authorization': `Bearer ${sessionData.session.access_token}`,
+          'Content-Type': 'application/json'
+        }
+      })
+      if (feedResp.ok) {
+        const feedData = await feedResp.json()
+        profiles = feedData.profiles || []
+        feedLoaded = true
+      }
+    } catch (e) { console.warn('Edge Function unavailable, falling back', e) }
+    // ── Фолбэк: прямой запрос если Edge Function недоступна
+    if (!feedLoaded) {
+      const { data: realProfiles } = await sb.from('profiles').select('*').neq('id', myUser.id).order('created_at')
+      const { data: testProfiles } = await sb.from('test_profiles').select('*').order('created_at')
+      profiles = [...(realProfiles || []), ...(testProfiles || [])]
+    }
+
+    document.getElementById('loader').classList.add('hide')
+
+    // Показать баннер если Origin неизвестен
+    if (!myProfile?.origin || myProfile.origin === 'Unknown') {
+      setTimeout(() => {
+        document.getElementById('unknown-banner').classList.add('show')
+      }, 800)
+    }
+
+    if (profiles.length === 0) {
+      document.getElementById('empty-state').classList.add('show')
+      return
+    }
+
+    renderCards()
+
+    // Показать тестовую кнопку мэтча
+    document.getElementById('test-match-btn').style.display = 'block'
+  })
+
+  function testMatch() {
+    const testProfile = profiles[currentIndex] || profiles[0]
+    if (testProfile) showMatch(testProfile)
+  }
+
+  // ─── Cards ────────────────────────────────────────────────
+  function renderCards() {
+    const stack = document.getElementById('card-stack')
+    stack.innerHTML = ''
+
+    profiles.forEach((profile, i) => {
+      const card = document.createElement('div')
+      card.className = 'card' + (i === 0 ? ' active' : '')
+      card.dataset.index = i
+
+      const connectionType = profile.connection_type || getConnectionType(myProfile?.origin, profile.origin)
+      const theme = MATCH_THEMES[connectionType] || MATCH_THEMES['Cosmic Flow']
+      const dotColor = theme.badgeColor
+      const isUnknown = connectionType === 'Unknown'
+      const displayType = isUnknown ? '? Unknown' : connectionType
+      const dotStyle = isUnknown ? 'border: 1px dashed ' + dotColor + '; background: transparent;' : 'background: ' + dotColor
+
+      card.innerHTML = `
+        <div class="card-photo" style="background-image: url('${profile.photo_url}')"></div>
+        <div class="stamp stamp-like">✦ Like</div>
+        <div class="stamp stamp-pass">Pass</div>
+        <div class="card-info">
+          <div class="card-connection" onclick="${isUnknown ? 'void(0)' : "openLibrary('" + connectionType + "')" }" style="border-color: ${dotColor}${isUnknown ? '55' : '33'}; background: ${dotColor}${isUnknown ? '10' : '18'}; ${isUnknown ? 'cursor:default;' : ''}">
+            <div class="connection-dot" style="${dotStyle}"></div>
+            <span class="connection-name" style="color: ${dotColor}; ${isUnknown ? 'font-style:italic;letter-spacing:0.15em;' : ''}">${displayType}</span>
+          </div>
+          <h2 class="card-name">${profile.name}<span class="card-age" style="font-family:'Jost';font-size:20px;font-weight:200;margin-left:12px">${profile.age}</span></h2>
+          <div class="card-meta">
+            <span class="card-origin">${profile.origin}</span>
+            <span class="card-dot">●</span>
+            <span class="card-location">${profile.location || ''}</span>
+          </div>
+        </div>
+      `
+      stack.appendChild(card)
+    })
+
+    setupSwipe()
+  }
+
+  function showCard(index) {
+    document.querySelectorAll('.card').forEach((c, i) => {
+      c.classList.toggle('active', i === index)
+    })
+  }
+
+  // ─── Swipe ────────────────────────────────────────────────
+  function swipe(action) {
+    if (isAnimating) return
+    if (currentIndex >= profiles.length) return
+
+    isAnimating = true
+    const card = document.querySelector('.card.active')
+    if (!card) return
+
+    const profile = profiles[currentIndex]
+
+    if (action === 'like') {
+      const stamp = card.querySelector('.stamp-like')
+      stamp.classList.add('show')
+      setTimeout(() => stamp.classList.remove('show'), 400)
+
+      // ── Записать лайк и проверить взаимность через Edge Function
+      ;(async () => {
+        try {
+          const resp = await fetch(`${SUPABASE_URL}/functions/v1/record-swipe`, {
+            method: 'POST',
+            headers: {
+              'Authorization': `Bearer ${accessToken}`,
+              'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ target_id: profile.id, action: 'like' })
+          })
+          if (resp.ok) {
+            const result = await resp.json()
+            if (result.matched) setTimeout(() => showMatch(profile, result.connection_type), 500)
+          } else {
+            // Фолбэк: прямой INSERT в likes (без демо-мэтча)
+            await sb.from('likes').insert({ from_user: myUser.id, to_user: profile.id }).catch(() => {})
+          }
+        } catch (e) {
+          await sb.from('likes').insert({ from_user: myUser.id, to_user: profile.id }).catch(() => {})
+        }
+      })()
+    } else {
+      const stamp = card.querySelector('.stamp-pass')
+      stamp.classList.add('show')
+      setTimeout(() => stamp.classList.remove('show'), 400)
+    }
+
+    setTimeout(() => {
+      currentIndex++
+      if (currentIndex >= profiles.length) {
+        document.getElementById('empty-state').classList.add('show')
+      } else {
+        showCard(currentIndex)
+      }
+      isAnimating = false
+    }, 400)
+  }
+
+  // ═══════════════════════════════════════════════════════════
+  // MATCH ANIMATION ENGINE
+  // ═══════════════════════════════════════════════════════════
+
+  function showMatch(profile, serverConnectionType) {
+    const connectionType = serverConnectionType || profile.connection_type || getConnectionType(myProfile?.origin, profile.origin)
+    currentMatchType = connectionType
+
+    const theme = MATCH_THEMES[connectionType] || MATCH_THEMES['Cosmic Flow']
+
+    // Обновить текст
+    document.getElementById('match-name').textContent = profile.name
+
+    // Обновить бейдж типа связи
+    document.getElementById('match-connection-dot').style.background = theme.badgeColor
+    document.getElementById('match-connection-text').textContent = connectionType
+    document.getElementById('match-connection-text').style.color = theme.badgeColor
+    document.getElementById('match-connection-badge').style.borderColor = theme.badgeColor + '55'
+
+    // Фото
+    document.getElementById('match-photo-them').style.backgroundImage = `url('${profile.photo_url}')`
+    document.getElementById('match-photo-them').style.borderColor = theme.badgeColor + '60'
+    if (myProfile?.photo_url) {
+      document.getElementById('match-photo-me').style.backgroundImage = `url('${myProfile.photo_url}')`
+      document.getElementById('match-photo-me').style.borderColor = theme.badgeColor + '60'
+    }
+
+    // Показать оверлей
+    document.getElementById('match-overlay').classList.add('show')
+
+    // Запустить анимации через setTimeout — гарантированно после display:flex
+    setTimeout(() => {
+      startBgAnimation(theme)
+      startFlameAnimation(theme)
+    }, 50)
+  }
+
+  function closeMatch(goToChat) {
+    // Остановить анимации
+    if (matchAnimFrame) { cancelAnimationFrame(matchAnimFrame); matchAnimFrame = null }
+    if (flameAnimFrame) { cancelAnimationFrame(flameAnimFrame); flameAnimFrame = null }
+
+    document.getElementById('match-overlay').classList.remove('show')
+    if (goToChat) window.location.href = 'chats.html'
+  }
+
+  function openLibraryFromMatch() {
+    if (currentMatchType) openLibrary(currentMatchType)
+  }
+
+  function openLibrary(connectionType) {
+    window.location.href = 'library.html?connection=' + encodeURIComponent(connectionType)
+  }
+
+  // ─────────────────────────────────────────────────────────
+  // ФОНОВАЯ АНИМАЦИЯ (частицы / туманность)
+  // ─────────────────────────────────────────────────────────
+  function startBgAnimation(theme) {
+    if (matchAnimFrame) cancelAnimationFrame(matchAnimFrame)
+
+    const canvas = document.getElementById('match-canvas')
+    const ctx = canvas.getContext('2d')
+
+    function resize() {
+      // Используем innerWidth/innerHeight как fallback если offsetWidth=0
+      canvas.width = canvas.offsetWidth || window.innerWidth
+      canvas.height = canvas.offsetHeight || window.innerHeight
+    }
+    resize()
+    window.addEventListener('resize', resize)
+
+    const W = () => canvas.width
+    const H = () => canvas.height
+
+    const count = theme.bg.particleCount
+    const style = theme.bg.style
+    const cols = theme.bg.colors
+
+    // Генерация частиц
+    const particles = Array.from({ length: count }, (_, i) => createBgParticle(i, count, style, W(), H(), cols))
+
+    let t = 0
+
+    function draw() {
+      ctx.clearRect(0, 0, W(), H())
+
+      // Фоновый градиент-туманность
+      const rawColor = theme.bg.colors[0]
+      const rgbMatch = rawColor.match(/(\d+),\s*(\d+),\s*(\d+)/)
+      const nebulaInner = rgbMatch ? `rgba(${rgbMatch[1]},${rgbMatch[2]},${rgbMatch[3]},0.45)` : 'rgba(160,128,200,0.45)'
+      const nebulaMid   = rgbMatch ? `rgba(${rgbMatch[1]},${rgbMatch[2]},${rgbMatch[3]},0.18)` : 'rgba(160,128,200,0.18)'
+      const grd = ctx.createRadialGradient(W() / 2, H() / 2, 0, W() / 2, H() / 2, W() * 0.65)
+      grd.addColorStop(0, nebulaInner)
+      grd.addColorStop(0.45, nebulaMid)
+      grd.addColorStop(1, 'rgba(4,3,10,0)')
+      ctx.fillStyle = grd
+      ctx.fillRect(0, 0, W(), H())
+
+      // Частицы
+      particles.forEach(p => {
+        updateBgParticle(p, t, style, W(), H())
+        ctx.beginPath()
+        ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2)
+        ctx.fillStyle = p.color
+        ctx.fill()
+      })
+
+      t += 0.016
+      matchAnimFrame = requestAnimationFrame(draw)
+    }
+
+    draw()
+  }
+
+  function createBgParticle(i, total, style, W, H, cols) {
+    const angle = (i / total) * Math.PI * 2
+    const dist = Math.random() * Math.min(W, H) * 0.45 + 20
+    const col = cols[Math.floor(Math.random() * cols.length)]
+    const alpha = (Math.random() * 0.55 + 0.35).toFixed(2)
+
+    // Цвет всегда в формате rgba — парсим из rgba(...) или hex
+    let colorStr
+    if (col.startsWith('rgba')) {
+      // Заменяем последний компонент alpha на более яркий
+      colorStr = `rgba(${col.match(/\d+,\s*\d+,\s*\d+/)?.[0] || '160,160,192'},${alpha})`
+    } else {
+      colorStr = `rgba(${hexToRgbStr(col)},${alpha})`
+    }
+
+    const p = {
+      angle,
+      dist,
+      baseX: W / 2 + Math.cos(angle) * dist,
+      baseY: H / 2 + Math.sin(angle) * dist,
+      x: W / 2,
+      y: H / 2,
+      r: Math.random() * 2.5 + 0.8,
+      speed: Math.random() * 0.4 + 0.1,
+      phase: Math.random() * Math.PI * 2,
+      color: colorStr,
+      style
+    }
+
+    // Для vortex — начинают снаружи и движутся к центру
+    if (style === 'vortex') {
+      p.x = W / 2 + Math.cos(angle) * dist
+      p.y = H / 2 + Math.sin(angle) * dist
+    }
+
+    return p
+  }
+
+  function updateBgParticle(p, t, style, W, H) {
+    const cx = W / 2, cy = H / 2
+
+    switch (style) {
+      case 'radiate':
+        // Расходятся от центра
+        p.x = cx + Math.cos(p.angle + t * 0.1) * (p.dist * (0.3 + 0.7 * ((t * p.speed) % 1)))
+        p.y = cy + Math.sin(p.angle + t * 0.1) * (p.dist * (0.3 + 0.7 * ((t * p.speed) % 1)))
+        p.r = 1.8 * (1 - ((t * p.speed) % 1) * 0.5)
+        break
+
+      case 'drift':
+        // Медленный дрейф
+        p.x = p.baseX + Math.sin(t * p.speed + p.phase) * 20
+        p.y = p.baseY + Math.cos(t * p.speed * 0.7 + p.phase) * 15
+        break
+
+      case 'nebula':
+        // Туманность — медленные волны
+        p.x = p.baseX + Math.sin(t * p.speed * 0.5 + p.phase) * 30
+        p.y = p.baseY + Math.cos(t * p.speed * 0.3 + p.phase) * 20
+        p.r = 1.5 + Math.sin(t * 0.5 + p.phase) * 0.8
+        break
+
+      case 'mirror':
+        // Зеркальные — симметрично относительно центра
+        p.x = cx + Math.sin(t * p.speed + p.phase) * p.dist
+        p.y = cy + Math.cos(t * p.speed * 0.8 + p.phase) * p.dist * 0.6
+        break
+
+      case 'gentle':
+        // Спокойное парение
+        p.x = p.baseX + Math.sin(t * p.speed * 0.3 + p.phase) * 12
+        p.y = p.baseY + Math.cos(t * p.speed * 0.2 + p.phase) * 8
+        break
+
+      case 'pulse':
+        // Пульсирующий — расширяются и сжимаются
+        const pulse = 0.7 + 0.3 * Math.sin(t * 2 + p.phase)
+        p.x = cx + Math.cos(p.angle) * p.dist * pulse
+        p.y = cy + Math.sin(p.angle) * p.dist * pulse
+        p.r = 1.2 + 0.8 * Math.sin(t * 3 + p.phase)
+        break
+
+      case 'sparse':
+        // Редкие, медленные
+        p.x = p.baseX + Math.sin(t * p.speed * 0.4 + p.phase) * 10
+        p.y = p.baseY + Math.cos(t * p.speed * 0.3 + p.phase) * 8
+        p.r = 0.8 + Math.sin(t + p.phase) * 0.4
+        break
+
+      case 'vortex':
+        // Вихрь к центру
+        p.angle += 0.015 * p.speed
+        p.dist = Math.max(5, p.dist - 0.3 * p.speed)
+        p.x = cx + Math.cos(p.angle) * p.dist
+        p.y = cy + Math.sin(p.angle) * p.dist
+        if (p.dist < 8) {
+          p.dist = Math.random() * Math.min(W, H) * 0.4 + 40
+          p.angle = Math.random() * Math.PI * 2
+        }
+        break
+
+      case 'clash':
+        // Разлетаются от центра при столкновении
+        p.x = p.baseX + Math.sin(t * p.speed * 1.5 + p.phase) * 25
+        p.y = p.baseY + Math.cos(t * p.speed + p.phase) * 20
+        p.r = 1.0 + Math.abs(Math.sin(t * 2 + p.phase)) * 1.2
+        break
+
+      case 'symmetric':
+        // Идеально симметричные
+        const sx = Math.sin(t * p.speed * 0.25 + p.phase) * p.dist * 0.5
+        const sy = Math.cos(t * p.speed * 0.25 + p.phase) * p.dist * 0.4
+        p.x = cx + sx
+        p.y = cy + sy
+        break
+
+      default:
+        p.x = p.baseX + Math.sin(t * p.speed + p.phase) * 15
+        p.y = p.baseY + Math.cos(t * p.speed + p.phase) * 10
+    }
+  }
+
+  // ─────────────────────────────────────────────────────────
+  // ПЛАМЯ МЕЖДУ ПОРТРЕТАМИ — полностью переписано
+  // ─────────────────────────────────────────────────────────
+  function startFlameAnimation(theme) {
+    if (flameAnimFrame) cancelAnimationFrame(flameAnimFrame)
+
+    const canvas = document.getElementById('flame-canvas')
+    const ctx = canvas.getContext('2d')
+    const W = canvas.width   // 120
+    const H = canvas.height  // 200
+    const cx = W / 2         // 60
+
+    const colors = theme.flame.colors
+    const intensity = Math.max(theme.flame.intensity, 0.7) // минимум 0.7 чтобы было видно
+    const heightFactor = Math.max(theme.flame.height, 0.85)
+    const speed = theme.flame.speed
+    const flameStyle = theme.flame.style
+
+    // Слой 1: Ядро пламени (крупные яркие частицы)
+    const coreParticles = Array.from({ length: 35 }, () => spawnFlameCore(cx, H, colors, heightFactor))
+    // Слой 2: Тело пламени (средние частицы)
+    const bodyParticles = Array.from({ length: 45 }, () => spawnFlameBody(cx, H, colors, heightFactor))
+    // Слой 3: Язычки (мелкие частицы на вершине)
+    const tipParticles = Array.from({ length: 25 }, () => spawnFlameTip(cx, H, colors, heightFactor))
+
+    let t = 0
+
+    function drawFlame() {
+      ctx.clearRect(0, 0, W, H)
+
+      // Большое свечение у основания пламени
+      const baseY = H * 0.85
+      const glowR1 = ctx.createRadialGradient(cx, baseY, 0, cx, baseY, 38)
+      glowR1.addColorStop(0, hexToRgba(colors[0], 0.55 * intensity))
+      glowR1.addColorStop(0.4, hexToRgba(colors[0], 0.25 * intensity))
+      glowR1.addColorStop(1, 'rgba(0,0,0,0)')
+      ctx.fillStyle = glowR1
+      ctx.fillRect(0, 0, W, H)
+
+      // Серединное свечение (белое/жёлтое ядро)
+      const coreGlow = ctx.createRadialGradient(cx, baseY - 10, 0, cx, baseY - 10, 18)
+      coreGlow.addColorStop(0, hexToRgba(colors[2] || colors[0], 0.8 * intensity))
+      coreGlow.addColorStop(0.5, hexToRgba(colors[0], 0.4 * intensity))
+      coreGlow.addColorStop(1, 'rgba(0,0,0,0)')
+      ctx.fillStyle = coreGlow
+      ctx.fillRect(0, 0, W, H)
+
+      // Рисуем слои пламени
+      ;[bodyParticles, coreParticles, tipParticles].forEach((layer, li) => {
+        layer.forEach(p => {
+          updateFP(p, t, flameStyle, cx, H, heightFactor, speed, li)
+          if (p.life <= 0) {
+            if (li === 0) Object.assign(p, spawnFlameBody(cx, H, colors, heightFactor))
+            else if (li === 1) Object.assign(p, spawnFlameCore(cx, H, colors, heightFactor))
+            else Object.assign(p, spawnFlameTip(cx, H, colors, heightFactor))
+          }
+          const alpha = (p.life / p.maxLife) * p.baseAlpha * intensity
+          ctx.save()
+          ctx.globalCompositeOperation = li === 1 ? 'screen' : 'source-over'
+          ctx.beginPath()
+          ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2)
+          ctx.fillStyle = p.color.replace('ALPHA', alpha.toFixed(2))
+          ctx.fill()
+          ctx.restore()
+        })
+      })
+
+      // Блик яркого центра
+      const blink = 0.7 + 0.3 * Math.sin(t * 8)
+      ctx.beginPath()
+      ctx.arc(cx, baseY - 8, 6 * blink, 0, Math.PI * 2)
+      ctx.fillStyle = hexToRgba(colors[2] || '#ffffff', 0.9 * intensity * blink)
+      ctx.fill()
+
+      t += 0.04 * Math.max(speed, 0.5)
+      flameAnimFrame = requestAnimationFrame(drawFlame)
+    }
+
+    drawFlame()
+  }
+
+  // Спавнеры частиц для каждого слоя
+  function spawnFlameCore(cx, H, colors, hf) {
+    const col = colors[Math.floor(Math.random() * colors.length)]
+    const maxLife = 30 + Math.random() * 25
+    return {
+      x: cx + (Math.random() - 0.5) * 12,
+      y: H * 0.82 + Math.random() * H * 0.1,
+      vx: (Math.random() - 0.5) * 0.6,
+      vy: -(Math.random() * 2.2 + 1.2) * hf,
+      r: Math.random() * 7 + 4,
+      life: maxLife, maxLife,
+      baseAlpha: 0.9,
+      color: `rgba(${hexToRgbStr(col)},ALPHA)`,
+      phase: Math.random() * Math.PI * 2
+    }
+  }
+
+  function spawnFlameBody(cx, H, colors, hf) {
+    const col = colors[Math.floor(Math.random() * colors.length)]
+    const maxLife = 45 + Math.random() * 30
+    return {
+      x: cx + (Math.random() - 0.5) * 22,
+      y: H * 0.8 + Math.random() * H * 0.12,
+      vx: (Math.random() - 0.5) * 1.0,
+      vy: -(Math.random() * 1.8 + 0.8) * hf,
+      r: Math.random() * 9 + 5,
+      life: maxLife, maxLife,
+      baseAlpha: 0.65,
+      color: `rgba(${hexToRgbStr(col)},ALPHA)`,
+      phase: Math.random() * Math.PI * 2
+    }
+  }
+
+  function spawnFlameTip(cx, H, colors, hf) {
+    const col = colors[Math.floor(Math.random() * colors.length)]
+    const maxLife = 20 + Math.random() * 20
+    return {
+      x: cx + (Math.random() - 0.5) * 16,
+      y: H * 0.75 + Math.random() * H * 0.08,
+      vx: (Math.random() - 0.5) * 0.8,
+      vy: -(Math.random() * 1.5 + 1.0) * hf,
+      r: Math.random() * 4 + 2,
+      life: maxLife, maxLife,
+      baseAlpha: 0.5,
+      color: `rgba(${hexToRgbStr(col)},ALPHA)`,
+      phase: Math.random() * Math.PI * 2
+    }
+  }
+
+  function updateFP(p, t, style, cx, H, hf, speed, layer) {
+    p.life -= speed * (layer === 0 ? 0.55 : layer === 1 ? 0.7 : 0.9)
+
+    switch (style) {
+      case 'steady':
+        p.x += p.vx * 0.35 + Math.sin(t + p.phase) * 0.4
+        p.y += p.vy
+        p.r *= 0.987
+        break
+      case 'reaching':
+        const pull = (p.x > cx ? -1 : 1) * 0.2
+        p.x += p.vx + pull
+        p.y += p.vy
+        p.r *= 0.984
+        break
+      case 'flowing':
+        p.x += p.vx + Math.sin(t * 1.5 + p.phase) * 0.9
+        p.y += p.vy * 0.92
+        p.r *= 0.986
+        break
+      case 'shimmer':
+        p.x += p.vx + Math.sin(t * 3 + p.phase) * 0.6
+        p.y += p.vy
+        p.r = Math.max(1, p.r * (0.98 + Math.sin(t * 5 + p.phase) * 0.02))
+        if (Math.random() < 0.05) p.life -= 3
+        break
+      case 'calm':
+        p.x += p.vx * 0.25 + Math.sin(t * 0.5 + p.phase) * 0.25
+        p.y += p.vy * 0.75
+        p.r *= 0.989
+        break
+      case 'pulse': {
+        const pb = 1 + 0.45 * Math.sin(t * 2.2)
+        p.x += p.vx * pb
+        p.y += p.vy * pb
+        p.r = Math.max(1, p.r * 0.985)
+        break
+      }
+      case 'dim':
+        p.x += p.vx + (Math.random() - 0.5) * 0.7
+        p.y += p.vy * 0.82
+        p.r *= 0.981
+        if (Math.random() < 0.08) p.life -= 2
+        break
+      case 'implode':
+        p.x += (cx - p.x) * 0.025 + p.vx * 0.5
+        p.y += p.vy * 0.65
+        p.r *= 0.978
+        break
+      case 'collide': {
+        const d = p.x > cx ? -1 : 1
+        p.x += p.vx + d * 0.5
+        p.y += p.vy
+        p.r *= 0.985
+        if (Math.abs(p.x - cx) < 5) p.vy *= 1.25
+        break
+      }
+      case 'mirror_static':
+        p.x = cx + (p.x > cx ? 1 : -1) * Math.abs(p.x - cx) * 0.992
+        p.x += Math.sin(t * 0.4 + p.phase) * 0.2
+        p.y += p.vy * 0.55
+        p.r *= 0.991
+        break
+      default:
+        p.x += p.vx + Math.sin(t + p.phase) * 0.5
+        p.y += p.vy
+        p.r *= 0.985
+    }
+  }
+
+  // Старые функции оставлены для совместимости
+  function createFlameParticle(cx, H, colors, style, heightFactor) {
+    return spawnFlameBody(cx, H, colors, heightFactor)
+  }
+  function updateFlameParticle(p, t, style, cx, H, heightFactor, speed) {
+    updateFP(p, t, style, cx, H, heightFactor, speed, 0)
+  }
+
+  // ─── Утилиты цвета ────────────────────────────────────────
+  function hexToRgbStr(hex) {
+    hex = hex.replace('#', '')
+    if (hex.length === 3) hex = hex.split('').map(c => c + c).join('')
+    const r = parseInt(hex.slice(0, 2), 16)
+    const g = parseInt(hex.slice(2, 4), 16)
+    const b = parseInt(hex.slice(4, 6), 16)
+    return `${r},${g},${b}`
+  }
+
+  function hexToRgba(hex, alpha) {
+    return `rgba(${hexToRgbStr(hex)},${alpha.toFixed(2)})`
+  }
+
+  // ─── SWIPE GESTURES ───────────────────────────────────────
+  function setupSwipe() {
+    const stack = document.getElementById('card-stack')
+    let startX = 0, isDragging = false
+
+    function onStart(x) { startX = x; isDragging = true }
+    function onEnd(x) {
+      if (!isDragging) return
+      isDragging = false
+      const diffX = x - startX
+      if (Math.abs(diffX) > 60) swipe(diffX > 0 ? 'like' : 'pass')
+    }
+
+    stack.addEventListener('touchstart', e => onStart(e.touches[0].clientX), { passive: true })
+    stack.addEventListener('touchend', e => onEnd(e.changedTouches[0].clientX))
+    stack.addEventListener('mousedown', e => onStart(e.clientX))
+    stack.addEventListener('mouseup', e => onEnd(e.clientX))
+  }
+
+  document.addEventListener('keydown', e => {
+    if (e.key === 'ArrowRight') swipe('like')
+    if (e.key === 'ArrowLeft') swipe('pass')
+    if (e.key === 'Escape') closeMatch(false)
+  })
+</script>
+</body>
+</html>

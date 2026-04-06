@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>Twin Frequency - Legal</title>
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;500;600&family=Jost:wght@300;400;500&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #04030a;
+      --surface: #0a0816;
+      --text: #e0d8f0;
+      --text-muted: #8a80a0;
+      --gold: #c9a96e;
+      --gold-soft: #a88d5a;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Jost', sans-serif;
+      line-height: 1.6;
+      padding: 20px;
+      max-width: 800px;
+      margin: 0 auto;
+    }
+    h1, h2 {
+      font-family: 'Cinzel', serif;
+      color: var(--gold);
+      margin: 30px 0 15px;
+      font-weight: 500;
+    }
+    h1 { font-size: 28px; text-align: center; margin-top: 40px; }
+    h2 { font-size: 20px; border-bottom: 1px solid rgba(201,169,110,0.2); padding-bottom: 8px; }
+    p, ul { margin-bottom: 15px; color: var(--text-muted); font-size: 15px; }
+    ul { padding-left: 20px; }
+    li { margin-bottom: 8px; }
+    .back-btn {
+      display: inline-flex;
+      align-items: center;
+      color: var(--gold-soft);
+      text-decoration: none;
+      font-size: 14px;
+      margin-bottom: 20px;
+      cursor: pointer;
+    }
+    .back-btn svg { margin-right: 8px; }
+    .tabs {
+      display: flex;
+      border-bottom: 1px solid rgba(201,169,110,0.2);
+      margin-bottom: 30px;
+    }
+    .tab {
+      flex: 1;
+      text-align: center;
+      padding: 15px 0;
+      color: var(--text-muted);
+      cursor: pointer;
+      font-family: 'Cinzel', serif;
+      letter-spacing: 0.1em;
+      transition: all 0.3s;
+    }
+    .tab.active {
+      color: var(--gold);
+      border-bottom: 2px solid var(--gold);
+    }
+    .content { display: none; }
+    .content.active { display: block; }
+  </style>
+</head>
+<body>
+
+  <a class="back-btn" onclick="history.back()">
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+      <path d="M19 12H5M12 19l-7-7 7-7" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+    </svg>
+    Back
+  </a>
+
+  <div class="tabs">
+    <div class="tab active" onclick="switchTab('privacy')">Privacy Policy</div>
+    <div class="tab" onclick="switchTab('terms')">Terms of Use</div>
+  </div>
+
+  <!-- PRIVACY POLICY -->
+  <div id="privacy" class="content active">
+    <h1>Privacy Policy</h1>
+    <p>Last updated: April 2026</p>
+
+    <h2>1. Information We Collect</h2>
+    <p>We collect information you provide directly to us when you create an account, build your profile, or communicate with others on Twin Frequency. This includes:</p>
+    <ul>
+      <li><strong>Account Data:</strong> Email address, phone number, and authentication credentials.</li>
+      <li><strong>Profile Data:</strong> Name, age, gender, location, photos, and your selected soul origin.</li>
+      <li><strong>Usage Data:</strong> Your swipes, matches, messages, and interaction with the library.</li>
+      <li><strong>Device Data:</strong> IP address, device type, operating system, and app version.</li>
+    </ul>
+
+    <h2>2. How We Use Your Information</h2>
+    <p>We use your information to provide and improve our services, including:</p>
+    <ul>
+      <li>Calculating soul frequency compatibility and generating matches.</li>
+      <li>Facilitating communication between users.</li>
+      <li>Ensuring safety and security by monitoring for abusive behavior.</li>
+      <li>Complying with legal obligations.</li>
+    </ul>
+
+    <h2>3. Data Sharing and Disclosure</h2>
+    <p>We do not sell your personal data. We may share your information only in the following circumstances:</p>
+    <ul>
+      <li><strong>With Other Users:</strong> Your profile information (name, photo, origin, age, location) is visible to other users.</li>
+      <li><strong>Service Providers:</strong> We use third-party services (e.g., Supabase for database hosting) to operate our platform.</li>
+      <li><strong>Legal Requirements:</strong> If required by law, subpoena, or other legal processes.</li>
+    </ul>
+
+    <h2>4. Your Rights (GDPR & CCPA)</h2>
+    <p>Depending on your location, you have the right to:</p>
+    <ul>
+      <li>Access the personal data we hold about you.</li>
+      <li>Request correction of inaccurate data.</li>
+      <li>Request deletion of your account and all associated data ("Right to be Forgotten"). You can do this directly from the Profile Settings page.</li>
+      <li>Opt-out of promotional communications.</li>
+    </ul>
+
+    <h2>5. Data Security</h2>
+    <p>We implement industry-standard security measures to protect your data. However, no method of transmission over the Internet is 100% secure. We cannot guarantee absolute security.</p>
+
+    <h2>6. Contact Us</h2>
+    <p>If you have questions about this Privacy Policy, please contact us at support@twinfrequency.app.</p>
+  </div>
+
+  <!-- TERMS OF USE -->
+  <div id="terms" class="content">
+    <h1>Terms of Use</h1>
+    <p>Last updated: April 2026</p>
+
+    <h2>1. Acceptance of Terms</h2>
+    <p>By accessing or using Twin Frequency, you agree to be bound by these Terms of Use. If you do not agree, you may not use the app.</p>
+
+    <h2>2. Eligibility</h2>
+    <p>You must be at least 18 years old to create an account and use Twin Frequency. By creating an account, you represent and warrant that you meet this age requirement.</p>
+
+    <h2>3. User Conduct and Content</h2>
+    <p>You are solely responsible for your interactions with other users and the content you post. You agree NOT to:</p>
+    <ul>
+      <li>Post any content that is abusive, threatening, obscene, defamatory, or racially, sexually, or otherwise objectionable.</li>
+      <li>Harass, stalk, or intimidate other users.</li>
+      <li>Use the app for any illegal or unauthorized purpose, including fraud or soliciting money.</li>
+      <li>Impersonate any person or entity.</li>
+      <li>Upload viruses or malicious code.</li>
+    </ul>
+    <p>We reserve the right to suspend or terminate your account without notice if you violate these rules.</p>
+
+    <h2>4. Safety and Interactions</h2>
+    <p>Twin Frequency does not conduct criminal background checks on its users. You are solely responsible for your safety when interacting with others, both online and offline. Always exercise caution and use the in-app reporting tools if you encounter suspicious behavior.</p>
+
+    <h2>5. Intellectual Property</h2>
+    <p>All content provided by Twin Frequency, including text, graphics, logos, and algorithms, is the property of Twin Frequency and is protected by copyright and intellectual property laws.</p>
+
+    <h2>6. Limitation of Liability</h2>
+    <p>To the maximum extent permitted by law, Twin Frequency shall not be liable for any indirect, incidental, special, consequential, or punitive damages resulting from your use of or inability to use the service, or any conduct or content of any third party on the service.</p>
+
+    <h2>7. Changes to Terms</h2>
+    <p>We may modify these Terms at any time. We will notify you of significant changes by posting the new Terms in the app. Your continued use of the app constitutes acceptance of the updated Terms.</p>
+  </div>
+
+  <script>
+    function switchTab(tabId) {
+      document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+      document.querySelectorAll('.content').forEach(c => c.classList.remove('active'));
+      event.target.classList.add('active');
+      document.getElementById(tabId).classList.add('active');
+    }
+  </script>
+</body>
+</html>

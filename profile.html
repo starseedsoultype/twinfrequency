@@ -1,0 +1,1416 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>Twin Frequency — Profile</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;1,300;1,400&family=Jost:wght@200;300;400&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  :root {
+    --gold: #c9a96e;
+    --gold-soft: #e8d5b0;
+    --deep: #04030a;
+    --mid: #0d0b18;
+    --text: #e8e0d5;
+    --muted: #6b6478;
+    --border: rgba(201,169,110,0.12);
+  }
+
+  html, body {
+    min-height: 100%;
+    background: var(--deep);
+    color: var(--text);
+    font-family: 'Jost', sans-serif;
+    font-weight: 200;
+    overflow-x: hidden;
+  }
+
+  /* ── STARS BG ── */
+  canvas#stars {
+    position: fixed;
+    inset: 0;
+    z-index: 0;
+    pointer-events: none;
+  }
+
+  .nebula {
+    position: fixed;
+    border-radius: 50%;
+    filter: blur(80px);
+    pointer-events: none;
+    z-index: 0;
+  }
+  .nebula-1 {
+    width: 500px; height: 500px;
+    top: -100px; left: -100px;
+    background: radial-gradient(circle, rgba(80,40,120,0.15) 0%, transparent 70%);
+  }
+  .nebula-2 {
+    width: 400px; height: 400px;
+    bottom: 0; right: -50px;
+    background: radial-gradient(circle, rgba(40,60,120,0.12) 0%, transparent 70%);
+  }
+
+  /* ── TOP NAV ── */
+  .top-nav {
+    position: fixed;
+    top: 0; left: 0; right: 0;
+    z-index: 50;
+    padding: 16px 20px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: linear-gradient(to bottom, rgba(4,3,10,0.9), transparent);
+  }
+
+  .nav-back {
+    display: flex; align-items: center; gap: 8px;
+    cursor: pointer; opacity: 0.7; transition: opacity 0.2s;
+    font-size: 11px; letter-spacing: 0.25em; text-transform: uppercase;
+    color: var(--muted);
+  }
+  .nav-back:hover { opacity: 1; color: var(--text); }
+
+  .nav-logo {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 18px; font-weight: 300; letter-spacing: 0.15em;
+    color: var(--gold-soft);
+  }
+  .nav-logo em { font-style: italic; color: var(--gold); }
+
+  .nav-logout {
+    font-size: 10px; letter-spacing: 0.25em; text-transform: uppercase;
+    color: var(--muted); cursor: pointer; opacity: 0.7; transition: opacity 0.2s;
+  }
+  .nav-logout:hover { opacity: 1; color: #e07070; }
+
+  /* ── MAIN LAYOUT ── */
+  .page {
+    position: relative;
+    z-index: 1;
+    max-width: 480px;
+    margin: 0 auto;
+    padding: 80px 0 60px;
+  }
+
+  /* ── HERO SECTION ── */
+  .hero {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 32px 24px 0;
+    text-align: center;
+  }
+
+  /* Photo */
+  .photo-wrap {
+    position: relative;
+    width: 110px; height: 110px;
+    margin-bottom: 20px;
+    cursor: pointer;
+  }
+
+  .photo-avatar {
+    width: 110px; height: 110px;
+    border-radius: 50%;
+    background-size: cover;
+    background-position: center;
+    background-color: var(--mid);
+    border: 1px solid rgba(201,169,110,0.25);
+    transition: border-color 0.3s;
+  }
+
+  .photo-wrap:hover .photo-avatar {
+    border-color: rgba(201,169,110,0.6);
+  }
+
+  .photo-edit-btn {
+    position: absolute;
+    bottom: 2px; right: 2px;
+    width: 28px; height: 28px;
+    border-radius: 50%;
+    background: var(--mid);
+    border: 1px solid rgba(201,169,110,0.3);
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+
+  .photo-edit-btn:hover {
+    background: rgba(201,169,110,0.15);
+    border-color: rgba(201,169,110,0.6);
+  }
+
+  .photo-input { display: none; }
+
+  /* Name + age */
+  .hero-name {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 32px; font-weight: 300;
+    color: var(--text);
+    line-height: 1.1;
+    margin-bottom: 4px;
+  }
+
+  .hero-age {
+    font-size: 13px; color: var(--muted);
+    letter-spacing: 0.05em;
+    margin-bottom: 12px;
+  }
+
+  /* Origin badge */
+  .origin-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 16px;
+    border-radius: 20px;
+    background: rgba(201,169,110,0.08);
+    border: 1px solid rgba(201,169,110,0.25);
+    cursor: pointer;
+    transition: background 0.2s;
+    margin-bottom: 8px;
+  }
+
+  .origin-badge:hover { background: rgba(201,169,110,0.15); }
+
+  .origin-dot {
+    width: 5px; height: 5px;
+    border-radius: 50%;
+    background: var(--gold);
+    flex-shrink: 0;
+  }
+
+  .origin-label {
+    font-size: 10px; letter-spacing: 0.35em;
+    text-transform: uppercase; color: var(--gold);
+  }
+
+  /* Location */
+  .hero-location {
+    display: flex; align-items: center; gap: 6px;
+    font-size: 12px; color: var(--muted);
+    letter-spacing: 0.05em;
+    margin-top: 4px;
+  }
+
+  /* ── DIVIDER ── */
+  .divider {
+    width: 100%;
+    height: 1px;
+    background: var(--border);
+    margin: 28px 0;
+  }
+
+  /* ── SECTION ── */
+  .section {
+    padding: 0 24px;
+    margin-bottom: 8px;
+  }
+
+  .section-title {
+    font-size: 9px;
+    letter-spacing: 0.5em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 16px;
+  }
+
+  /* ── FIELD ROW ── */
+  .field-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 14px 0;
+    border-bottom: 1px solid var(--border);
+    cursor: pointer;
+    transition: background 0.15s;
+    border-radius: 2px;
+  }
+
+  .field-row:last-child { border-bottom: none; }
+
+  .field-row:hover { background: rgba(255,255,255,0.02); }
+
+  .field-left {
+    display: flex; align-items: center; gap: 12px;
+  }
+
+  .field-icon {
+    width: 32px; height: 32px;
+    border-radius: 50%;
+    background: rgba(201,169,110,0.06);
+    border: 1px solid rgba(201,169,110,0.12);
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+  }
+
+  .field-info {}
+
+  .field-label {
+    font-size: 10px;
+    letter-spacing: 0.25em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 2px;
+  }
+
+  .field-value {
+    font-size: 14px;
+    color: var(--text);
+    font-weight: 300;
+  }
+
+  .field-value.placeholder { color: var(--muted); font-style: italic; }
+
+  .field-arrow {
+    opacity: 0.3;
+    flex-shrink: 0;
+  }
+
+  /* ── TOGGLE ROW ── */
+  .toggle-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 14px 0;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .toggle-row:last-child { border-bottom: none; }
+
+  .toggle-left {
+    display: flex; align-items: center; gap: 12px;
+  }
+
+  .toggle-info {}
+
+  .toggle-label {
+    font-size: 14px;
+    color: var(--text);
+    font-weight: 300;
+    margin-bottom: 2px;
+  }
+
+  .toggle-sub {
+    font-size: 11px;
+    color: var(--muted);
+    letter-spacing: 0.02em;
+  }
+
+  /* iOS-style toggle */
+  .toggle {
+    position: relative;
+    width: 44px; height: 26px;
+    flex-shrink: 0;
+    cursor: pointer;
+  }
+
+  .toggle input { display: none; }
+
+  .toggle-track {
+    position: absolute;
+    inset: 0;
+    border-radius: 13px;
+    background: rgba(255,255,255,0.08);
+    border: 1px solid rgba(255,255,255,0.1);
+    transition: all 0.3s;
+  }
+
+  .toggle input:checked + .toggle-track {
+    background: rgba(201,169,110,0.35);
+    border-color: rgba(201,169,110,0.5);
+  }
+
+  .toggle-thumb {
+    position: absolute;
+    top: 3px; left: 3px;
+    width: 18px; height: 18px;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.4);
+    transition: all 0.3s;
+  }
+
+  .toggle input:checked ~ .toggle-thumb {
+    left: 21px;
+    background: var(--gold);
+  }
+
+  /* ── RANGE SLIDER ── */
+  .range-wrap {
+    padding: 14px 0;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .range-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 12px;
+  }
+
+  .range-label {
+    font-size: 14px; color: var(--text); font-weight: 300;
+  }
+
+  .range-value {
+    font-size: 12px; color: var(--gold); letter-spacing: 0.05em;
+  }
+
+  .range-track {
+    position: relative;
+    height: 2px;
+    background: rgba(255,255,255,0.08);
+    border-radius: 1px;
+    margin: 8px 0;
+  }
+
+  .range-fill {
+    position: absolute;
+    top: 0; height: 100%;
+    background: rgba(201,169,110,0.5);
+    border-radius: 1px;
+    pointer-events: none;
+  }
+
+  input[type="range"] {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 100%;
+    height: 2px;
+    background: transparent;
+    position: relative;
+    z-index: 1;
+    cursor: pointer;
+  }
+
+  input[type="range"]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 18px; height: 18px;
+    border-radius: 50%;
+    background: var(--gold-soft);
+    border: 1px solid rgba(201,169,110,0.6);
+    box-shadow: 0 0 8px rgba(201,169,110,0.3);
+    cursor: pointer;
+    transition: transform 0.15s;
+  }
+
+  input[type="range"]::-webkit-slider-thumb:hover {
+    transform: scale(1.15);
+  }
+
+  /* ── SELECT CHIP GROUP ── */
+  .chip-group {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    padding: 14px 0;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .chip-group:last-child { border-bottom: none; }
+
+  .chip-label-row {
+    width: 100%;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+  }
+
+  .chip {
+    padding: 6px 14px;
+    border-radius: 20px;
+    font-family: 'Jost', sans-serif;
+    font-size: 10px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    cursor: pointer;
+    border: 1px solid rgba(255,255,255,0.1);
+    background: rgba(255,255,255,0.04);
+    color: var(--muted);
+    transition: all 0.2s;
+  }
+
+  .chip:hover {
+    border-color: rgba(201,169,110,0.3);
+    color: var(--text);
+  }
+
+  .chip.active {
+    background: rgba(201,169,110,0.12);
+    border-color: rgba(201,169,110,0.4);
+    color: var(--gold);
+  }
+
+  /* ── NOTIFICATION ROWS ── */
+  .notif-section { margin-bottom: 0; }
+
+  /* ── DANGER ZONE ── */
+  .danger-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 14px 0;
+    cursor: pointer;
+    border-bottom: 1px solid var(--border);
+    transition: opacity 0.2s;
+  }
+
+  .danger-row:last-child { border-bottom: none; }
+  .danger-row:hover { opacity: 0.7; }
+
+  .danger-icon {
+    width: 32px; height: 32px;
+    border-radius: 50%;
+    background: rgba(224,112,112,0.06);
+    border: 1px solid rgba(224,112,112,0.15);
+    display: flex; align-items: center; justify-content: center;
+    flex-shrink: 0;
+  }
+
+  .danger-text {
+    font-size: 14px; color: #e07070; font-weight: 300;
+  }
+
+  /* ── LOADING ── */
+  .loading-screen {
+    position: fixed; inset: 0; z-index: 100;
+    background: var(--deep);
+    display: flex; align-items: center; justify-content: center;
+    transition: opacity 0.6s ease;
+  }
+  .loading-screen.hide { opacity: 0; pointer-events: none; }
+  .loading-pulse {
+    width: 36px; height: 36px;
+    border: 1px solid rgba(201,169,110,0.3);
+    border-top-color: var(--gold);
+    border-radius: 50%;
+    animation: spin 1.2s linear infinite;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  /* ── EDIT MODAL ── */
+  .modal-overlay {
+    position: fixed; inset: 0; z-index: 300;
+    background: rgba(4,3,10,0.92);
+    display: none;
+    align-items: flex-end;
+    justify-content: center;
+  }
+
+  .modal-overlay.show { display: flex; }
+
+  .modal {
+    width: 100%;
+    max-width: 480px;
+    background: #0d0b18;
+    border-radius: 16px 16px 0 0;
+    border-top: 1px solid rgba(201,169,110,0.15);
+    padding: 24px 24px 40px;
+    transform: translateY(100%);
+    transition: transform 0.4s cubic-bezier(0.34, 1.2, 0.64, 1);
+  }
+
+  .modal-overlay.show .modal {
+    transform: translateY(0);
+  }
+
+  .modal-handle {
+    width: 36px; height: 3px;
+    border-radius: 2px;
+    background: rgba(255,255,255,0.1);
+    margin: 0 auto 20px;
+  }
+
+  .modal-title {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 22px; font-weight: 300;
+    color: var(--gold-soft);
+    margin-bottom: 20px;
+    text-align: center;
+  }
+
+  .modal-field {
+    margin-bottom: 16px;
+  }
+
+  .modal-field label {
+    display: block;
+    font-size: 10px; letter-spacing: 0.3em;
+    text-transform: uppercase; color: var(--muted);
+    margin-bottom: 8px;
+  }
+
+  .modal-field input,
+  .modal-field select {
+    width: 100%;
+    padding: 12px 16px;
+    background: rgba(255,255,255,0.04);
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 2px;
+    color: var(--text);
+    font-family: 'Jost', sans-serif;
+    font-size: 14px; font-weight: 200;
+    outline: none;
+    transition: border-color 0.2s;
+    -webkit-appearance: none;
+  }
+
+  .modal-field input:focus,
+  .modal-field select:focus {
+    border-color: rgba(201,169,110,0.4);
+  }
+
+  .modal-field select option {
+    background: #0d0b18;
+    color: var(--text);
+  }
+
+  .modal-actions {
+    display: flex; gap: 10px; margin-top: 20px;
+  }
+
+  .btn-save {
+    flex: 1;
+    padding: 14px;
+    background: rgba(201,169,110,0.15);
+    border: 1px solid rgba(201,169,110,0.4);
+    border-radius: 2px;
+    color: var(--gold-soft);
+    font-family: 'Jost', sans-serif;
+    font-size: 11px; letter-spacing: 0.3em;
+    text-transform: uppercase; cursor: pointer;
+    transition: all 0.2s;
+  }
+
+  .btn-save:hover { background: rgba(201,169,110,0.25); }
+
+  .btn-cancel {
+    padding: 14px 20px;
+    background: none;
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 2px;
+    color: var(--muted);
+    font-family: 'Jost', sans-serif;
+    font-size: 11px; letter-spacing: 0.3em;
+    text-transform: uppercase; cursor: pointer;
+    transition: all 0.2s;
+  }
+
+  .btn-cancel:hover { border-color: rgba(255,255,255,0.2); color: var(--text); }
+
+  /* ── TOAST ── */
+  .toast {
+    position: fixed;
+    bottom: 32px; left: 50%; transform: translateX(-50%) translateY(20px);
+    z-index: 400;
+    padding: 10px 20px;
+    background: rgba(13,11,24,0.95);
+    border: 1px solid rgba(201,169,110,0.25);
+    border-radius: 20px;
+    font-size: 12px; letter-spacing: 0.1em;
+    color: var(--gold-soft);
+    opacity: 0;
+    transition: all 0.3s;
+    white-space: nowrap;
+  }
+
+  .toast.show {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+  }
+
+  /* ── BOTTOM NAV ── */
+  .bottom-nav {
+    position: fixed;
+    bottom: 0; left: 0; right: 0;
+    z-index: 50;
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+    padding: 12px 0 24px;
+    background: linear-gradient(to top, rgba(4,3,10,0.98), rgba(4,3,10,0.7));
+    border-top: 1px solid rgba(255,255,255,0.04);
+  }
+
+  .nav-tab {
+    display: flex; flex-direction: column; align-items: center; gap: 4px;
+    cursor: pointer; opacity: 0.4; transition: opacity 0.2s;
+    padding: 4px 16px;
+  }
+
+  .nav-tab.active { opacity: 1; }
+  .nav-tab:hover { opacity: 0.8; }
+
+  .nav-tab-label {
+    font-size: 9px; letter-spacing: 0.2em; text-transform: uppercase;
+    color: var(--gold-soft);
+  }
+
+  /* ── ORIGIN SELECT GRID ── */
+  .origin-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+    max-height: 280px;
+    overflow-y: auto;
+    padding-right: 4px;
+  }
+
+  .origin-grid::-webkit-scrollbar { width: 3px; }
+  .origin-grid::-webkit-scrollbar-track { background: transparent; }
+  .origin-grid::-webkit-scrollbar-thumb { background: rgba(201,169,110,0.2); border-radius: 2px; }
+
+  .origin-option {
+    padding: 10px 12px;
+    border: 1px solid rgba(255,255,255,0.08);
+    border-radius: 2px;
+    font-size: 11px; letter-spacing: 0.1em;
+    color: var(--muted); cursor: pointer;
+    transition: all 0.2s;
+    text-align: center;
+  }
+
+  .origin-option:hover { border-color: rgba(201,169,110,0.3); color: var(--text); }
+
+  .origin-option.selected {
+    background: rgba(201,169,110,0.1);
+    border-color: rgba(201,169,110,0.4);
+    color: var(--gold);
+  }
+
+  /* ── VERSION TAG ── */
+  .version-tag {
+    text-align: center;
+    padding: 24px;
+    font-size: 10px;
+    color: rgba(107,100,120,0.4);
+    letter-spacing: 0.2em;
+  }
+</style>
+</head>
+<body>
+
+<canvas id="stars"></canvas>
+<div class="nebula nebula-1"></div>
+<div class="nebula nebula-2"></div>
+
+<div class="loading-screen" id="loader">
+  <div class="loading-pulse"></div>
+</div>
+
+<!-- TOP NAV -->
+<nav class="top-nav">
+  <div class="nav-back" onclick="window.location.href='feed.html'">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+      <path d="M19 12H5M5 12l7-7M5 12l7 7" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/>
+    </svg>
+    Feed
+  </div>
+  <div class="nav-logo">Twin<em>F</em></div>
+  <div class="nav-logout" onclick="handleLogout()">Sign out</div>
+</nav>
+
+<!-- MAIN PAGE -->
+<div class="page">
+
+  <!-- ── HERO ── -->
+  <div class="hero">
+
+    <!-- Photo -->
+    <div class="photo-wrap" onclick="document.getElementById('photo-input').click()">
+      <div class="photo-avatar" id="photo-avatar"></div>
+      <div class="photo-edit-btn">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none">
+          <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7" stroke="var(--gold)" stroke-width="1.5" stroke-linecap="round"/>
+          <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z" stroke="var(--gold)" stroke-width="1.5" stroke-linecap="round"/>
+        </svg>
+      </div>
+      <input type="file" id="photo-input" class="photo-input" accept="image/*" onchange="handlePhotoChange(event)">
+    </div>
+
+    <h1 class="hero-name" id="hero-name">—</h1>
+    <p class="hero-age" id="hero-age"></p>
+
+    <div class="origin-badge" onclick="openLibrary()" id="origin-badge">
+      <div class="origin-dot"></div>
+      <span class="origin-label" id="origin-label">—</span>
+    </div>
+
+    <div class="hero-location" id="hero-location" style="display:none">
+      <svg width="12" height="12" viewBox="0 0 24 24" fill="none">
+        <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z" stroke="var(--muted)" stroke-width="1.2"/>
+        <circle cx="12" cy="9" r="2.5" stroke="var(--muted)" stroke-width="1.2"/>
+      </svg>
+      <span id="location-text" style="font-size:12px;color:var(--muted)"></span>
+    </div>
+
+  </div>
+
+  <div class="divider"></div>
+
+  <!-- ── PERSONAL INFO ── -->
+  <div class="section">
+    <p class="section-title">Personal</p>
+
+    <div class="field-row" onclick="openEditModal('name')">
+      <div class="field-left">
+        <div class="field-icon">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
+            <circle cx="12" cy="8" r="4" stroke="var(--gold)" stroke-width="1.2"/>
+            <path d="M4 20c0-4 3.6-7 8-7s8 3 8 7" stroke="var(--gold)" stroke-width="1.2" stroke-linecap="round"/>
+          </svg>
+        </div>
+        <div class="field-info">
+          <p class="field-label">Name</p>
+          <p class="field-value" id="field-name">—</p>
+        </div>
+      </div>
+      <svg class="field-arrow" width="16" height="16" viewBox="0 0 24 24" fill="none">
+        <path d="M9 18l6-6-6-6" stroke="var(--muted)" stroke-width="1.2" stroke-linecap="round"/>
+      </svg>
+    </div>
+
+    <div class="field-row" onclick="openEditModal('age')">
+      <div class="field-left">
+        <div class="field-icon">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
+            <circle cx="12" cy="12" r="9" stroke="var(--gold)" stroke-width="1.2"/>
+            <path d="M12 7v5l3 3" stroke="var(--gold)" stroke-width="1.2" stroke-linecap="round"/>
+          </svg>
+        </div>
+        <div class="field-info">
+          <p class="field-label">Age</p>
+          <p class="field-value" id="field-age">—</p>
+        </div>
+      </div>
+      <svg class="field-arrow" width="16" height="16" viewBox="0 0 24 24" fill="none">
+        <path d="M9 18l6-6-6-6" stroke="var(--muted)" stroke-width="1.2" stroke-linecap="round"/>
+      </svg>
+    </div>
+
+    <div class="field-row" onclick="openEditModal('gender')">
+      <div class="field-left">
+        <div class="field-icon">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
+            <circle cx="12" cy="10" r="4" stroke="var(--gold)" stroke-width="1.2"/>
+            <path d="M12 14v6M9 17h6" stroke="var(--gold)" stroke-width="1.2" stroke-linecap="round"/>
+          </svg>
+        </div>
+        <div class="field-info">
+          <p class="field-label">Gender</p>
+          <p class="field-value" id="field-gender">—</p>
+        </div>
+      </div>
+      <svg class="field-arrow" width="16" height="16" viewBox="0 0 24 24" fill="none">
+        <path d="M9 18l6-6-6-6" stroke="var(--muted)" stroke-width="1.2" stroke-linecap="round"/>
+      </svg>
+    </div>
+
+    <div class="field-row" onclick="openEditModal('origin')">
+      <div class="field-left">
+        <div class="field-icon">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
+            <polygon points="12,2 15,8.5 22,9.3 17,14 18.5,21 12,17.8 5.5,21 7,14 2,9.3 9,8.5" stroke="var(--gold)" stroke-width="1.2" stroke-linecap="round" fill="none"/>
+          </svg>
+        </div>
+        <div class="field-info">
+          <p class="field-label">Origin</p>
+          <p class="field-value" id="field-origin">—</p>
+        </div>
+      </div>
+      <svg class="field-arrow" width="16" height="16" viewBox="0 0 24 24" fill="none">
+        <path d="M9 18l6-6-6-6" stroke="var(--muted)" stroke-width="1.2" stroke-linecap="round"/>
+      </svg>
+    </div>
+
+    <div class="field-row" onclick="openEditModal('location')">
+      <div class="field-left">
+        <div class="field-icon">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
+            <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z" stroke="var(--gold)" stroke-width="1.2"/>
+            <circle cx="12" cy="9" r="2.5" stroke="var(--gold)" stroke-width="1.2"/>
+          </svg>
+        </div>
+        <div class="field-info">
+          <p class="field-label">Location</p>
+          <p class="field-value" id="field-location">—</p>
+        </div>
+      </div>
+      <svg class="field-arrow" width="16" height="16" viewBox="0 0 24 24" fill="none">
+        <path d="M9 18l6-6-6-6" stroke="var(--muted)" stroke-width="1.2" stroke-linecap="round"/>
+      </svg>
+    </div>
+
+  </div>
+
+  <div class="divider"></div>
+
+  <!-- ── SEARCH PREFERENCES ── -->
+  <div class="section">
+    <p class="section-title">Search Preferences</p>
+
+    <!-- Age range -->
+    <div class="range-wrap">
+      <div class="range-header">
+        <span class="range-label">Age range</span>
+        <span class="range-value" id="age-range-label">18 – 45</span>
+      </div>
+      <div style="display:flex;gap:12px;align-items:center">
+        <span style="font-size:11px;color:var(--muted);width:24px;text-align:center" id="age-min-val">18</span>
+        <div style="flex:1;position:relative">
+          <div class="range-track">
+            <div class="range-fill" id="age-range-fill"></div>
+          </div>
+          <input type="range" id="age-min" min="18" max="80" value="18" oninput="updateAgeRange()">
+        </div>
+        <span style="font-size:11px;color:var(--muted);width:24px;text-align:center" id="age-max-val">45</span>
+        <div style="flex:1;position:relative">
+          <div class="range-track">
+            <div class="range-fill" id="age-range-fill2" style="left:0;right:0"></div>
+          </div>
+          <input type="range" id="age-max" min="18" max="80" value="45" oninput="updateAgeRange()">
+        </div>
+      </div>
+    </div>
+
+    <!-- Show me -->
+    <div class="chip-group">
+      <div class="chip-label-row">
+        <span class="range-label">Show me</span>
+      </div>
+      <div class="chip active" data-group="gender" data-val="women" onclick="selectChip(this,'gender')">Women</div>
+      <div class="chip" data-group="gender" data-val="men" onclick="selectChip(this,'gender')">Men</div>
+      <div class="chip" data-group="gender" data-val="everyone" onclick="selectChip(this,'gender')">Everyone</div>
+    </div>
+
+    <!-- Show by Origin -->
+    <div class="chip-group">
+      <div class="chip-label-row">
+        <span class="range-label">Filter by Origin</span>
+        <span style="font-size:10px;color:var(--muted);letter-spacing:0.1em;cursor:pointer" onclick="clearOriginFilter()">Clear</span>
+      </div>
+      <div id="origin-filter-chips"></div>
+    </div>
+
+    <!-- Location visibility -->
+    <div class="toggle-row">
+      <div class="toggle-left">
+        <div class="field-icon">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
+            <circle cx="12" cy="12" r="3" stroke="var(--gold)" stroke-width="1.2"/>
+            <path d="M2 12s4-7 10-7 10 7 10 7-4 7-10 7-10-7-10-7z" stroke="var(--gold)" stroke-width="1.2"/>
+          </svg>
+        </div>
+        <div class="toggle-info">
+          <p class="toggle-label">Show my location</p>
+          <p class="toggle-sub">Visible to others on your card</p>
+        </div>
+      </div>
+      <label class="toggle">
+        <input type="checkbox" id="toggle-location" checked onchange="saveSetting('show_location', this.checked)">
+        <div class="toggle-track"></div>
+        <div class="toggle-thumb"></div>
+      </label>
+    </div>
+
+  </div>
+
+  <div class="divider"></div>
+
+  <!-- ── NOTIFICATIONS ── -->
+  <div class="section notif-section">
+    <p class="section-title">Notifications</p>
+
+    <div class="toggle-row">
+      <div class="toggle-left">
+        <div class="field-icon">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
+            <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" stroke="var(--gold)" stroke-width="1.2" fill="none"/>
+          </svg>
+        </div>
+        <div class="toggle-info">
+          <p class="toggle-label">New matches</p>
+          <p class="toggle-sub">When a new frequency aligns</p>
+        </div>
+      </div>
+      <label class="toggle">
+        <input type="checkbox" id="notif-match" checked onchange="saveSetting('notif_match', this.checked)">
+        <div class="toggle-track"></div>
+        <div class="toggle-thumb"></div>
+      </label>
+    </div>
+
+    <div class="toggle-row">
+      <div class="toggle-left">
+        <div class="field-icon">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
+            <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" stroke="var(--gold)" stroke-width="1.2" stroke-linecap="round"/>
+          </svg>
+        </div>
+        <div class="toggle-info">
+          <p class="toggle-label">Messages</p>
+          <p class="toggle-sub">Personal and circle chats</p>
+        </div>
+      </div>
+      <label class="toggle">
+        <input type="checkbox" id="notif-messages" checked onchange="saveSetting('notif_messages', this.checked)">
+        <div class="toggle-track"></div>
+        <div class="toggle-thumb"></div>
+      </label>
+    </div>
+
+    <div class="toggle-row">
+      <div class="toggle-left">
+        <div class="field-icon">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
+            <polygon points="12,2 15,8.5 22,9.3 17,14 18.5,21 12,17.8 5.5,21 7,14 2,9.3 9,8.5" stroke="var(--gold)" stroke-width="1.2" fill="none"/>
+          </svg>
+        </div>
+        <div class="toggle-info">
+          <p class="toggle-label">Library updates</p>
+          <p class="toggle-sub">New knowledge arrives</p>
+        </div>
+      </div>
+      <label class="toggle">
+        <input type="checkbox" id="notif-library" onchange="saveSetting('notif_library', this.checked)">
+        <div class="toggle-track"></div>
+        <div class="toggle-thumb"></div>
+      </label>
+    </div>
+
+  </div>
+
+  <div class="divider"></div>
+
+  <!-- ── ACCOUNT ── -->
+  <div class="section">
+    <p class="section-title">Account</p>
+
+    <div class="danger-row" onclick="handleLogout()">
+      <div class="danger-icon">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
+          <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9" stroke="#e07070" stroke-width="1.2" stroke-linecap="round"/>
+        </svg>
+      </div>
+      <span class="danger-text">Sign out</span>
+    </div>
+
+    <div class="danger-row" onclick="confirmDeleteAccount()">
+      <div class="danger-icon">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
+          <polyline points="3,6 5,6 21,6" stroke="#e07070" stroke-width="1.2" stroke-linecap="round"/>
+          <path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6M10 11v6M14 11v6M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2" stroke="#e07070" stroke-width="1.2" stroke-linecap="round"/>
+        </svg>
+      </div>
+      <span class="danger-text">Delete account</span>
+    </div>
+
+  </div>
+
+  <div style="text-align:center;padding:16px 0 8px;">
+    <a href="legal.html" style="color:#6b6478;font-size:11px;text-decoration:none;letter-spacing:0.1em;margin:0 12px">Privacy Policy</a>
+    <span style="color:#3a3050">·</span>
+    <a href="legal.html" style="color:#6b6478;font-size:11px;text-decoration:none;letter-spacing:0.1em;margin:0 12px">Terms of Use</a>
+  </div>
+  <div class="version-tag">Twin Frequency · v1.0 beta</div>
+
+</div>
+
+<!-- ── BOTTOM NAV ── -->
+<nav class="bottom-nav">
+  <div class="nav-tab" onclick="window.location.href='feed.html'">
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
+      <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" stroke="var(--gold-soft)" stroke-width="1.2" fill="none"/>
+    </svg>
+    <span class="nav-tab-label">Explore</span>
+  </div>
+  <div class="nav-tab" onclick="window.location.href='chats.html'">
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
+      <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" stroke="var(--gold-soft)" stroke-width="1" stroke-linecap="round"/>
+    </svg>
+    <span class="nav-tab-label">Circle</span>
+  </div>
+  <div class="nav-tab active">
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
+      <circle cx="12" cy="8" r="4" stroke="var(--gold)" stroke-width="1.2"/>
+      <path d="M4 20c0-4 3.6-7 8-7s8 3 8 7" stroke="var(--gold)" stroke-width="1.2" stroke-linecap="round"/>
+    </svg>
+    <span class="nav-tab-label" style="color:var(--gold)">Profile</span>
+  </div>
+</nav>
+
+<!-- ── EDIT MODAL ── -->
+<div class="modal-overlay" id="modal-overlay" onclick="closeModal(event)">
+  <div class="modal" id="modal">
+    <div class="modal-handle"></div>
+    <h3 class="modal-title" id="modal-title">Edit</h3>
+    <div id="modal-body"></div>
+    <div class="modal-actions">
+      <button class="btn-cancel" onclick="closeModal()">Cancel</button>
+      <button class="btn-save" onclick="saveModal()">Save</button>
+    </div>
+  </div>
+</div>
+
+<!-- ── TOAST ── -->
+<div class="toast" id="toast"></div>
+
+<script>
+  // ─── CONFIG ───────────────────────────────────────────────
+  const SUPABASE_URL = 'https://pewgupxikbswhaqxjrwk.supabase.co'
+  const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBld2d1cHhpa2Jzd2hhcXhqcndrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzUyNjY0MTEsImV4cCI6MjA5MDg0MjQxMX0.rQIz0R_4Oz6VqHgSvjx9YAtF8BojdcMU7RcqDiVP1NU'
+  const { createClient } = supabase
+  const sb = createClient(SUPABASE_URL, SUPABASE_ANON_KEY)
+
+  // ─── ORIGINS ──────────────────────────────────────────────
+  const ORIGINS = [
+    'Siriusian','Pleiadian','Lemurian','Cassiopeian','Procyonian','Lyran',
+    'Arcturian','Orion','Vegan','Zeta Reticulan','Epsilon Eridan','Atlantean',
+    'Andromedan','Polarisian','Nibiruan','Egyptian','Titan','Blue Avian',
+    'Tau Cetian','Aldebaran','Centaurian','Herculean','Anunnaki','Hyperborean'
+  ]
+
+  const GENDERS = ['Woman','Man','Non-binary','Other']
+
+  // ─── STATE ────────────────────────────────────────────────
+  let profile = null
+  let user = null
+  let currentModal = null
+  let pendingOrigin = null
+
+  // ─── INIT ─────────────────────────────────────────────────
+  window.addEventListener('load', async () => {
+    const { data: sessionData } = await sb.auth.getSession()
+    if (!sessionData.session) {
+      window.location.href = 'login.html'
+      return
+    }
+    user = sessionData.session.user
+
+    const { data } = await sb.from('profiles').select('*').eq('id', user.id).single()
+    profile = data || {}
+
+    renderProfile()
+    buildOriginFilterChips()
+    initStars()
+
+    document.getElementById('loader').classList.add('hide')
+  })
+
+  // ─── RENDER ───────────────────────────────────────────────
+  function renderProfile() {
+    const p = profile
+
+    // Hero
+    document.getElementById('hero-name').textContent = p.name || '—'
+    document.getElementById('hero-age').textContent = p.age ? `${p.age} years` : ''
+    document.getElementById('origin-label').textContent = p.origin || 'Unknown Origin'
+
+    if (p.photo_url) {
+      document.getElementById('photo-avatar').style.backgroundImage = `url('${p.photo_url}')`
+    }
+
+    if (p.location) {
+      document.getElementById('hero-location').style.display = 'flex'
+      document.getElementById('location-text').textContent = p.location
+    }
+
+    // Fields
+    document.getElementById('field-name').textContent = p.name || '—'
+    document.getElementById('field-age').textContent = p.age ? `${p.age}` : '—'
+    document.getElementById('field-gender').textContent = p.gender || '—'
+    document.getElementById('field-origin').textContent = p.origin || '—'
+    document.getElementById('field-location').textContent = p.location || 'Not set'
+
+    // Search prefs
+    if (p.search_age_min) document.getElementById('age-min').value = p.search_age_min
+    if (p.search_age_max) document.getElementById('age-max').value = p.search_age_max
+    updateAgeRange()
+
+    if (p.search_gender) {
+      document.querySelectorAll('[data-group="gender"]').forEach(c => {
+        c.classList.toggle('active', c.dataset.val === p.search_gender)
+      })
+    }
+
+    // Toggles
+    if (p.show_location !== undefined) document.getElementById('toggle-location').checked = p.show_location
+    if (p.notif_match !== undefined) document.getElementById('notif-match').checked = p.notif_match
+    if (p.notif_messages !== undefined) document.getElementById('notif-messages').checked = p.notif_messages
+    if (p.notif_library !== undefined) document.getElementById('notif-library').checked = p.notif_library
+  }
+
+  // ─── AGE RANGE ────────────────────────────────────────────
+  function updateAgeRange() {
+    const min = parseInt(document.getElementById('age-min').value)
+    const max = parseInt(document.getElementById('age-max').value)
+    const safeMin = Math.min(min, max - 1)
+    const safeMax = Math.max(max, min + 1)
+    document.getElementById('age-min').value = safeMin
+    document.getElementById('age-max').value = safeMax
+    document.getElementById('age-min-val').textContent = safeMin
+    document.getElementById('age-max-val').textContent = safeMax
+    document.getElementById('age-range-label').textContent = `${safeMin} – ${safeMax}`
+    debounceSave({ search_age_min: safeMin, search_age_max: safeMax })
+  }
+
+  // ─── CHIP SELECT ──────────────────────────────────────────
+  function selectChip(el, group) {
+    document.querySelectorAll(`[data-group="${group}"]`).forEach(c => c.classList.remove('active'))
+    el.classList.add('active')
+    if (group === 'gender') debounceSave({ search_gender: el.dataset.val })
+  }
+
+  // ─── ORIGIN FILTER CHIPS ──────────────────────────────────
+  function buildOriginFilterChips() {
+    const container = document.getElementById('origin-filter-chips')
+    container.style.display = 'flex'
+    container.style.flexWrap = 'wrap'
+    container.style.gap = '8px'
+    container.style.width = '100%'
+
+    ORIGINS.forEach(o => {
+      const chip = document.createElement('div')
+      chip.className = 'chip'
+      chip.textContent = o
+      chip.dataset.group = 'origin-filter'
+      chip.dataset.val = o
+      chip.onclick = () => {
+        chip.classList.toggle('active')
+        const selected = [...document.querySelectorAll('[data-group="origin-filter"].active')].map(c => c.dataset.val)
+        debounceSave({ search_origins: selected.length ? selected : null })
+      }
+      container.appendChild(chip)
+    })
+  }
+
+  function clearOriginFilter() {
+    document.querySelectorAll('[data-group="origin-filter"]').forEach(c => c.classList.remove('active'))
+    debounceSave({ search_origins: null })
+  }
+
+  // ─── SAVE SETTING ─────────────────────────────────────────
+  let saveTimer = null
+
+  function debounceSave(fields) {
+    clearTimeout(saveTimer)
+    saveTimer = setTimeout(() => saveFields(fields), 800)
+  }
+
+  async function saveFields(fields) {
+    if (!user) return
+    const { error } = await sb.from('profiles').update(fields).eq('id', user.id)
+    if (!error) {
+      Object.assign(profile, fields)
+    }
+  }
+
+  function saveSetting(key, value) {
+    debounceSave({ [key]: value })
+  }
+
+  // ─── PHOTO CHANGE ─────────────────────────────────────────
+  async function handlePhotoChange(event) {
+    const file = event.target.files[0]
+    if (!file) return
+
+    const ext = file.name.split('.').pop()
+    const path = `${user.id}/avatar.${ext}`
+
+    showToast('Uploading photo...')
+
+    const { error: upErr } = await sb.storage.from('avatars').upload(path, file, { upsert: true })
+    if (upErr) { showToast('Upload failed'); return }
+
+    const { data: urlData } = sb.storage.from('avatars').getPublicUrl(path)
+    const url = urlData.publicUrl
+
+    await saveFields({ photo_url: url })
+    document.getElementById('photo-avatar').style.backgroundImage = `url('${url}')`
+    document.getElementById('photo-avatar').style.backgroundSize = 'cover'
+    showToast('Photo updated ✦')
+  }
+
+  // ─── EDIT MODAL ───────────────────────────────────────────
+  function openEditModal(field) {
+    currentModal = field
+    pendingOrigin = null
+
+    const titles = {
+      name: 'Your name',
+      age: 'Your age',
+      gender: 'Your gender',
+      origin: 'Your Origin',
+      location: 'Your location'
+    }
+
+    document.getElementById('modal-title').textContent = titles[field] || 'Edit'
+
+    let body = ''
+
+    if (field === 'name') {
+      body = `
+        <div class="modal-field">
+          <label>Name</label>
+          <input type="text" id="modal-input" value="${profile.name || ''}" placeholder="Your name" maxlength="40">
+        </div>`
+    } else if (field === 'age') {
+      body = `
+        <div class="modal-field">
+          <label>Age</label>
+          <input type="number" id="modal-input" value="${profile.age || ''}" placeholder="Your age" min="18" max="120">
+        </div>`
+    } else if (field === 'gender') {
+      body = `
+        <div class="modal-field">
+          <label>Gender</label>
+          <select id="modal-input">
+            <option value="">Select...</option>
+            ${GENDERS.map(g => `<option value="${g}" ${profile.gender === g ? 'selected' : ''}>${g}</option>`).join('')}
+          </select>
+        </div>`
+    } else if (field === 'origin') {
+      pendingOrigin = profile.origin || null
+      body = `
+        <div class="modal-field">
+          <label>Select your Origin</label>
+          <div class="origin-grid" id="origin-grid">
+            ${ORIGINS.map(o => `
+              <div class="origin-option ${profile.origin === o ? 'selected' : ''}"
+                onclick="selectOriginOption(this, '${o}')">${o}</div>
+            `).join('')}
+          </div>
+        </div>`
+    } else if (field === 'location') {
+      body = `
+        <div class="modal-field">
+          <label>City, Country</label>
+          <input type="text" id="modal-input" value="${profile.location || ''}" placeholder="e.g. New York, USA" maxlength="60">
+        </div>`
+    }
+
+    document.getElementById('modal-body').innerHTML = body
+    document.getElementById('modal-overlay').classList.add('show')
+
+    // Focus input
+    setTimeout(() => {
+      const inp = document.getElementById('modal-input')
+      if (inp) inp.focus()
+    }, 400)
+  }
+
+  function selectOriginOption(el, origin) {
+    document.querySelectorAll('.origin-option').forEach(o => o.classList.remove('selected'))
+    el.classList.add('selected')
+    pendingOrigin = origin
+  }
+
+  async function saveModal() {
+    if (!currentModal) return
+
+    let updates = {}
+
+    if (currentModal === 'origin') {
+      if (!pendingOrigin) { closeModal(); return }
+      updates.origin = pendingOrigin
+    } else {
+      const inp = document.getElementById('modal-input')
+      if (!inp) { closeModal(); return }
+      const val = inp.value.trim()
+      if (!val) { closeModal(); return }
+
+      if (currentModal === 'age') {
+        const age = parseInt(val)
+        if (isNaN(age) || age < 18 || age > 120) { showToast('Please enter a valid age'); return }
+        updates.age = age
+      } else {
+        updates[currentModal] = val
+      }
+    }
+
+    await saveFields(updates)
+    renderProfile()
+    closeModal()
+    showToast('Saved ✦')
+  }
+
+  function closeModal(e) {
+    if (e && e.target !== document.getElementById('modal-overlay')) return
+    document.getElementById('modal-overlay').classList.remove('show')
+    currentModal = null
+  }
+
+  // ─── LIBRARY LINK ─────────────────────────────────────────
+  function openLibrary() {
+    const origin = profile.origin || 'Unknown'
+    window.location.href = 'library.html?origin=' + encodeURIComponent(origin)
+  }
+
+  // ─── LOGOUT ───────────────────────────────────────────────
+  async function handleLogout() {
+    await sb.auth.signOut()
+    window.location.href = 'login.html'
+  }
+
+  // ─── DELETE ACCOUNT ───────────────────────────────────────
+  function confirmDeleteAccount() {
+    if (confirm('Are you sure you want to delete your account? This cannot be undone.')) {
+      showToast('Contact support to delete your account.')
+    }
+  }
+
+  // ─── TOAST ────────────────────────────────────────────────
+  let toastTimer = null
+  function showToast(msg) {
+    const t = document.getElementById('toast')
+    t.textContent = msg
+    t.classList.add('show')
+    clearTimeout(toastTimer)
+    toastTimer = setTimeout(() => t.classList.remove('show'), 2200)
+  }
+
+  // ─── STARS BACKGROUND ─────────────────────────────────────
+  function initStars() {
+    const canvas = document.getElementById('stars')
+    const ctx = canvas.getContext('2d')
+
+    function resize() {
+      canvas.width = window.innerWidth
+      canvas.height = window.innerHeight
+    }
+    resize()
+    window.addEventListener('resize', resize)
+
+    const stars = Array.from({ length: 120 }, () => ({
+      x: Math.random() * window.innerWidth,
+      y: Math.random() * window.innerHeight,
+      r: Math.random() * 1.2 + 0.2,
+      o: Math.random() * 0.5 + 0.1,
+      speed: Math.random() * 0.3 + 0.05,
+      phase: Math.random() * Math.PI * 2
+    }))
+
+    let t = 0
+    function draw() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height)
+      stars.forEach(s => {
+        const alpha = s.o * (0.6 + 0.4 * Math.sin(t * s.speed + s.phase))
+        ctx.beginPath()
+        ctx.arc(s.x, s.y, s.r, 0, Math.PI * 2)
+        ctx.fillStyle = `rgba(232,224,213,${alpha.toFixed(2)})`
+        ctx.fill()
+      })
+      t += 0.02
+      requestAnimationFrame(draw)
+    }
+    draw()
+  }
+</script>
+</body>
+</html>

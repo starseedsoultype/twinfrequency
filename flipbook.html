@@ -1,0 +1,1117 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <title>StarSeed Soul Typology — Interactive Flipbook</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;0,700;1,300;1,400&family=Cinzel:wght@400;600&family=Raleway:wght@300;400&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #07091e;
+      --gold: #d4af37;
+      --gold-dim: rgba(212,175,55,0.22);
+      --violet: #a855f7;
+      --violet-dim: rgba(168,85,247,0.15);
+      --text: #e8e8f0;
+      --muted: #8888a0;
+      --nav-h: 64px;
+    }
+
+    html { height: 100%; height: -webkit-fill-available; }
+
+    body {
+      height: 100%;
+      height: -webkit-fill-available;
+      min-height: 100dvh;
+      background: radial-gradient(ellipse at 50% 0%, #1a1050 0%, var(--bg) 65%);
+      color: var(--text);
+      font-family: 'Cormorant Garamond', Georgia, serif;
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+    }
+
+    body::before {
+      content: '';
+      position: fixed; inset: 0;
+      background-image:
+        radial-gradient(1px 1px at 20px 30px, rgba(255,255,255,0.9), transparent),
+        radial-gradient(1px 1px at 40px 70px, rgba(255,255,255,0.7), transparent),
+        radial-gradient(1px 1px at 80px 150px, rgba(255,255,255,0.8), transparent),
+        radial-gradient(1px 1px at 110px 40px, rgba(255,255,255,0.9), transparent),
+        radial-gradient(1.5px 1.5px at 150px 90px, rgba(255,255,255,0.85), transparent),
+        radial-gradient(1px 1px at 170px 20px, rgba(255,255,255,0.6), transparent),
+        radial-gradient(2px 2px at 60px 120px, rgba(212,175,55,0.5), transparent),
+        radial-gradient(1px 1px at 190px 140px, rgba(255,255,255,0.7), transparent);
+      background-repeat: repeat;
+      background-size: 200px 180px;
+      opacity: 0.2;
+      z-index: 0;
+      pointer-events: none;
+    }
+
+    /* ── HINT ── */
+    .hint {
+      flex-shrink: 0;
+      z-index: 10;
+      text-align: center;
+      padding: 7px 16px;
+      font-family: 'Raleway', sans-serif;
+      font-size: 9px;
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      color: var(--muted);
+      background: rgba(7,9,30,0.7);
+      border-bottom: 1px solid rgba(212,175,55,0.08);
+    }
+
+    /* ── STAGE ── */
+    #stage {
+      flex: 1;
+      min-height: 0;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      position: relative;
+      z-index: 1;
+    }
+
+    /* ── PAGE ── */
+    .page {
+      display: none;
+      flex-direction: column;
+      flex: 1;
+      min-height: 0;
+      overflow: hidden;
+    }
+    .page.active { display: flex; animation: fadeIn 0.35s ease; }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateX(16px); }
+      to   { opacity: 1; transform: translateX(0); }
+    }
+
+    /* ── PAGE HEADER ── */
+    .page-header {
+      flex-shrink: 0;
+      text-align: center;
+      padding: 18px 24px 0;
+      position: relative;
+    }
+
+    .page-num {
+      position: absolute;
+      top: 14px; right: 20px;
+      font-family: 'Raleway', sans-serif;
+      font-size: 10px;
+      letter-spacing: 2px;
+      color: var(--gold);
+      opacity: 0.4;
+    }
+
+    .page-star {
+      font-size: 14px;
+      opacity: 0.55;
+      margin-bottom: 6px;
+      display: block;
+    }
+
+    .page-title {
+      font-family: 'Cinzel', serif;
+      font-size: clamp(1.2rem, 4.5vw, 2rem);
+      font-weight: 600;
+      color: var(--gold);
+      letter-spacing: 2px;
+      text-transform: uppercase;
+      line-height: 1.2;
+      margin-bottom: 5px;
+    }
+
+    .page-subtitle {
+      font-family: 'Cormorant Garamond', serif;
+      font-size: clamp(0.85rem, 2.2vw, 1rem);
+      font-style: italic;
+      color: var(--violet);
+      letter-spacing: 1px;
+      margin-bottom: 10px;
+    }
+
+    .page-divider {
+      width: 50px; height: 1px;
+      background: linear-gradient(90deg, transparent, var(--gold), transparent);
+      margin: 0 auto;
+    }
+
+    /* ── PAGE BODY ── */
+    .page-body {
+      flex: 1;
+      min-height: 0;
+      overflow-y: auto;
+      -webkit-overflow-scrolling: touch;
+      padding: 18px 28px 20px;
+      scrollbar-width: thin;
+      scrollbar-color: var(--gold-dim) transparent;
+    }
+    .page-body::-webkit-scrollbar { width: 3px; }
+    .page-body::-webkit-scrollbar-track { background: transparent; }
+    .page-body::-webkit-scrollbar-thumb { background: var(--gold-dim); border-radius: 2px; }
+
+    /* ── TEXT CONTENT ── */
+    .page-text {
+      font-size: clamp(0.9rem, 2vw, 1.05rem);
+      line-height: 1.85;
+      color: var(--text);
+      max-width: 660px;
+      margin: 0 auto;
+    }
+
+    .page-text .intro {
+      text-align: center;
+      font-size: clamp(0.95rem, 2.2vw, 1.1rem);
+      line-height: 1.9;
+      margin-bottom: 20px;
+      color: rgba(232,232,240,0.9);
+    }
+
+    /* Section labels */
+    .section {
+      margin-bottom: 16px;
+    }
+
+    .section-label {
+      font-family: 'Raleway', sans-serif;
+      font-size: 9px;
+      letter-spacing: 3px;
+      text-transform: uppercase;
+      color: var(--gold);
+      opacity: 0.7;
+      margin-bottom: 5px;
+    }
+
+    .section-text {
+      font-size: clamp(0.88rem, 1.9vw, 1rem);
+      line-height: 1.85;
+      color: rgba(232,232,240,0.85);
+    }
+
+    /* Divider between sections */
+    .section-divider {
+      width: 100%;
+      height: 1px;
+      background: linear-gradient(90deg, transparent, var(--gold-dim), transparent);
+      margin: 14px 0;
+    }
+
+    /* Cover page */
+    .page.cover .page-body {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .page.cover .page-title { font-size: clamp(1.5rem, 5.5vw, 2.6rem); }
+    .page.cover .page-text  { text-align: center; }
+    .page.cover .intro { font-size: clamp(1rem, 2.5vw, 1.2rem); }
+
+    /* CTA */
+    .cta-wrap { text-align: center; margin-top: 24px; }
+    .cta-link {
+      display: inline-block;
+      padding: 12px 32px;
+      border: 1px solid var(--gold);
+      border-radius: 40px;
+      color: var(--gold);
+      text-decoration: none;
+      font-family: 'Raleway', sans-serif;
+      font-size: 11px;
+      letter-spacing: 2.5px;
+      text-transform: uppercase;
+      transition: background 0.3s, color 0.3s;
+    }
+    .cta-link:hover, .cta-link:active { background: var(--gold); color: var(--bg); }
+
+    /* ── NAV ── */
+    .nav {
+      flex-shrink: 0;
+      z-index: 10;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+      height: var(--nav-h);
+      padding: 0 16px env(safe-area-inset-bottom, 0px);
+      background: rgba(7,9,30,0.88);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border-top: 1px solid rgba(212,175,55,0.1);
+    }
+
+    .nav-btn {
+      width: 44px; height: 44px;
+      border-radius: 50%;
+      border: 1.5px solid var(--gold);
+      background: rgba(107,70,193,0.2);
+      color: var(--gold);
+      font-size: 24px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: background 0.2s, transform 0.15s, box-shadow 0.2s;
+      -webkit-tap-highlight-color: transparent;
+      touch-action: manipulation;
+      user-select: none;
+      flex-shrink: 0;
+      line-height: 1;
+    }
+    .nav-btn:hover  { background: rgba(212,175,55,0.15); box-shadow: 0 0 16px rgba(212,175,55,0.3); }
+    .nav-btn:active { transform: scale(0.88); }
+    .nav-btn:disabled { opacity: 0.2; cursor: default; }
+
+    .nav-counter {
+      font-family: 'Raleway', sans-serif;
+      font-size: 11px;
+      letter-spacing: 2px;
+      color: var(--gold);
+      opacity: 0.7;
+      min-width: 48px;
+      text-align: center;
+      flex-shrink: 0;
+    }
+
+    .dots {
+      display: flex;
+      gap: 4px;
+      align-items: center;
+      justify-content: center;
+      flex-wrap: wrap;
+      max-width: 200px;
+    }
+    .dot {
+      width: 4px; height: 4px;
+      border-radius: 50%;
+      background: var(--muted);
+      opacity: 0.3;
+      transition: background 0.3s, opacity 0.3s, transform 0.3s;
+      flex-shrink: 0;
+    }
+    .dot.active { background: var(--gold); opacity: 1; transform: scale(1.6); }
+
+    /* ── DESKTOP ── */
+    @media (min-width: 600px) {
+      .page-header { padding: 24px 48px 0; }
+      .page-body   { padding: 20px 48px 24px; }
+      .page-title  { font-size: clamp(1.4rem, 3vw, 2.2rem); }
+    }
+    @media (min-width: 900px) {
+      .page-body { padding: 24px 100px 28px; }
+    }
+
+    /* ── LANDSCAPE MOBILE ── */
+    @media (max-height: 480px) {
+      .hint { display: none; }
+      :root { --nav-h: 52px; }
+      .page-header { padding: 10px 20px 0; }
+      .page-star   { display: none; }
+      .page-title  { font-size: clamp(1rem, 4vw, 1.4rem); margin-bottom: 3px; }
+      .page-subtitle { margin-bottom: 6px; font-size: 0.82rem; }
+      .page-divider  { display: none; }
+      .page-body   { padding: 10px 20px 14px; }
+      .section-label { font-size: 8px; }
+      .section-text, .page-text .intro { font-size: 0.85rem; line-height: 1.65; }
+      .section { margin-bottom: 10px; }
+      .section-divider { margin: 8px 0; }
+      .nav-btn { width: 38px; height: 38px; font-size: 20px; }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="hint">← Swipe or tap arrows to navigate →</div>
+  <div id="stage"></div>
+  <nav class="nav">
+    <button class="nav-btn" id="prev-btn" aria-label="Previous" onclick="go(-1)">&#8249;</button>
+    <div class="dots" id="dots"></div>
+    <div class="nav-counter"><span id="cur">1</span>&thinsp;/&thinsp;<span id="tot"></span></div>
+    <button class="nav-btn" id="next-btn" aria-label="Next" onclick="go(1)">&#8250;</button>
+  </nav>
+
+<script>
+const PAGES = [
+  {
+    cover: true, cta: false,
+    title: 'StarSeed Soul Typology',
+    subtitle: 'Interactive Flipbook',
+    star: '✦',
+    html: `
+      <p class="intro">Discover your cosmic blueprint.<br>Remember who you are.</p>
+      <p class="intro" style="font-style:italic; opacity:0.7; font-size:0.95em;">Each soul carries a unique frequency — a pattern of gifts, shadows, and activations encoded before birth. This flipbook is your map.</p>
+      <p class="intro" style="opacity:0.55; font-size:0.85em; letter-spacing:1px; font-family:'Raleway',sans-serif; font-size:10px; text-transform:uppercase;">Swipe or tap the arrows to explore all 24 soul types</p>
+    `
+  },
+  {
+    title: 'Contents',
+    subtitle: 'All 24 Soul Types',
+    star: '✦',
+    toc: true,
+    html: `<div id="toc-list"></div>`
+  },
+  {
+    title: 'The System',
+    subtitle: 'By Olesya Popova',
+    star: '✦',
+    about: true,
+    html: `
+      <p class="intro">StarSeed Soul Typology is born from a deep remembering. It is not just a system of categorization, but a map of your cosmic blueprint.</p>
+      <div class="section-divider"></div>
+      <div class="section">
+        <div class="section-text" style="text-align: center;">As a psychologist and visionary, Olesya Popova created this typology to help you recognize the unique frequency your soul carries. Each of the 24 types reflects a distinct pattern of gifts, shadows, and activations encoded before birth.</div>
+      </div>
+      <div class="section">
+        <div class="section-text" style="text-align: center;">This system does not put you in a box — it gives you the keys to unlock your true potential. It is an invitation to stop trying to be who you are not, and to fully embody the magnificent, multidimensional being you came here to be.</div>
+      </div>
+    `
+  },
+  {
+    title: 'Siriusian Souls',
+    subtitle: 'The Relational Architects',
+    star: '✦',
+    html: `
+      <p class="intro">You are the one who builds bridges between worlds — feeling the subtle currents beneath every connection, the unspoken needs, the hidden longings.</p>
+      <div class="section-divider"></div>
+      <div class="section">
+        <div class="section-label">Your Gift</div>
+        <div class="section-text">You create belonging wherever you go — not through effort, but through your natural presence. Others sense your depth and find themselves drawn to your orbit. You hold space for people in ways they cannot always name, but always feel.</div>
+      </div>
+      <div class="section">
+        <div class="section-label">Your Shadow</div>
+        <div class="section-text">You can absorb the emotional weight of others until you forget where they end and you begin. Not every disconnection is yours to heal. Learning to let people carry their own pain is not abandonment — it is wisdom.</div>
+      </div>
+      <div class="section">
+        <div class="section-label">Your Activation</div>
+        <div class="section-text">You activate when you allow yourself to be witnessed — not just to witness. Your deepest growth comes through receiving, not only giving. Let someone hold space for you.</div>
+      </div>
+      <div class="section">
+        <div class="section-label">In Relationships</div>
+        <div class="section-text">You love through attunement. You know what someone needs before they ask. Your challenge is to speak your own needs with the same clarity you offer others.</div>
+      </div>
+    `
+  },
+  {
+    title: 'Pleiadian Souls',
+    subtitle: 'The Grounded Connectors',
+    star: '✦',
+    html: `
+      <p class="intro">You bridge the ethereal and the tangible. Your love is real, consistent, and expressed through what you build and provide for those you care about.</p>
+      <div class="section-divider"></div>
+      <div class="section">
+        <div class="section-label">Your Gift</div>
+        <div class="section-text">You build homes, not just houses. You create stability in the lives of those you love — through resources, reliability, and the practical care that proves love is more than words. People feel safe in your presence.</div>
+      </div>
+      <div class="section">
+        <div class="section-label">Your Shadow</div>
+        <div class="section-text">You can confuse providing with loving. When you feel disconnected, you give more — more time, more money, more effort — hoping the gesture will close the gap. Sometimes the gap can only be closed by presence, not provision.</div>
+      </div>
+      <div class="section">
+        <div class="section-label">Your Activation</div>
+        <div class="section-text">You activate when you allow yourself to receive without guilt. You were not born to be the only one who gives. Letting others care for you is not weakness — it is the completion of the circuit.</div>
+      </div>
+      <div class="section">
+        <div class="section-label">In Relationships</div>
+        <div class="section-text">You love through acts of service and material security. Your challenge is learning that emotional presence — simply being there, without doing anything — is its own profound gift.</div>
+      </div>
+    `
+  },
+  {
+    title: 'Lemurian Souls',
+    subtitle: 'The Passionate Connectors',
+    star: '✦',
+    html: `
+      <p class="intro">You love with fire. Your relationships are alive with energy, desire, and the raw vitality of connection. You do not do shallow — you dive into the deep end of everything.</p>
+      <div class="section-divider"></div>
+      <div class="section">
+        <div class="section-label">Your Gift</div>
+        <div class="section-text">You bring aliveness to those around you. Your enthusiasm is contagious, your passion is magnetic, and your capacity to feel deeply awakens others to their own emotional range. You remind people what it means to be fully alive.</div>
+      </div>
+      <div class="section">
+        <div class="section-label">Your Shadow</div>
+        <div class="section-text">Your intensity can overwhelm those who have not yet learned to hold their own fire. When others pull back, you can interpret it as rejection rather than difference in pace. Not everyone moves at your frequency — and that is not a failure.</div>
+      </div>
+      <div class="section">
+        <div class="section-label">Your Activation</div>
+        <div class="section-text">You activate when you channel your passion into creation rather than consumption. Your fire is meant to build, not just to burn. Find the work that deserves your full intensity.</div>
+      </div>
+      <div class="section">
+        <div class="section-label">In Relationships</div>
+        <div class="section-text">You love through full presence and emotional depth. Your challenge is learning that love does not always look like fire — sometimes it looks like patience, and that is its own form of passion.</div>
+      </div>
+    `
+  },
+  {
+    title: 'Cassiopeian Souls',
+    subtitle: 'The Analytical Connectors',
+    star: '✦',
+    html: `
+      <p class="intro">You understand relationships through the lens of meaning and structure. You see the patterns beneath the surface — why people connect, what binds them, where the fractures lie.</p>
+      <div class="section-divider"></div>
+      <div class="section">
+        <div class="section-label">Your Gift</div>
+        <div class="section-text">You bring clarity to the murky waters of human connection. Where others feel lost in emotion, you can name what is happening and why. Your insight is a gift — it helps people understand themselves and each other at a deeper level.</div>
+      </div>
+      <div class="section">
+        <div class="section-label">Your Shadow</div>
+        <div class="section-text">You can intellectualise feelings rather than feel them. When something hurts, your first instinct is to analyse rather than to grieve. The mind is a beautiful tool, but it cannot do the work of the heart.</div>
+      </div>
+      <div class="section">
+        <div class="section-label">Your Activation</div>
+        <div class="section-text">You activate when you allow yourself to not know. Mystery is not a problem to solve — it is a space to inhabit. Some of your deepest wisdom will come not from analysis, but from surrender.</div>
+      </div>
+      <div class="section">
+        <div class="section-label">In Relationships</div>
+        <div class="section-text">You love through understanding and intellectual resonance. Your challenge is learning that not everything needs to be understood to be valued — and that sometimes the most loving thing is simply to feel alongside someone.</div>
+      </div>
+    `
+  },
+  {
+    title: 'Procyonian Souls',
+    subtitle: 'The Resourceful Connectors',
+    star: '✦',
+    html: `
+      <p class="intro">You are the one who takes care. Your love language is action — providing, protecting, ensuring those you care for have what they need to thrive.</p>
+      <div class="section-divider"></div>
+      <div class="section">
+        <div class="section-label">Your Gift</div>
+        <div class="section-text">You make people feel safe and provided for. Your love is tangible — it shows up in the details, the logistics, the quiet acts of care that others overlook. You are the person who remembers, who prepares, who makes sure everyone is okay.</div>
+      </div>
+      <div class="section">
+        <div class="section-label">Your Shadow</div>
+        <div class="section-text">You can become so focused on providing that you neglect your own needs entirely. Martyrdom dressed as love is still martyrdom. You cannot pour from an empty vessel — and you cannot truly care for others while abandoning yourself.</div>
+      </div>
+      <div class="section">
+        <div class="section-label">Your Activation</div>
+        <div class="section-text">You activate when you allow others to provide for you. Receiving care gracefully is a skill — and one that will transform your relationships. Let someone take care of you for once.</div>
+      </div>
+      <div class="section">
+        <div class="section-label">In Relationships</div>
+        <div class="section-text">You love through practical support and reliability. Your challenge is learning that sometimes people need your emotional presence more than your material support — and that being vulnerable together is its own form of provision.</div>
+      </div>
+    `
+  },
+  {
+    title: 'Lyran Souls',
+    subtitle: 'The Visionary Connectors',
+    star: '✦',
+    html: `
+      <p class="intro">You see the potential in others before they see it in themselves. Your connections are built on shared vision and mutual growth — you are drawn to people who challenge and inspire you.</p>
+      <div class="section-divider"></div>
+      <div class="section">
+        <div class="section-label">Your Gift</div>
+        <div class="section-text">You bring clarity and direction to those around you. Your gift is helping others see their own light — the parts of themselves they have buried, the possibilities they have not yet dared to imagine. You are a mirror for potential.</div>
+      </div>
+      <div class="section">
+        <div class="section-label">Your Shadow</div>
+        <div class="section-text">You can become frustrated when others do not live up to the potential you see in them. Your vision for someone can become a burden they did not ask to carry. Not everyone wants to be transformed — and that is their sovereign right.</div>
+      </div>
+      <div class="section">
+        <div class="section-label">Your Activation</div>
+        <div class="section-text">You activate when you turn your visionary gaze inward. The potential you see so clearly in others — do you see it in yourself? Your greatest work begins with your own becoming.</div>
+      </div>
+      <div class="section">
+        <div class="section-label">In Relationships</div>
+        <div class="section-text">You love through inspiration and shared growth. Your challenge is learning to love people as they are, not only as they could be — and to find beauty in the present, not just the potential.</div>
+      </div>
+    `
+  },
+  {
+    title: 'Arcturian Souls',
+    subtitle: 'The Logical Architects',
+    star: '✦',
+    html: `
+      <p class="intro">Your mind is your greatest gift. You see systems, patterns, and the underlying logic of how things work — and your creativity flows from your ability to synthesise complexity into clarity.</p>
+      <div class="section-divider"></div>
+      <div class="section">
+        <div class="section-label">Your Gift</div>
+        <div class="section-text">You are the strategist, the planner, the one who sees ten steps ahead. You bring order to chaos — not by force, but by understanding the structure beneath the surface. Your solutions are elegant because they work with the nature of things, not against it.</div>
+      </div>
+      <div class="section">
+        <div class="section-label">Your Shadow</div>
+        <div class="section-text">You can become so attached to your systems that you resist what cannot be systematised. Life, love, and the sacred do not always follow logic. When reality deviates from your model, the invitation is to update the model — not to dismiss the reality.</div>
+      </div>
+      <div class="section">
+        <div class="section-label">Your Activation</div>
+        <div class="section-text">You activate when you allow intuition to inform your logic. The deepest intelligence is not purely rational — it integrates feeling, sensing, and knowing. Your greatest breakthroughs will come at the intersection of mind and mystery.</div>
+      </div>
+      <div class="section">
+        <div class="section-label">In Relationships</div>
+        <div class="section-text">You love through clarity, reliability, and thoughtful action. Your challenge is learning that emotional messiness is not a problem to be solved — it is part of the beauty of being human.</div>
+      </div>
+    `
+  },
+  {
+    title: 'Orion Souls',
+    subtitle: 'The Grounded Thinkers',
+    star: '✦',
+    html: `
+      <p class="intro">You think with your feet on the ground. Your logic is practical, applied, and rooted in the material world — you understand cause and effect through direct experience.</p>
+      <div class="section-divider"></div>
+      <div class="section">
+        <div class="section-label">Your Gift</div>
+        <div class="section-text">You are the builder, the implementer, the one who makes things real. While others theorise, you create. Your gift is translating abstract ideas into concrete action — and doing it with precision, care, and a deep respect for the physical world.</div>
+      </div>
+      <div class="section">
+        <div class="section-label">Your Shadow</div>
+        <div class="section-text">You can dismiss what cannot be measured or proven. The invisible dimensions of life — intuition, spirit, the unseen forces that shape reality — are real, even when they resist quantification. Closing the door to mystery limits your range.</div>
+      </div>
+      <div class="section">
+        <div class="section-label">Your Activation</div>
+        <div class="section-text">You activate when you allow yourself to work with what you cannot fully understand. Trust, faith, and surrender are not weaknesses — they are advanced technologies that your practical mind has not yet fully explored.</div>
+      </div>
+      <div class="section">
+        <div class="section-label">In Relationships</div>
+        <div class="section-text">You love through consistency and tangible commitment. Your challenge is learning to express the inner world you rarely show — and to trust that vulnerability will not undermine your strength.</div>
+      </div>
+    `
+  },
+  {
+    title: 'Vegan Souls',
+    subtitle: 'The Energetic Thinkers',
+    star: '✦',
+    html: `
+      <p class="intro">Your mind is alive with possibility. You are drawn to big ideas, to the "what if" questions that others overlook — your thinking is expansive, creative, and often ahead of its time.</p>
+      <div class="section-divider"></div>
+      <div class="section">
+        <div class="section-label">Your Gift</div>
+        <div class="section-text">You see connections others miss. Your gift is bringing new perspectives and innovative solutions — you inspire others to think differently, to question assumptions, to imagine what has not yet been imagined. You are a catalyst for collective evolution.</div>
+      </div>
+      <div class="section">
+        <div class="section-label">Your Shadow</div>
+        <div class="section-text">You can become addicted to the energy of new ideas and lose interest before completion. Initiation is your strength — but completion is where transformation lives. The world needs not just your vision, but your follow-through.</div>
+      </div>
+      <div class="section">
+        <div class="section-label">Your Activation</div>
+        <div class="section-text">You activate when you commit to one thing long enough to see it fully born. The discipline of completion is not a constraint on your creativity — it is the crucible in which your ideas become real.</div>
+      </div>
+      <div class="section">
+        <div class="section-label">In Relationships</div>
+        <div class="section-text">You love through intellectual stimulation and shared exploration. Your challenge is learning that depth requires staying — and that the most interesting journey is often the one that begins after the novelty fades.</div>
+      </div>
+    `
+  },
+  {
+    title: 'Zeta Reticulan Souls',
+    subtitle: 'The Intuitive Analysts',
+    star: '✦',
+    html: `
+      <p class="intro">You blend logic with intuition in a way that feels almost supernatural. You know things without knowing how you know them — your analytical mind is guided by a deeper intelligence.</p>
+      <div class="section-divider"></div>
+      <div class="section">
+        <div class="section-label">Your Gift</div>
+        <div class="section-text">You are the strategist with a sixth sense. Your gift is seeing through illusion to the truth beneath — you can read a situation, a person, or a system with uncanny accuracy. People trust your assessments because they are rarely wrong.</div>
+      </div>
+      <div class="section">
+        <div class="section-label">Your Shadow</div>
+        <div class="section-text">You can become paralysed when your intuition and your logic point in different directions. Learning to trust the knowing that precedes the evidence is one of your greatest challenges — and your greatest liberation.</div>
+      </div>
+      <div class="section">
+        <div class="section-label">Your Activation</div>
+        <div class="section-text">You activate when you act on your intuition before you can fully explain it. The intelligence that moves through you is older and wiser than your rational mind. Let it lead sometimes.</div>
+      </div>
+      <div class="section">
+        <div class="section-label">In Relationships</div>
+        <div class="section-text">You love through deep perception and honest insight. Your challenge is learning to share what you sense with gentleness — your clarity can cut, and not everyone is ready for the full truth at once.</div>
+      </div>
+    `
+  },
+  {
+    title: 'Epsilon Eridan Souls',
+    subtitle: 'The Practical Innovators',
+    star: '✦',
+    html: `
+      <p class="intro">You are the bridge between theory and practice. Your logic is grounded in material reality, but your mind reaches for new possibilities — you understand how to build systems that are both efficient and innovative.</p>
+      <div class="section-divider"></div>
+      <div class="section">
+        <div class="section-label">Your Gift</div>
+        <div class="section-text">You are the engineer, the architect, the one who makes the impossible possible. Your gift is creating practical solutions to complex problems — and doing it with a creativity that others rarely expect from someone so grounded.</div>
+      </div>
+      <div class="section">
+        <div class="section-label">Your Shadow</div>
+        <div class="section-text">You can become so focused on optimisation that you lose sight of the human element. Efficiency is a means, not an end. The most elegant system is the one that serves life — not the one that runs most smoothly.</div>
+      </div>
+      <div class="section">
+        <div class="section-label">Your Activation</div>
+        <div class="section-text">You activate when you allow imperfection into your process. The prototype that fails teaches more than the plan that never launches. Done is often more powerful than perfect.</div>
+      </div>
+      <div class="section">
+        <div class="section-label">In Relationships</div>
+        <div class="section-text">You love through reliability and creative problem-solving. Your challenge is learning that relationships cannot be optimised — they must be lived, with all their beautiful inefficiency.</div>
+      </div>
+    `
+  },
+  {
+    title: 'Atlantean Souls',
+    subtitle: 'The Relational Thinkers',
+    star: '✦',
+    html: `
+      <p class="intro">Your logic is guided by your understanding of human nature. You think about how ideas affect people, how systems impact relationships — you are the strategist who never loses sight of the human element.</p>
+      <div class="section-divider"></div>
+      <div class="section">
+        <div class="section-label">Your Gift</div>
+        <div class="section-text">You create structures that serve people, not the other way around. Your gift is designing systems — organisations, communities, relationships — that honour both efficiency and humanity. You understand that the best structures are the ones people actually want to inhabit.</div>
+      </div>
+      <div class="section">
+        <div class="section-label">Your Shadow</div>
+        <div class="section-text">You can become so focused on keeping everyone comfortable that you avoid necessary conflict. Sometimes the most loving thing is a clear boundary or an uncomfortable truth. Harmony is not always the highest value.</div>
+      </div>
+      <div class="section">
+        <div class="section-label">Your Activation</div>
+        <div class="section-text">You activate when you allow logic to override compassion when necessary — and trust that clarity is its own form of care. Speaking truth is not a betrayal of your relational nature. It is its fullest expression.</div>
+      </div>
+      <div class="section">
+        <div class="section-label">In Relationships</div>
+        <div class="section-text">You love through thoughtful consideration and relational intelligence. Your challenge is learning to prioritise your own needs without framing it as a failure of care for others.</div>
+      </div>
+    `
+  },
+  {
+    title: 'Andromedan Souls',
+    subtitle: 'The Vital Catalysts',
+    star: '✦',
+    html: `
+      <p class="intro">You are alive with purpose and desire. Your energy is magnetic — people are drawn to your vitality and your sense of direction. You know what you want, and you pursue it with unwavering focus.</p>
+      <div class="section-divider"></div>
+      <div class="section">
+        <div class="section-label">Your Gift</div>
+        <div class="section-text">You are the initiator, the pioneer, the one who dares to want more. Your gift is awakening others to their own power and potential — your aliveness is contagious, and your courage to pursue what matters inspires others to do the same.</div>
+      </div>
+      <div class="section">
+        <div class="section-label">Your Shadow</div>
+        <div class="section-text">Your intensity can be experienced as pressure by those who move at a different pace. Not everyone shares your fire — and that is not weakness, it is difference. Learning to honour other rhythms without losing your own is a profound act of leadership.</div>
+      </div>
+      <div class="section">
+        <div class="section-label">Your Activation</div>
+        <div class="section-text">You activate when you channel your desire toward something larger than yourself. Your energy is most powerful when it serves a mission — not just a goal, but a calling that outlasts your personal ambition.</div>
+      </div>
+      <div class="section">
+        <div class="section-label">In Relationships</div>
+        <div class="section-text">You love through presence, passion, and shared purpose. Your challenge is learning that stillness is not stagnation — and that the most powerful thing you can sometimes do is simply be, without agenda.</div>
+      </div>
+    `
+  },
+  {
+    title: 'Polarisian Souls',
+    subtitle: 'The Brilliant Catalysts',
+    star: '✦',
+    html: `
+      <p class="intro">Your mind and your will are perfectly aligned. You have ideas and the drive to execute them — you are the visionary entrepreneur, the one who builds from nothing.</p>
+      <div class="section-divider"></div>
+      <div class="section">
+        <div class="section-label">Your Gift</div>
+        <div class="section-text">Your gift is turning vision into reality through sheer force of will and intelligence. You do not wait for permission or perfect conditions — you begin, and you figure it out as you go. Your confidence in your own capacity is your greatest asset.</div>
+      </div>
+      <div class="section">
+        <div class="section-label">Your Shadow</div>
+        <div class="section-text">You can burn yourself out chasing the next horizon before the current one is fully realised. Sustainability is not a compromise of your ambition — it is what allows your ambition to compound over time. Rest is not surrender. It is strategy.</div>
+      </div>
+      <div class="section">
+        <div class="section-label">Your Activation</div>
+        <div class="section-text">You activate when you build systems that work without you. Your greatest creation is not the thing you make — it is the structure that continues to create after you have moved on.</div>
+      </div>
+      <div class="section">
+        <div class="section-label">In Relationships</div>
+        <div class="section-text">You love through inspiration and shared ambition. Your challenge is learning that vulnerability — not achievement — is what creates true intimacy. Let people know you, not just what you can do.</div>
+      </div>
+    `
+  },
+  {
+    title: 'Nibiruan Souls',
+    subtitle: 'The Embodied Catalysts',
+    star: '✦',
+    html: `
+      <p class="intro">Your energy is grounded in the physical world. You are driven to create, to build, to manifest your desires in material form — your will is expressed through your hands, your body, your tangible creations.</p>
+      <div class="section-divider"></div>
+      <div class="section">
+        <div class="section-label">Your Gift</div>
+        <div class="section-text">You are the artist, the craftsperson, the one who brings beauty into being. Your gift is making the invisible visible — transforming inner vision into outer form with a precision and care that others find extraordinary.</div>
+      </div>
+      <div class="section">
+        <div class="section-label">Your Shadow</div>
+        <div class="section-text">You can become so attached to the physical expression of your work that you lose connection to its source. When the creation becomes more important than the creator, something essential is lost. You are not your output.</div>
+      </div>
+      <div class="section">
+        <div class="section-label">Your Activation</div>
+        <div class="section-text">You activate when you create from a place of overflow rather than depletion. The work that comes from joy, from fullness, from genuine desire — that is the work that lasts. Let your body lead you back to what is true.</div>
+      </div>
+      <div class="section">
+        <div class="section-label">In Relationships</div>
+        <div class="section-text">You love through physical presence and tangible acts of beauty. Your challenge is learning that not all creation requires physical form — some of the most profound things you can offer live in the space between words.</div>
+      </div>
+    `
+  },
+  {
+    title: 'Egyptian Souls',
+    subtitle: 'The Wise Catalysts',
+    star: '✦',
+    html: `
+      <p class="intro">Your energy is guided by deep wisdom and understanding. You are driven to create meaning, to build systems of knowledge, to leave a legacy that outlasts your individual life.</p>
+      <div class="section-divider"></div>
+      <div class="section">
+        <div class="section-label">Your Gift</div>
+        <div class="section-text">You are the sage, the guide, the keeper of wisdom. Your gift is illuminating the path for others — not by telling them what to do, but by holding a lantern while they find their own way. Your presence alone is a teaching.</div>
+      </div>
+      <div class="section">
+        <div class="section-label">Your Shadow</div>
+        <div class="section-text">You can become attached to being the one who knows. When your identity is built on wisdom, you can resist the humbling experience of not knowing — which is, paradoxically, where the deepest wisdom lives.</div>
+      </div>
+      <div class="section">
+        <div class="section-label">Your Activation</div>
+        <div class="section-text">You activate when you become a student again. The teacher who cannot be taught has stopped growing. Your greatest wisdom will come from the places where you are most willing to be wrong.</div>
+      </div>
+      <div class="section">
+        <div class="section-label">In Relationships</div>
+        <div class="section-text">You love through guidance and shared understanding. Your challenge is learning that sometimes people need a companion, not a teacher — and that walking beside someone is its own profound form of wisdom.</div>
+      </div>
+    `
+  },
+    {
+    title: 'Titan Souls',
+    subtitle: 'The Monumental Builders',
+    star: '✦',
+    html: `
+      <p class="intro">You are a force of nature, possessing immense power and the capacity to shape reality on a massive scale. Your energy is boundless, grounded deeply in the physical world.</p>
+      <div class="section-divider"></div>
+      <div class="section">
+        <div class="section-label">Your Gift</div>
+        <div class="section-text">You are the monumental builder. Your gift is creating structures and legacies that stand the test of time. You do not just build for today; you build for eternity, moving mountains with your sheer will and determination.</div>
+      </div>
+      <div class="section">
+        <div class="section-label">Your Shadow</div>
+        <div class="section-text">You can become so focused on the magnitude of your creations that you forget the delicate, human scale of life. The weight of your own power can sometimes isolate you, making it hard to relate to those who move lightly.</div>
+      </div>
+      <div class="section">
+        <div class="section-label">Your Activation</div>
+        <div class="section-text">You activate when you allow yourself to be gentle. True strength is not just in moving mountains, but in holding a fragile flower without crushing it. Embrace the softness within your colossal power.</div>
+      </div>
+      <div class="section">
+        <div class="section-label">In Relationships</div>
+        <div class="section-text">You love with a protective, overwhelming devotion. Your challenge is learning that your partner does not always need a fortress built around them; sometimes, they just need you to sit with them in the open field.</div>
+      </div>
+    `
+  },
+  {
+    title: 'Blue Avian Souls',
+    subtitle: 'The Compassionate Catalysts',
+    star: '✦',
+    html: `
+      <p class="intro">Your energy is guided by compassion and connection. You are driven to create harmony, to heal, to bring people together — your will is expressed through service and care.</p>
+      <div class="section-divider"></div>
+      <div class="section">
+        <div class="section-label">Your Gift</div>
+        <div class="section-text">You are the healer, the peacemaker, the one who sees the good in everyone. Your gift is awakening others to their capacity for love — not by preaching it, but by embodying it so completely that others cannot help but feel it reflected back to them.</div>
+      </div>
+      <div class="section">
+        <div class="section-label">Your Shadow</div>
+        <div class="section-text">You can give until there is nothing left, and then give more. Your compassion for others can become a way of avoiding your own pain. You cannot heal the world from a place of depletion — and the world needs you whole, not just giving.</div>
+      </div>
+      <div class="section">
+        <div class="section-label">Your Activation</div>
+        <div class="section-text">You activate when you extend to yourself the same compassion you offer others. Self-care is not selfishness — it is the foundation of sustainable service. You must be the first recipient of your own love.</div>
+      </div>
+      <div class="section">
+        <div class="section-label">In Relationships</div>
+        <div class="section-text">You love through unconditional acceptance and healing presence. Your challenge is learning to hold boundaries with the same love you use to hold others — and to trust that a clear "no" can be as loving as any "yes."</div>
+      </div>
+    `
+  },
+  {
+    title: 'Tau Cetian Souls',
+    subtitle: 'The Relational Manifestors',
+    star: '✦',
+    html: `
+      <p class="intro">You manifest through connection. Your material world is built on relationships and the resources that flow through them — you are the networker, the connector, the one who builds abundance through people.</p>
+      <div class="section-divider"></div>
+      <div class="section">
+        <div class="section-label">Your Gift</div>
+        <div class="section-text">Your gift is creating wealth through collaboration. You understand intuitively that the most valuable currency is trust — and you build it naturally, through genuine interest, consistent presence, and the rare ability to make everyone feel like the most important person in the room.</div>
+      </div>
+      <div class="section">
+        <div class="section-label">Your Shadow</div>
+        <div class="section-text">You can blur the line between genuine connection and strategic networking. When relationships become primarily transactional, you lose the very thing that makes you powerful. The deepest abundance flows from love, not leverage.</div>
+      </div>
+      <div class="section">
+        <div class="section-label">Your Activation</div>
+        <div class="section-text">You activate when you invest in relationships with no agenda — when you connect simply because you care, with no thought of what might come from it. This is where your most profound opportunities are born.</div>
+      </div>
+      <div class="section">
+        <div class="section-label">In Relationships</div>
+        <div class="section-text">You love through generosity and genuine interest. Your challenge is learning to be fully known — not just well-liked — and to trust that intimacy requires more than charm.</div>
+      </div>
+    `
+  },
+  {
+    title: 'Aldebaran Souls',
+    subtitle: 'The Logical Manifestors',
+    star: '✦',
+    html: `
+      <p class="intro">You manifest through understanding. Your material world is built on systems, strategy, and clear thinking — you are the planner, the strategist, the one who builds through intelligence and precision.</p>
+      <div class="section-divider"></div>
+      <div class="section">
+        <div class="section-label">Your Gift</div>
+        <div class="section-text">Your gift is creating order and efficiency. You understand how things work — and how to make them work better. Your plans are thorough, your systems are elegant, and your results are consistent. People trust you with their most important projects.</div>
+      </div>
+      <div class="section">
+        <div class="section-label">Your Shadow</div>
+        <div class="section-text">You can become so attached to your plans that you resist the unexpected gifts that come from deviation. Life has its own intelligence — and sometimes the most valuable thing that happens is the thing you did not plan for.</div>
+      </div>
+      <div class="section">
+        <div class="section-label">Your Activation</div>
+        <div class="section-text">You activate when you leave space in your plans for magic. Build the structure — and then release your attachment to exactly how it unfolds. The best outcomes often arrive through doors you did not know existed.</div>
+      </div>
+      <div class="section">
+        <div class="section-label">In Relationships</div>
+        <div class="section-text">You love through reliability and thoughtful provision. Your challenge is learning that love cannot be optimised — and that the most meaningful moments are often the unplanned ones.</div>
+      </div>
+    `
+  },
+  {
+    title: 'Centaurian Souls',
+    subtitle: 'The Energetic Manifestors',
+    star: '✦',
+    html: `
+      <p class="intro">You manifest through will and desire. Your material world is built on your ability to want something and make it real — you are the entrepreneur, the builder, the one who creates through sheer determination.</p>
+      <div class="section-divider"></div>
+      <div class="section">
+        <div class="section-label">Your Gift</div>
+        <div class="section-text">Your gift is turning dreams into reality. Where others see obstacles, you see challenges to overcome. Your determination is extraordinary, your resilience is legendary, and your capacity to keep moving when others stop is what sets you apart.</div>
+      </div>
+      <div class="section">
+        <div class="section-label">Your Shadow</div>
+        <div class="section-text">You can mistake force for power. Not everything worth having comes through pushing harder — sometimes the most powerful thing you can do is stop, listen, and allow. Surrender is not defeat. It is a different kind of strength.</div>
+      </div>
+      <div class="section">
+        <div class="section-label">Your Activation</div>
+        <div class="section-text">You activate when you learn to work with the current rather than against it. Your will is powerful — but it is most powerful when aligned with the natural flow of things. Effortless effort is your highest expression.</div>
+      </div>
+      <div class="section">
+        <div class="section-label">In Relationships</div>
+        <div class="section-text">You love through passionate pursuit and unwavering loyalty. Your challenge is learning that the most enduring connections are built not through conquest, but through mutual surrender.</div>
+      </div>
+    `
+  },
+  {
+    title: 'Herculean Souls',
+    subtitle: 'The Vital Builders',
+    star: '✦',
+    html: `
+      <p class="intro">You are the one who builds through energy and action. Your material world is created through your willingness to work, to move, to do — you are the creator who makes things with their hands and their will.</p>
+      <div class="section-divider"></div>
+      <div class="section">
+        <div class="section-label">Your Gift</div>
+        <div class="section-text">Your gift is bringing things into being. You have an extraordinary capacity for sustained effort — you do not just start things, you finish them. Your work ethic is a form of devotion, and the things you build carry the energy of that devotion.</div>
+      </div>
+      <div class="section">
+        <div class="section-label">Your Shadow</div>
+        <div class="section-text">You can use work as a way to avoid the inner life. Busyness becomes armour. When you are always doing, you never have to feel what is underneath the doing. The deepest work sometimes happens in the stillness you most resist.</div>
+      </div>
+      <div class="section">
+        <div class="section-label">Your Activation</div>
+        <div class="section-text">You activate when you honour rest as part of the creative cycle. The fallow period is not wasted time — it is when the roots deepen. What you build after genuine rest will be stronger than anything you have built through force.</div>
+      </div>
+      <div class="section">
+        <div class="section-label">In Relationships</div>
+        <div class="section-text">You love through devoted action and physical presence. Your challenge is learning to be still with someone — to let connection happen without a project, without a purpose, without anything to show for it.</div>
+      </div>
+    `
+  },
+  {
+    title: 'Anunnaki Souls',
+    subtitle: 'The Powerful Manifestors',
+    star: '✦',
+    html: `
+      <p class="intro">You manifest through power and presence. Your material world is built on your ability to command respect and resources — you are the leader, the authority, the one who shapes reality through will and vision.</p>
+      <div class="section-divider"></div>
+      <div class="section">
+        <div class="section-label">Your Gift</div>
+        <div class="section-text">Your gift is creating order and structure where there was none. You have a natural authority that others recognise and respond to — not because you demand it, but because you carry it in your bones. You were born to lead.</div>
+      </div>
+      <div class="section">
+        <div class="section-label">Your Shadow</div>
+        <div class="section-text">Power without service becomes control. The shadow of your gift is the temptation to use your authority to protect yourself rather than to serve others. True power is not about dominance — it is about responsibility.</div>
+      </div>
+      <div class="section">
+        <div class="section-label">Your Activation</div>
+        <div class="section-text">You activate when you use your power in service of something greater than yourself. The greatest leaders are those who measure their success by how many others they have lifted up. This is your highest calling.</div>
+      </div>
+      <div class="section">
+        <div class="section-label">In Relationships</div>
+        <div class="section-text">You love through protection and provision. Your challenge is learning to be vulnerable — to let someone see the parts of you that are not powerful, not certain, not in control. This is where true intimacy lives.</div>
+      </div>
+    `
+  },
+  {
+    title: 'Hyperborean Souls',
+    subtitle: 'The Grounded Architects',
+    star: '✦',
+    html: `
+      <p class="intro">You are the one who builds lasting structures. Your material world is created through patience, planning, and deep understanding — you are the architect who creates with precision and care.</p>
+      <div class="section-divider"></div>
+      <div class="section">
+        <div class="section-label">Your Gift</div>
+        <div class="section-text">Your gift is building things that endure. You do not rush, you do not cut corners, and you do not compromise on quality. What you create is made to last — and it does. Your work is a form of integrity made visible.</div>
+      </div>
+      <div class="section">
+        <div class="section-label">Your Shadow</div>
+        <div class="section-text">Perfectionism can become a form of fear. When "not yet ready" becomes a permanent state, the work never reaches the world — and the world is poorer for it. Done and imperfect is almost always more valuable than perfect and withheld.</div>
+      </div>
+      <div class="section">
+        <div class="section-label">Your Activation</div>
+        <div class="section-text">You activate when you release your work before it feels completely ready. The feedback from the world will teach you more than any amount of private refinement. Ship it. Learn. Iterate. This is how your best work is actually built.</div>
+      </div>
+      <div class="section">
+        <div class="section-label">In Relationships</div>
+        <div class="section-text">You love through steadiness and long-term commitment. Your challenge is learning that relationships, unlike buildings, are never finished — and that their beauty lies precisely in their ongoing becoming.</div>
+      </div>
+    `
+  },
+  {
+    cta: true,
+    title: 'The Journey Continues',
+    subtitle: 'Remember Your Truth',
+    star: '✦',
+    html: `
+      <p class="intro">You have journeyed through the 24 cosmic blueprints. Each one carries a frequency, a gift, a shadow, an activation.</p>
+      <p class="intro">You are not just one type — you are a constellation of energies, a unique expression of the cosmos finding its way home.</p>
+      <div class="section-divider"></div>
+      <div class="section">
+        <div class="section-label">Your Next Step</div>
+        <div class="section-text">Take the quiz to discover your primary soul type. Then book a personal session to explore your full constellation — the gifts you carry, the shadows you are ready to integrate, and the activations that will unlock your next level of becoming.</div>
+      </div>
+      <div class="cta-wrap">
+        <a class="cta-link" href="https://starseedsoultype.github.io/starseed/quiz.html" target="_blank">Open the Portal</a>
+      </div>
+    `
+  }
+];
+
+let cur = 0;
+const stageEl = document.getElementById('stage');
+const dotsEl  = document.getElementById('dots');
+const curEl   = document.getElementById('cur');
+const totEl   = document.getElementById('tot');
+const prevBtn = document.getElementById('prev-btn');
+const nextBtn = document.getElementById('next-btn');
+
+// Build pages
+PAGES.forEach((p, i) => {
+  const page = document.createElement('div');
+  page.className = 'page' + (p.cover ? ' cover' : '') + (i === 0 ? ' active' : '');
+
+  const header = document.createElement('div');
+  header.className = 'page-header';
+  header.innerHTML = `
+    <span class="page-num">${i + 1} / ${PAGES.length}</span>
+    <span class="page-star">${p.star || '✦'}</span>
+    <h1 class="page-title">${p.title}</h1>
+    <p class="page-subtitle">${p.subtitle}</p>
+    <div class="page-divider"></div>
+  `;
+
+  const body = document.createElement('div');
+  body.className = 'page-body';
+
+  const text = document.createElement('div');
+  text.className = 'page-text';
+  text.innerHTML = p.html;
+
+  body.appendChild(text);
+  page.appendChild(header);
+  page.appendChild(body);
+  stageEl.appendChild(page);
+});
+
+// Build TOC dynamically
+const tocListEl = document.getElementById('toc-list');
+if (tocListEl) {
+  // Find indices of soul type pages (skip cover, toc, about, cta)
+  const soulTypes = PAGES
+    .map((p, i) => ({ p, i }))
+    .filter(({ p }) => !p.cover && !p.toc && !p.cta && !p.about);
+
+  const tocHTML = soulTypes.map(({ p, i }) => {
+    const num = i + 1;
+    return `<div class="toc-item" onclick="show(${i})" style="
+      display:flex; justify-content:space-between; align-items:center;
+      padding: 7px 0; border-bottom: 1px solid rgba(255,215,0,0.1);
+      cursor:pointer; transition: color 0.2s;
+    ">
+      <span style="color: var(--gold); font-family:'Cormorant Garamond',serif; font-size:1.05rem; letter-spacing:0.5px;">${p.title.replace(' Souls','')}</span>
+      <span style="color: rgba(232,232,240,0.4); font-size:0.8rem; font-family:'Raleway',sans-serif; letter-spacing:1px;">${num}</span>
+    </div>`;
+  }).join('');
+
+  tocListEl.innerHTML = `
+    <div style="font-size:0.75rem; letter-spacing:2px; color:rgba(232,232,240,0.4); font-family:'Raleway',sans-serif; text-transform:uppercase; margin-bottom:12px;">Tap a name to jump directly</div>
+    ${tocHTML}
+  `;
+}
+
+// Build dots
+PAGES.forEach((_, i) => {
+  const d = document.createElement('div');
+  d.className = 'dot' + (i === 0 ? ' active' : '');
+  dotsEl.appendChild(d);
+});
+
+totEl.textContent = PAGES.length;
+prevBtn.disabled = true;
+
+function show(idx) {
+  const pages = stageEl.querySelectorAll('.page');
+  const dots  = dotsEl.querySelectorAll('.dot');
+  pages[cur].classList.remove('active');
+  dots[cur].classList.remove('active');
+  cur = idx;
+  pages[cur].classList.add('active');
+  dots[cur].classList.add('active');
+  const body = pages[cur].querySelector('.page-body');
+  if (body) body.scrollTop = 0;
+  curEl.textContent = cur + 1;
+  prevBtn.disabled  = cur === 0;
+  nextBtn.disabled  = cur === PAGES.length - 1;
+}
+
+function go(dir) {
+  const n = cur + dir;
+  if (n >= 0 && n < PAGES.length) show(n);
+}
+
+// Keyboard
+document.addEventListener('keydown', e => {
+  if (e.key === 'ArrowRight' || e.key === 'ArrowDown') go(1);
+  if (e.key === 'ArrowLeft'  || e.key === 'ArrowUp')   go(-1);
+});
+
+// Touch swipe
+let tx = 0, ty = 0, swiping = false;
+document.addEventListener('touchstart', e => {
+  tx = e.changedTouches[0].clientX;
+  ty = e.changedTouches[0].clientY;
+  swiping = false;
+}, { passive: true });
+document.addEventListener('touchmove', e => {
+  const dx = Math.abs(e.changedTouches[0].clientX - tx);
+  const dy = Math.abs(e.changedTouches[0].clientY - ty);
+  if (dx > dy && dx > 12) swiping = true;
+}, { passive: true });
+document.addEventListener('touchend', e => {
+  if (!swiping) return;
+  const dx = e.changedTouches[0].clientX - tx;
+  if (Math.abs(dx) > 40) go(dx < 0 ? 1 : -1);
+}, { passive: true });
+</script>
+</body>
+</html>

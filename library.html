@@ -1,0 +1,1545 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>Twin Frequency — Library</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;1,300;1,400&family=Jost:wght@200;300;400&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+:root {
+  --gold: #c9a96e;
+  --gold-soft: #e8d5b0;
+  --deep: #04030a;
+  --text: #e8e0d5;
+  --muted: #6b6478;
+  --card-bg: rgba(255,255,255,0.03);
+  --border: rgba(201,169,110,0.15);
+}
+
+html, body {
+  min-height: 100%;
+  background: var(--deep);
+  color: var(--text);
+  font-family: 'Jost', sans-serif;
+  font-weight: 200;
+  overflow-x: hidden;
+}
+
+/* STARS CANVAS */
+#stars-canvas {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+  opacity: 0.4;
+}
+
+/* TOP NAV */
+.top-nav {
+  position: fixed;
+  top: 0; left: 0; right: 0;
+  z-index: 50;
+  padding: 16px 20px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: linear-gradient(to bottom, rgba(4,3,10,0.95), transparent);
+}
+
+.nav-logo {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 18px;
+  font-weight: 300;
+  letter-spacing: 0.15em;
+  color: var(--gold-soft);
+}
+.nav-logo em { font-style: italic; color: var(--gold); }
+
+.back-btn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  opacity: 0.7;
+  transition: opacity 0.2s;
+  font-size: 12px;
+  letter-spacing: 0.1em;
+  color: var(--gold);
+}
+.back-btn:hover { opacity: 1; }
+
+/* MAIN LAYOUT */
+.library-main {
+  position: relative;
+  z-index: 1;
+  padding: 80px 0 100px;
+  min-height: 100vh;
+}
+
+/* HOME VIEW */
+.library-home {
+  max-width: 480px;
+  margin: 0 auto;
+  padding: 24px 20px;
+}
+
+.library-title {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 32px;
+  font-weight: 300;
+  color: var(--gold-soft);
+  text-align: center;
+  margin-bottom: 8px;
+}
+.library-subtitle {
+  font-size: 11px;
+  letter-spacing: 0.2em;
+  color: var(--muted);
+  text-align: center;
+  text-transform: uppercase;
+  margin-bottom: 40px;
+}
+
+/* SEARCH */
+.search-wrap {
+  position: relative;
+  margin-bottom: 36px;
+}
+.search-input {
+  width: 100%;
+  background: var(--card-bg);
+  border: 1px solid var(--border);
+  border-radius: 24px;
+  padding: 12px 20px 12px 44px;
+  color: var(--text);
+  font-family: 'Jost', sans-serif;
+  font-size: 13px;
+  font-weight: 200;
+  letter-spacing: 0.05em;
+  outline: none;
+  transition: border-color 0.2s;
+}
+.search-input::placeholder { color: var(--muted); }
+.search-input:focus { border-color: rgba(201,169,110,0.4); }
+.search-icon {
+  position: absolute;
+  left: 16px;
+  top: 50%;
+  transform: translateY(-50%);
+  opacity: 0.4;
+}
+
+/* SECTION HEADER */
+.section-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+.section-label {
+  font-size: 10px;
+  letter-spacing: 0.25em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+.section-line {
+  flex: 1;
+  height: 1px;
+  background: var(--border);
+}
+
+/* ORIGIN GROUP */
+.origin-group {
+  margin-bottom: 32px;
+}
+.group-title {
+  font-size: 10px;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--gold);
+  margin-bottom: 12px;
+  padding-left: 4px;
+}
+
+.origins-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+
+.origin-chip {
+  background: var(--card-bg);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 14px 16px;
+  cursor: pointer;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.origin-chip:hover {
+  border-color: rgba(201,169,110,0.4);
+  background: rgba(201,169,110,0.05);
+}
+.origin-chip-dot {
+  width: 6px; height: 6px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+.origin-chip-name {
+  font-size: 12px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--gold-soft);
+}
+
+/* CONNECTION TYPES LIST */
+.connections-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 40px;
+}
+
+.connection-chip {
+  background: var(--card-bg);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 14px 18px;
+  cursor: pointer;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.connection-chip:hover {
+  border-color: rgba(201,169,110,0.4);
+  background: rgba(201,169,110,0.05);
+}
+.connection-chip-left {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.connection-flame {
+  width: 8px; height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+.connection-name {
+  font-size: 13px;
+  letter-spacing: 0.06em;
+  color: var(--gold-soft);
+}
+.connection-arrow {
+  opacity: 0.3;
+  font-size: 12px;
+}
+
+/* DETAIL VIEW */
+.detail-view {
+  display: none;
+  max-width: 480px;
+  margin: 0 auto;
+  padding: 24px 20px;
+  animation: fadeUp 0.35s ease;
+}
+
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* ORIGIN DETAIL */
+.origin-hero {
+  text-align: center;
+  margin-bottom: 36px;
+}
+
+.origin-crystal {
+  width: 100px; height: 100px;
+  margin: 0 auto 20px;
+  position: relative;
+}
+
+.origin-crystal canvas {
+  width: 100%; height: 100%;
+}
+
+.origin-name-large {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 36px;
+  font-weight: 300;
+  color: var(--gold-soft);
+  margin-bottom: 6px;
+}
+
+.origin-group-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 14px;
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  font-size: 10px;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--gold);
+  margin-bottom: 16px;
+}
+
+.origin-tagline {
+  font-family: 'Cormorant Garamond', serif;
+  font-style: italic;
+  font-size: 17px;
+  color: var(--muted);
+  line-height: 1.5;
+}
+
+/* DETAIL SECTIONS */
+.detail-section {
+  margin-bottom: 28px;
+}
+
+.detail-section-title {
+  font-size: 10px;
+  letter-spacing: 0.25em;
+  text-transform: uppercase;
+  color: var(--gold);
+  margin-bottom: 12px;
+}
+
+.detail-text {
+  font-size: 14px;
+  line-height: 1.8;
+  color: var(--text);
+  opacity: 0.85;
+}
+
+.detail-divider {
+  height: 1px;
+  background: var(--border);
+  margin: 28px 0;
+}
+
+/* TRAITS */
+.traits-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.trait-tag {
+  padding: 5px 12px;
+  border: 1px solid var(--border);
+  border-radius: 20px;
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  color: var(--gold-soft);
+  opacity: 0.8;
+}
+
+/* RELATED LINKS */
+.related-section {
+  margin-bottom: 28px;
+}
+.related-title {
+  font-size: 10px;
+  letter-spacing: 0.25em;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin-bottom: 12px;
+}
+.related-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.related-chip {
+  padding: 6px 14px;
+  background: rgba(201,169,110,0.06);
+  border: 1px solid rgba(201,169,110,0.2);
+  border-radius: 20px;
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  color: var(--gold);
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.related-chip:hover {
+  background: rgba(201,169,110,0.12);
+  border-color: rgba(201,169,110,0.4);
+}
+
+/* CONNECTION DETAIL */
+.connection-hero {
+  text-align: center;
+  margin-bottom: 36px;
+}
+
+.connection-flame-large {
+  width: 60px; height: 60px;
+  margin: 0 auto 20px;
+  border-radius: 50%;
+  position: relative;
+  overflow: hidden;
+}
+
+.connection-name-large {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 32px;
+  font-weight: 300;
+  color: var(--gold-soft);
+  margin-bottom: 8px;
+}
+
+.connection-tagline {
+  font-family: 'Cormorant Garamond', serif;
+  font-style: italic;
+  font-size: 16px;
+  color: var(--muted);
+  line-height: 1.5;
+}
+
+/* INTENSITY BAR */
+.intensity-bar-wrap {
+  margin: 16px 0;
+}
+.intensity-label {
+  display: flex;
+  justify-content: space-between;
+  font-size: 10px;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin-bottom: 6px;
+}
+.intensity-bar {
+  height: 3px;
+  background: rgba(255,255,255,0.06);
+  border-radius: 2px;
+  overflow: hidden;
+}
+.intensity-fill {
+  height: 100%;
+  border-radius: 2px;
+  transition: width 0.8s ease;
+}
+
+/* BOTTOM NAV */
+.bottom-nav {
+  position: fixed;
+  bottom: 0; left: 0; right: 0;
+  z-index: 50;
+  padding: 12px 0 24px;
+  background: linear-gradient(to top, rgba(4,3,10,0.95) 60%, transparent);
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+}
+
+.nav-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  cursor: pointer;
+  opacity: 0.4;
+  transition: opacity 0.2s;
+  min-width: 60px;
+}
+.nav-item.active { opacity: 1; }
+.nav-item:hover { opacity: 0.8; }
+
+.nav-item svg { width: 22px; height: 22px; }
+
+.nav-label {
+  font-size: 9px;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: var(--gold-soft);
+}
+
+/* SEARCH RESULTS */
+.search-results {
+  display: none;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 20px;
+}
+.search-result-item {
+  background: var(--card-bg);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 14px 18px;
+  cursor: pointer;
+  transition: all 0.2s;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.search-result-item:hover {
+  border-color: rgba(201,169,110,0.4);
+  background: rgba(201,169,110,0.05);
+}
+.search-result-type {
+  font-size: 9px;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin-top: 2px;
+}
+.search-result-name {
+  font-size: 13px;
+  letter-spacing: 0.06em;
+  color: var(--gold-soft);
+}
+.search-dot {
+  width: 8px; height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+</style>
+</head>
+<body>
+
+<canvas id="stars-canvas"></canvas>
+
+<!-- TOP NAV -->
+<nav class="top-nav">
+  <div class="back-btn" id="back-btn" onclick="goBack()" style="display:none;">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+      <path d="M19 12H5M5 12l7-7M5 12l7 7"/>
+    </svg>
+    <span>BACK</span>
+  </div>
+  <div class="nav-logo" id="nav-logo">Twin<em>F</em></div>
+  <div style="width:60px"></div>
+</nav>
+
+<!-- MAIN -->
+<main class="library-main">
+
+  <!-- HOME VIEW -->
+  <div class="library-home" id="home-view">
+    <h1 class="library-title">Library</h1>
+    <p class="library-subtitle">Origins &amp; Connection Types</p>
+
+    <!-- SEARCH -->
+    <div class="search-wrap">
+      <svg class="search-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#6b6478" stroke-width="1.5">
+        <circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/>
+      </svg>
+      <input class="search-input" id="search-input" type="text" placeholder="Search Origins or connection types..." oninput="handleSearch(this.value)">
+    </div>
+
+    <!-- SEARCH RESULTS -->
+    <div class="search-results" id="search-results"></div>
+
+    <!-- ORIGINS -->
+    <div id="origins-section">
+      <div class="section-header">
+        <span class="section-label">Origins</span>
+        <div class="section-line"></div>
+      </div>
+
+      <div class="origins-grid">
+          <div class="origin-chip" onclick="openOrigin('siriusian')"><div class="origin-chip-dot" style="background:#a8d8ea"></div><span class="origin-chip-name">Siriusian</span></div>
+          <div class="origin-chip" onclick="openOrigin('pleiadian')"><div class="origin-chip-dot" style="background:#f7d6e0"></div><span class="origin-chip-name">Pleiadian</span></div>
+          <div class="origin-chip" onclick="openOrigin('lemurian')"><div class="origin-chip-dot" style="background:#a8e6cf"></div><span class="origin-chip-name">Lemurian</span></div>
+          <div class="origin-chip" onclick="openOrigin('cassiopeian')"><div class="origin-chip-dot" style="background:#dce8f7"></div><span class="origin-chip-name">Cassiopeian</span></div>
+          <div class="origin-chip" onclick="openOrigin('procyonian')"><div class="origin-chip-dot" style="background:#ffd3a5"></div><span class="origin-chip-name">Procyonian</span></div>
+          <div class="origin-chip" onclick="openOrigin('lyran')"><div class="origin-chip-dot" style="background:#e8c5f5"></div><span class="origin-chip-name">Lyran</span></div>
+          <div class="origin-chip" onclick="openOrigin('arcturian')"><div class="origin-chip-dot" style="background:#7ec8e3"></div><span class="origin-chip-name">Arcturian</span></div>
+          <div class="origin-chip" onclick="openOrigin('orion')"><div class="origin-chip-dot" style="background:#b8d4f0"></div><span class="origin-chip-name">Orion</span></div>
+          <div class="origin-chip" onclick="openOrigin('vegan')"><div class="origin-chip-dot" style="background:#c5e8d0"></div><span class="origin-chip-name">Vegan</span></div>
+          <div class="origin-chip" onclick="openOrigin('zeta-reticulan')"><div class="origin-chip-dot" style="background:#d0e8f5"></div><span class="origin-chip-name">Zeta Reticulan</span></div>
+          <div class="origin-chip" onclick="openOrigin('epsilon-eridan')"><div class="origin-chip-dot" style="background:#e0d5f7"></div><span class="origin-chip-name">Epsilon Eridan</span></div>
+          <div class="origin-chip" onclick="openOrigin('atlantean')"><div class="origin-chip-dot" style="background:#f0e0c5"></div><span class="origin-chip-name">Atlantean</span></div>
+          <div class="origin-chip" onclick="openOrigin('andromedan')"><div class="origin-chip-dot" style="background:#e8a5c5"></div><span class="origin-chip-name">Andromedan</span></div>
+          <div class="origin-chip" onclick="openOrigin('polarisian')"><div class="origin-chip-dot" style="background:#c5d5f0"></div><span class="origin-chip-name">Polarisian</span></div>
+          <div class="origin-chip" onclick="openOrigin('nibiruan')"><div class="origin-chip-dot" style="background:#f5c5a0"></div><span class="origin-chip-name">Nibiruan</span></div>
+          <div class="origin-chip" onclick="openOrigin('egyptian')"><div class="origin-chip-dot" style="background:#f0d080"></div><span class="origin-chip-name">Egyptian</span></div>
+          <div class="origin-chip" onclick="openOrigin('titan')"><div class="origin-chip-dot" style="background:#a0d5b0"></div><span class="origin-chip-name">Titan</span></div>
+          <div class="origin-chip" onclick="openOrigin('blue-avian')"><div class="origin-chip-dot" style="background:#80c5e8"></div><span class="origin-chip-name">Blue Avian</span></div>
+          <div class="origin-chip" onclick="openOrigin('tau-cetian')"><div class="origin-chip-dot" style="background:#c8b8a0"></div><span class="origin-chip-name">Tau Cetian</span></div>
+          <div class="origin-chip" onclick="openOrigin('aldebaran')"><div class="origin-chip-dot" style="background:#f0c080"></div><span class="origin-chip-name">Aldebaran</span></div>
+          <div class="origin-chip" onclick="openOrigin('centaurian')"><div class="origin-chip-dot" style="background:#d0c8b8"></div><span class="origin-chip-name">Centaurian</span></div>
+          <div class="origin-chip" onclick="openOrigin('herculean')"><div class="origin-chip-dot" style="background:#e8d0b0"></div><span class="origin-chip-name">Herculean</span></div>
+          <div class="origin-chip" onclick="openOrigin('anunnaki')"><div class="origin-chip-dot" style="background:#c0a880"></div><span class="origin-chip-name">Anunnaki</span></div>
+          <div class="origin-chip" onclick="openOrigin('hyperborean')"><div class="origin-chip-dot" style="background:#e0e8f0"></div><span class="origin-chip-name">Hyperborean</span></div>
+      </div>
+    </div>
+
+    <!-- CONNECTION TYPES -->
+    <div class="section-header">
+      <span class="section-label">Connection Types</span>
+      <div class="section-line"></div>
+    </div>
+
+    <div class="connections-list">
+      <div class="connection-chip" onclick="openConnection('frequency-twins')">
+        <div class="connection-chip-left">
+          <div class="connection-flame" style="background:radial-gradient(circle, #ffd700, #c9a96e)"></div>
+          <span class="connection-name">Frequency Twins</span>
+        </div>
+        <span class="connection-arrow">›</span>
+      </div>
+      <div class="connection-chip" onclick="openConnection('twin-stars')">
+        <div class="connection-chip-left">
+          <div class="connection-flame" style="background:radial-gradient(circle, #ffd700, #ffb6c1)"></div>
+          <span class="connection-name">Twin Stars</span>
+        </div>
+        <span class="connection-arrow">›</span>
+      </div>
+      <div class="connection-chip" onclick="openConnection('cosmic-flow')">
+        <div class="connection-chip-left">
+          <div class="connection-flame" style="background:radial-gradient(circle, #ffb6c1, #c8a2c8)"></div>
+          <span class="connection-name">Cosmic Flow</span>
+        </div>
+        <span class="connection-arrow">›</span>
+      </div>
+      <div class="connection-chip" onclick="openConnection('mirror-portals')">
+        <div class="connection-chip-left">
+          <div class="connection-flame" style="background:radial-gradient(circle, #e6e6fa, #c8a2c8)"></div>
+          <span class="connection-name">Mirror Portals</span>
+        </div>
+        <span class="connection-arrow">›</span>
+      </div>
+      <div class="connection-chip" onclick="openConnection('celestial-mentor')">
+        <div class="connection-chip-left">
+          <div class="connection-flame" style="background:radial-gradient(circle, #fff, #e6e6fa)"></div>
+          <span class="connection-name">Celestial Mentor</span>
+        </div>
+        <span class="connection-arrow">›</span>
+      </div>
+      <div class="connection-chip" onclick="openConnection('karmic-bonds')">
+        <div class="connection-chip-left">
+          <div class="connection-flame" style="background:radial-gradient(circle, #8a2be2, #4169e1)"></div>
+          <span class="connection-name">Karmic Bonds</span>
+        </div>
+        <span class="connection-arrow">›</span>
+      </div>
+      <div class="connection-chip" onclick="openConnection('shadow-contracts')">
+        <div class="connection-chip-left">
+          <div class="connection-flame" style="background:radial-gradient(circle, #4b0082, #2d0057)"></div>
+          <span class="connection-name">Shadow Contracts</span>
+        </div>
+        <span class="connection-arrow">›</span>
+      </div>
+      <div class="connection-chip" onclick="openConnection('black-holes')">
+        <div class="connection-chip-left">
+          <div class="connection-flame" style="background:radial-gradient(circle, #191970, #0a0a2e)"></div>
+          <span class="connection-name">Black Holes</span>
+        </div>
+        <span class="connection-arrow">›</span>
+      </div>
+      <div class="connection-chip" onclick="openConnection('star-alchemy')">
+        <div class="connection-chip-left">
+          <div class="connection-flame" style="background:radial-gradient(circle, #4169e1, #1e3a8a)"></div>
+          <span class="connection-name">Star Alchemy</span>
+        </div>
+        <span class="connection-arrow">›</span>
+      </div>
+      <div class="connection-chip" onclick="openConnection('eternal-reflection')">
+        <div class="connection-chip-left">
+          <div class="connection-flame" style="background:radial-gradient(circle, #f0f0f0, #c0c0c0)"></div>
+          <span class="connection-name">Eternal Reflection</span>
+        </div>
+        <span class="connection-arrow">›</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- DETAIL VIEW -->
+  <div class="detail-view" id="detail-view"></div>
+
+</main>
+
+<!-- BOTTOM NAV -->
+<nav class="bottom-nav">
+  <div class="nav-item" onclick="window.location.href='feed.html'">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2">
+      <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
+    </svg>
+    <span class="nav-label">Explore</span>
+  </div>
+  <div class="nav-item" onclick="window.location.href='chats.html'">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2">
+      <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
+    </svg>
+    <span class="nav-label">Circle</span>
+  </div>
+  <div class="nav-item active">
+    <svg viewBox="0 0 24 24" fill="none" stroke="#c9a96e" stroke-width="1.2">
+      <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/>
+      <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/>
+    </svg>
+    <span class="nav-label" style="color:var(--gold)">Library</span>
+  </div>
+  <div class="nav-item" onclick="window.location.href='profile.html'">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2">
+      <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
+      <circle cx="12" cy="7" r="4"/>
+    </svg>
+    <span class="nav-label">Profile</span>
+  </div>
+</nav>
+
+<script>
+// ─── SUPABASE ───────────────────────────────────────────────────────────────
+const SUPABASE_URL = 'https://pewgupxikbswhaqxjrwk.supabase.co'
+const SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBld2d1cHhpa2Jzd2hhcXhqcndrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzUyNjY0MTEsImV4cCI6MjA5MDg0MjQxMX0.rQIz0R_4Oz6VqHgSvjx9YAtF8BojdcMU7RcqDiVP1NU'
+const sb = supabase.createClient(SUPABASE_URL, SUPABASE_KEY)
+
+// ─── STARS ──────────────────────────────────────────────────────────────────
+const canvas = document.getElementById('stars-canvas')
+const ctx = canvas.getContext('2d')
+let stars = []
+
+function initStars() {
+  canvas.width = window.innerWidth
+  canvas.height = window.innerHeight
+  stars = Array.from({length: 120}, () => ({
+    x: Math.random() * canvas.width,
+    y: Math.random() * canvas.height,
+    r: Math.random() * 1.2 + 0.2,
+    a: Math.random(),
+    speed: Math.random() * 0.003 + 0.001
+  }))
+}
+
+function drawStars() {
+  ctx.clearRect(0, 0, canvas.width, canvas.height)
+  stars.forEach(s => {
+    s.a += s.speed
+    const alpha = (Math.sin(s.a) + 1) / 2 * 0.6 + 0.1
+    ctx.beginPath()
+    ctx.arc(s.x, s.y, s.r, 0, Math.PI * 2)
+    ctx.fillStyle = `rgba(201,169,110,${alpha})`
+    ctx.fill()
+  })
+  requestAnimationFrame(drawStars)
+}
+
+initStars()
+drawStars()
+window.addEventListener('resize', initStars)
+
+// ─── DATA ───────────────────────────────────────────────────────────────────
+const ORIGINS = {
+  'siriusian': {
+    name: 'Siriusian',
+    group: 'Group I — Relationships',
+    groupColor: '#a8d8ea',
+    tagline: 'The architects of sacred bonds, keepers of the heart\'s deepest knowing.',
+    essence: 'Siriusians are the great connectors of the cosmos — souls who arrived carrying the blueprint of unconditional love. They do not merely form relationships; they build living temples of connection, where every interaction becomes a ceremony.',
+    gifts: 'Your presence heals without effort. People feel seen in your company — truly seen, not just observed. You carry an ancient understanding of what it means to belong to another soul, and this knowing radiates from you like warmth from a distant star.',
+    shadow: 'The depth of your capacity for love can become a labyrinth. You may lose yourself in others, mistaking merger for union. The work of your soul is learning that true connection requires two whole beings — not one who dissolves.',
+    traits: ['Deep empathy', 'Healing presence', 'Sacred loyalty', 'Emotional intelligence', 'Intuitive bonds'],
+    connections: ['frequency-twins', 'twin-stars', 'cosmic-flow', 'eternal-reflection'],
+    relatedOrigins: ['pleiadian', 'lemurian', 'andromedan']
+  },
+  'pleiadian': {
+    name: 'Pleiadian',
+    group: 'Group I — Relationships',
+    groupColor: '#f7d6e0',
+    tagline: 'Weavers of beauty, carriers of the divine feminine frequency.',
+    essence: 'Pleiadians carry the frequency of beauty as a spiritual principle — not aesthetic preference, but the recognition that beauty is the language through which the cosmos speaks its deepest truths. They arrived to remind humanity that love is the organizing force of all creation.',
+    gifts: 'You see the sacred in the ordinary. A conversation with you leaves people feeling that they have been touched by something larger than themselves. Your sensitivity is not weakness — it is your most precise instrument for navigating reality.',
+    shadow: 'The world\'s density can feel unbearable. You may retreat into idealism, creating inner worlds more beautiful than the one you inhabit. The invitation is to bring your vision into form — to let beauty become a bridge, not an escape.',
+    traits: ['Aesthetic sensitivity', 'Unconditional love', 'Creative vision', 'Gentle wisdom', 'Cosmic memory'],
+    connections: ['frequency-twins', 'cosmic-flow', 'mirror-portals', 'twin-stars'],
+    relatedOrigins: ['siriusian', 'lemurian', 'lyran']
+  },
+  'lemurian': {
+    name: 'Lemurian',
+    group: 'Group I — Relationships',
+    groupColor: '#a8e6cf',
+    tagline: 'Ancient memory keepers, bridges between the world that was and what is becoming.',
+    essence: 'Lemurians carry the memory of a time when humanity lived in harmony with the living intelligence of Earth. This memory is not nostalgic — it is a navigational instrument, pointing toward what is possible when consciousness and matter dance together.',
+    gifts: 'You sense the invisible threads connecting all living things. Nature speaks to you in a language older than words. Your healing presence operates on levels that cannot be measured, only felt — a restoration of wholeness that others cannot explain but deeply recognize.',
+    shadow: 'The grief of what was lost can become a weight that prevents you from fully inhabiting the present. The ancient wound of separation runs deep in your soul. Your path is integration — honoring the memory while building the new.',
+    traits: ['Earth wisdom', 'Healing hands', 'Ancient knowing', 'Nature communion', 'Cellular memory'],
+    connections: ['cosmic-flow', 'twin-stars', 'celestial-mentor', 'eternal-reflection'],
+    relatedOrigins: ['siriusian', 'pleiadian', 'titan']
+  },
+  'cassiopeian': {
+    name: 'Cassiopeian',
+    group: 'Group I — Relationships',
+    groupColor: '#dce8f7',
+    tagline: 'Seers of patterns, translators of the cosmic language of relationship.',
+    essence: 'Cassiopeians arrived with the ability to perceive the invisible architecture of human connection — the patterns, cycles, and sacred geometries that govern how souls find and recognize each other. They are the cartographers of the heart\'s terrain.',
+    gifts: 'You understand what others cannot articulate about their own relationships. You see the pattern within the chaos, the meaning within the wound. Your clarity is a gift — when offered with gentleness, it becomes a lantern in the dark.',
+    shadow: 'Seeing the pattern can create distance from the experience. You may observe life rather than live it, analyzing connection rather than surrendering to it. The invitation is to let yourself be surprised — to allow the unknown to teach you.',
+    traits: ['Pattern recognition', 'Relational wisdom', 'Cosmic perspective', 'Gentle clarity', 'Sacred geometry'],
+    connections: ['mirror-portals', 'frequency-twins', 'celestial-mentor', 'cosmic-flow'],
+    relatedOrigins: ['arcturian', 'siriusian', 'epsilon-eridan']
+  },
+  'procyonian': {
+    name: 'Procyonian',
+    group: 'Group I — Relationships',
+    groupColor: '#ffd3a5',
+    tagline: 'Joyful catalysts, souls who arrived to remind the world that love can be light.',
+    essence: 'Procyonians carry the frequency of joy as a spiritual force — not happiness as the absence of pain, but a deep, luminous aliveness that persists even in difficulty. They arrived to demonstrate that lightness and depth are not opposites.',
+    gifts: 'Your presence dissolves heaviness. You have a rare ability to find the thread of joy even in the most tangled situations, and to help others find it too. Your laughter is healing. Your playfulness is wisdom in disguise.',
+    shadow: 'The pressure to always be the light can become exhausting. You may suppress your own darkness to maintain the frequency others have come to depend on. The invitation is to let yourself be heavy sometimes — your depth is as valuable as your lightness.',
+    traits: ['Luminous joy', 'Playful wisdom', 'Catalytic presence', 'Emotional agility', 'Spontaneous love'],
+    connections: ['twin-stars', 'cosmic-flow', 'karmic-bonds', 'frequency-twins'],
+    relatedOrigins: ['lyran', 'pleiadian', 'andromedan']
+  },
+  'lyran': {
+    name: 'Lyran',
+    group: 'Group I — Relationships',
+    groupColor: '#e8c5f5',
+    tagline: 'Ancient fire-bearers, the first to carry the flame of individuated consciousness.',
+    essence: 'Lyrans carry the memory of the first great awakening — the moment when consciousness chose to know itself through individual experience. They are the oldest souls in the human experiment, carrying both the pride and the longing of those who remember what was sacrificed for this journey.',
+    gifts: 'Your courage is ancient. You have faced the void and chosen to create anyway. This gives you a groundedness that others find stabilizing — a quality of presence that says "I have been here before, and it is survivable." Your passion is a sacred fire.',
+    shadow: 'The weight of ancient memory can manifest as a profound loneliness — a sense of being fundamentally different, of having come from somewhere that no longer exists. The work is learning that home is not a place you return to, but a frequency you carry.',
+    traits: ['Ancient courage', 'Creative fire', 'Sovereign will', 'Passionate presence', 'Primordial wisdom'],
+    connections: ['frequency-twins', 'star-alchemy', 'black-holes', 'twin-stars'],
+    relatedOrigins: ['arcturian', 'orion', 'nibiruan']
+  },
+  'arcturian': {
+    name: 'Arcturian',
+    group: 'Group II — Logic',
+    groupColor: '#7ec8e3',
+    tagline: 'Architects of consciousness, masters of the sacred science of transformation.',
+    essence: 'Arcturians arrived carrying the technology of consciousness — not machines, but living systems of understanding that allow the human mind to perceive its own nature. They are the engineers of awakening, building bridges between the visible and invisible worlds.',
+    gifts: 'Your mind is a precision instrument for perceiving truth. You see through illusion not with cynicism but with a kind of loving clarity — you want to understand because understanding is, for you, an act of love. Your systems thinking is a gift to any collective.',
+    shadow: 'The precision of your mind can become a barrier to the messiness of genuine intimacy. You may prefer the elegance of ideas to the unpredictability of people. The invitation is to let your heart be as sophisticated as your mind.',
+    traits: ['Systems thinking', 'Loving clarity', 'Technological intuition', 'Structural wisdom', 'Precision healing'],
+    connections: ['frequency-twins', 'cosmic-flow', 'mirror-portals', 'celestial-mentor'],
+    relatedOrigins: ['orion', 'zeta-reticulan', 'cassiopeian']
+  },
+  'orion': {
+    name: 'Orion',
+    group: 'Group II — Logic',
+    groupColor: '#b8d4f0',
+    tagline: 'Seekers of truth, souls forged in the crucible of polarity.',
+    essence: 'Orions carry the memory of a civilization that explored the full spectrum of power — its light and its shadow. This gives them an intimate understanding of duality that most souls only glimpse. They arrived to transmute the lessons of power into wisdom.',
+    gifts: 'You understand the mechanics of power — how it flows, where it gets stuck, how it can be used in service of love rather than against it. Your directness is a gift. You say what others cannot bring themselves to say, and this clarity, though sometimes uncomfortable, creates the conditions for genuine growth.',
+    shadow: 'The Orion wound around power can manifest as either the drive to dominate or the fear of being dominated. The middle path — sovereign without controlling, strong without crushing — is the work of your soul in this lifetime.',
+    traits: ['Power wisdom', 'Direct truth', 'Strategic mind', 'Transmutation', 'Fierce clarity'],
+    connections: ['star-alchemy', 'karmic-bonds', 'black-holes', 'shadow-contracts'],
+    relatedOrigins: ['arcturian', 'lyran', 'nibiruan']
+  },
+  'vegan': {
+    name: 'Vegan',
+    group: 'Group II — Logic',
+    groupColor: '#c5e8d0',
+    tagline: 'Harmonizers of opposites, souls who hold the tension of paradox with grace.',
+    essence: 'Vegans carry the frequency of synthesis — the ability to hold apparently contradictory truths simultaneously without needing to resolve the tension. They arrived at a time when humanity desperately needs those who can bridge divides without erasing the differences that make each side valuable.',
+    gifts: 'You are a natural mediator — not because you avoid conflict, but because you genuinely see the validity in multiple perspectives. Your ability to synthesize is rare and precious. You can build bridges that others cannot even imagine.',
+    shadow: 'The drive to harmonize can become a compulsion to smooth over genuine differences. You may sacrifice your own truth to maintain peace. The invitation is to discover that authentic harmony includes dissonance — that real synthesis honors what cannot be merged.',
+    traits: ['Synthesis wisdom', 'Bridge building', 'Paradox tolerance', 'Diplomatic truth', 'Harmonic intelligence'],
+    connections: ['cosmic-flow', 'mirror-portals', 'celestial-mentor', 'eternal-reflection'],
+    relatedOrigins: ['cassiopeian', 'pleiadian', 'atlantean']
+  },
+  'zeta-reticulan': {
+    name: 'Zeta Reticulan',
+    group: 'Group II — Logic',
+    groupColor: '#d0e8f5',
+    tagline: 'Observers from beyond, carriers of the long view.',
+    essence: 'Zeta Reticulans arrived with the perspective of those who have watched civilizations rise and fall across vast spans of time. This gives them an unusual relationship to urgency — they see the larger arc when others can only see the immediate crisis.',
+    gifts: 'Your detachment is not coldness — it is the clarity that comes from seeing from altitude. You can perceive what is truly important versus what merely feels urgent. This quality makes you invaluable in moments of collective panic or confusion.',
+    shadow: 'The long view can create a sense of disconnection from the immediate, the personal, the embodied. You may struggle to feel the weight of the present moment. The invitation is to let the long view inform your presence rather than replace it.',
+    traits: ['Long-view perspective', 'Calm in chaos', 'Analytical depth', 'Cosmic patience', 'Objective clarity'],
+    connections: ['mirror-portals', 'celestial-mentor', 'eternal-reflection', 'cosmic-flow'],
+    relatedOrigins: ['arcturian', 'epsilon-eridan', 'tau-cetian']
+  },
+  'epsilon-eridan': {
+    name: 'Epsilon Eridan',
+    group: 'Group II — Logic',
+    groupColor: '#e0d5f7',
+    tagline: 'Navigators of the invisible, those who map the territories between worlds.',
+    essence: 'Epsilon Eridans carry the frequency of the threshold — they exist naturally in the liminal spaces between states of being, between worlds, between what is known and what is not yet understood. They are the scouts of consciousness, mapping territories that others fear to enter.',
+    gifts: 'You are comfortable with uncertainty in a way that most people find impossible. You can hold open questions without needing to close them prematurely. This makes you a valuable companion for anyone navigating genuine transformation.',
+    shadow: 'The comfort with liminality can become a resistance to landing — to committing to a form, a path, a person. The invitation is to discover that commitment does not end the journey; it deepens it.',
+    traits: ['Liminal wisdom', 'Threshold navigation', 'Uncertainty tolerance', 'Multidimensional perception', 'Scout consciousness'],
+    connections: ['cosmic-flow', 'mirror-portals', 'shadow-contracts', 'karmic-bonds'],
+    relatedOrigins: ['zeta-reticulan', 'cassiopeian', 'andromedan']
+  },
+  'atlantean': {
+    name: 'Atlantean',
+    group: 'Group II — Logic',
+    groupColor: '#f0e0c5',
+    tagline: 'Keepers of the fall, those who carry the memory of what happens when wisdom is separated from love.',
+    essence: 'Atlanteans carry the memory of a civilization that achieved extraordinary technological and spiritual advancement — and then lost its way when power became separated from wisdom. This memory is their greatest burden and their most important gift.',
+    gifts: 'You understand the relationship between knowledge and responsibility in a way that is visceral, not theoretical. You have seen what happens when brilliance is unmoored from ethics. This gives you a natural orientation toward using your gifts in service of the whole.',
+    shadow: 'The Atlantean wound can manifest as a deep fear of your own power — a sense that your gifts, if fully expressed, might cause harm. The invitation is to discover that the solution to the misuse of power is not its suppression, but its purification.',
+    traits: ['Ancient knowledge', 'Ethical intelligence', 'Technological wisdom', 'Power integration', 'Sacred responsibility'],
+    connections: ['karmic-bonds', 'shadow-contracts', 'celestial-mentor', 'star-alchemy'],
+    relatedOrigins: ['arcturian', 'orion', 'egyptian']
+  },
+  'andromedan': {
+    name: 'Andromedan',
+    group: 'Group III — Energy',
+    groupColor: '#e8a5c5',
+    tagline: 'Freedom seekers, souls who arrived to demonstrate that love and sovereignty are not opposites.',
+    essence: 'Andromedans carry the frequency of freedom as a spiritual principle — not freedom from responsibility, but the deep recognition that consciousness cannot be owned, controlled, or contained without being diminished. They arrived to demonstrate what love looks like when it does not grasp.',
+    gifts: 'Your presence is liberating. People feel more themselves around you — as if your frequency gives them permission to take up more space. Your love is non-possessive, which makes it paradoxically more sustaining than love that clings.',
+    shadow: 'The commitment to freedom can become a flight from depth. You may mistake intimacy for entrapment, commitment for loss of self. The invitation is to discover that true freedom includes the freedom to be fully present — to let yourself be known.',
+    traits: ['Sovereign love', 'Freedom frequency', 'Non-possessive presence', 'Expansive consciousness', 'Liberation path'],
+    connections: ['cosmic-flow', 'twin-stars', 'star-alchemy', 'frequency-twins'],
+    relatedOrigins: ['lyran', 'procyonian', 'blue-avian']
+  },
+  'polarisian': {
+    name: 'Polarisian',
+    group: 'Group III — Energy',
+    groupColor: '#c5d5f0',
+    tagline: 'Stabilizers of the field, those who hold the center when everything else is in motion.',
+    essence: 'Polarians carry the frequency of the still point — the axis around which all movement occurs. They arrived at a time of great turbulence to demonstrate that stability is not rigidity, that being unmoved does not mean being unfeeling.',
+    gifts: 'Your groundedness is a gift to any collective you inhabit. When others are swept up in the currents of emotion or circumstance, you remain present — not detached, but rooted. This quality creates safety for those around you.',
+    shadow: 'The stillness can become stagnation. The stability can become resistance to necessary change. The invitation is to discover the difference between being rooted and being stuck — to allow your groundedness to be a foundation for movement, not a substitute for it.',
+    traits: ['Stillness mastery', 'Grounding presence', 'Axis consciousness', 'Stabilizing field', 'Center holding'],
+    connections: ['celestial-mentor', 'eternal-reflection', 'mirror-portals', 'cosmic-flow'],
+    relatedOrigins: ['tau-cetian', 'hyperborean', 'zeta-reticulan']
+  },
+  'nibiruan': {
+    name: 'Nibiruan',
+    group: 'Group III — Energy',
+    groupColor: '#f5c5a0',
+    tagline: 'Cyclic travelers, those who understand that all things return.',
+    essence: 'Nibiruans carry the consciousness of the great cycle — the understanding that what appears to be ending is always also a beginning, that destruction and creation are not opposites but partners in the dance of existence.',
+    gifts: 'You have an unusual capacity to navigate endings — to be present with what is dying without being destroyed by it. This makes you a valuable companion for anyone undergoing deep transformation. You know how to hold space for the void between what was and what is becoming.',
+    shadow: 'The cyclical consciousness can create a kind of fatalism — a sense that nothing truly matters because everything will change anyway. The invitation is to discover that the cycle is not an excuse for detachment, but an invitation to love each moment more fully because it is temporary.',
+    traits: ['Cyclical wisdom', 'Transformation guide', 'Death-rebirth mastery', 'Cosmic timing', 'Void navigation'],
+    connections: ['karmic-bonds', 'shadow-contracts', 'cosmic-flow', 'black-holes'],
+    relatedOrigins: ['orion', 'lyran', 'titan']
+  },
+  'egyptian': {
+    name: 'Egyptian',
+    group: 'Group III — Energy',
+    groupColor: '#f0d080',
+    tagline: 'Initiators of souls, keepers of the mysteries that transform.',
+    essence: 'Egyptians carry the frequency of initiation — the understanding that genuine transformation requires a descent into darkness before the ascent into light. They are the guardians of the threshold between ordinary and sacred consciousness.',
+    gifts: 'You understand the architecture of transformation — what is required, what must be surrendered, what emerges on the other side. This makes you a powerful guide for those undergoing genuine change. Your presence in someone\'s life often marks a turning point.',
+    shadow: 'The initiatory consciousness can become a tendency to create tests — to withhold love until someone has proven themselves worthy. The invitation is to discover that love is not a reward for passing the test; it is the ground from which genuine transformation becomes possible.',
+    traits: ['Initiatory wisdom', 'Mystery keeping', 'Transformation architecture', 'Sacred knowledge', 'Threshold mastery'],
+    connections: ['celestial-mentor', 'karmic-bonds', 'shadow-contracts', 'star-alchemy'],
+    relatedOrigins: ['atlantean', 'titan', 'nibiruan']
+  },
+  'titan': {
+    name: 'Titan',
+    group: 'Group III — Energy',
+    groupColor: '#a0d5b0',
+    tagline: 'Time weavers, those who perceive the sacred geometry of moments.',
+    essence: 'Titans carry the consciousness of sacred time — the understanding that moments are not interchangeable units of duration but unique configurations of cosmic energy, each with its own quality, invitation, and potential.',
+    gifts: 'You have an intuitive sense of timing that borders on the prophetic. You know when to act and when to wait, when to speak and when to be silent. This attunement to the rhythm of things makes you a natural navigator of complex situations.',
+    shadow: 'The attunement to cosmic timing can create a distance from ordinary human time — a sense of being out of sync with the world\'s pace. The invitation is to discover that sacred time and ordinary time are not separate; every moment is both.',
+    traits: ['Sacred timing', 'Prophetic intuition', 'Cosmic calendar', 'Rhythmic wisdom', 'Temporal mastery'],
+    connections: ['cosmic-flow', 'mirror-portals', 'eternal-reflection', 'celestial-mentor'],
+    relatedOrigins: ['egyptian', 'lemurian', 'nibiruan']
+  },
+  'blue-avian': {
+    name: 'Blue Avian',
+    group: 'Group III — Energy',
+    groupColor: '#80c5e8',
+    tagline: 'Messengers of the highest frequency, carriers of the language of light.',
+    essence: 'Blue Avians carry the frequency of pure transmission — the ability to receive and relay information from the highest levels of consciousness without distortion. They are the antennas of the human collective, tuned to frequencies that most cannot perceive.',
+    gifts: 'Your communication carries a quality that transcends the literal meaning of your words. People often report feeling something shift when you speak — as if the words are a vehicle for something larger. Your presence itself is a kind of transmission.',
+    shadow: 'The purity of the frequency you carry can make ordinary human communication feel crude or insufficient. You may struggle to translate your inner knowing into language that others can receive. The invitation is to develop patience with the limitations of form.',
+    traits: ['Light language', 'Pure transmission', 'Frequency elevation', 'Cosmic communication', 'Antenna consciousness'],
+    connections: ['frequency-twins', 'cosmic-flow', 'twin-stars', 'celestial-mentor'],
+    relatedOrigins: ['pleiadian', 'andromedan', 'arcturian']
+  },
+  'tau-cetian': {
+    name: 'Tau Cetian',
+    group: 'Group IV — Matter',
+    groupColor: '#c8b8a0',
+    tagline: 'Builders of worlds, those who understand that spirit must become matter to be real.',
+    essence: 'Tau Cetians carry the frequency of manifestation — the understanding that consciousness must take form to fulfill its purpose, that the spiritual and the material are not separate but are two aspects of a single reality.',
+    gifts: 'You have an unusual ability to bring things into being — to take what exists in the realm of vision and possibility and give it tangible form. Your practicality is not a limitation of your spirituality; it is its highest expression.',
+    shadow: 'The orientation toward form can become an attachment to form — a difficulty releasing what has been built when it is time to let it go. The invitation is to discover that the builder\'s greatest skill is knowing when to stop building.',
+    traits: ['Manifestation mastery', 'Practical wisdom', 'Form creation', 'Material intelligence', 'Builder consciousness'],
+    connections: ['celestial-mentor', 'eternal-reflection', 'cosmic-flow', 'mirror-portals'],
+    relatedOrigins: ['polarisian', 'centaurian', 'hyperborean']
+  },
+  'aldebaran': {
+    name: 'Aldebaran',
+    group: 'Group IV — Matter',
+    groupColor: '#f0c080',
+    tagline: 'Guardians of the threshold, those who stand at the gate between worlds.',
+    essence: 'Aldebarans carry the frequency of guardianship — a deep sense of responsibility for the protection and preservation of what is sacred. They arrived to stand watch at the thresholds of transformation, ensuring that what passes through does so with integrity.',
+    gifts: 'Your loyalty is absolute and your courage is quiet. You do not seek recognition for your service; you serve because service is the natural expression of your love. This quality makes you one of the most trustworthy presences in any person\'s life.',
+    shadow: 'The guardian impulse can become protectiveness that prevents growth — your own or others\'. The invitation is to discover the difference between protecting what is sacred and preventing what is necessary.',
+    traits: ['Sacred guardianship', 'Absolute loyalty', 'Quiet courage', 'Threshold keeping', 'Protective wisdom'],
+    connections: ['celestial-mentor', 'karmic-bonds', 'cosmic-flow', 'twin-stars'],
+    relatedOrigins: ['herculean', 'tau-cetian', 'polarisian']
+  },
+  'centaurian': {
+    name: 'Centaurian',
+    group: 'Group IV — Matter',
+    groupColor: '#d0c8b8',
+    tagline: 'Bridgers of nature and civilization, those who carry the wisdom of both worlds.',
+    essence: 'Centaurians carry the consciousness of integration — the ability to hold the wild and the cultivated, the instinctual and the refined, the natural and the constructed in dynamic balance. They arrived to demonstrate that wisdom is not the victory of one over the other, but their marriage.',
+    gifts: 'You move between worlds with unusual ease — between the intellectual and the embodied, the spiritual and the practical, the ancient and the contemporary. This flexibility makes you a valuable bridge in any community.',
+    shadow: 'The dual nature can create a sense of belonging fully to neither world. You may feel perpetually in-between, never quite at home. The invitation is to discover that the threshold is not a place of exile but of unique power.',
+    traits: ['World bridging', 'Dual nature mastery', 'Integration wisdom', 'Nature-civilization balance', 'Threshold dwelling'],
+    connections: ['cosmic-flow', 'mirror-portals', 'star-alchemy', 'karmic-bonds'],
+    relatedOrigins: ['tau-cetian', 'herculean', 'lemurian']
+  },
+  'herculean': {
+    name: 'Herculean',
+    group: 'Group IV — Matter',
+    groupColor: '#e8d0b0',
+    tagline: 'Laborers of love, those who understand that transformation requires effort.',
+    essence: 'Herculeans carry the frequency of sacred labor — the understanding that some things can only be achieved through sustained, devoted effort, and that this effort is itself a form of prayer. They arrived to demonstrate that strength in service of love is one of the highest expressions of consciousness.',
+    gifts: 'Your capacity for sustained effort is extraordinary. You do not give up when things become difficult; difficulty, for you, is a signal that you are doing something that matters. This quality makes you capable of achievements that others cannot even attempt.',
+    shadow: 'The orientation toward effort can become a belief that ease is suspect — that if something comes easily, it cannot be truly valuable. The invitation is to discover that grace and effort are not opposites, and that receiving is as sacred as giving.',
+    traits: ['Sacred strength', 'Sustained devotion', 'Labor as prayer', 'Transformative effort', 'Endurance wisdom'],
+    connections: ['karmic-bonds', 'star-alchemy', 'celestial-mentor', 'shadow-contracts'],
+    relatedOrigins: ['aldebaran', 'centaurian', 'anunnaki']
+  },
+  'anunnaki': {
+    name: 'Anunnaki',
+    group: 'Group IV — Matter',
+    groupColor: '#c0a880',
+    tagline: 'Ancient architects, those who remember the original design.',
+    essence: 'Anunnaki carry the memory of the original blueprint — the design that preceded the current human experiment. This gives them an unusual relationship to authority: they recognize the difference between power that serves the design and power that distorts it.',
+    gifts: 'You have an instinctive understanding of structure — what supports life and what constrains it. Your ability to perceive the underlying architecture of systems (social, personal, cosmic) gives you a unique capacity to identify where things have gone wrong and what would restore them.',
+    shadow: 'The memory of the original design can become a standard against which everything present falls short. The invitation is to discover that the current design, with all its imperfections, is also sacred — that evolution is not a deviation from the plan, but its fulfillment.',
+    traits: ['Architectural wisdom', 'Original blueprint', 'Authority discernment', 'System perception', 'Ancient design'],
+    connections: ['black-holes', 'shadow-contracts', 'karmic-bonds', 'star-alchemy'],
+    relatedOrigins: ['atlantean', 'orion', 'herculean']
+  },
+  'hyperborean': {
+    name: 'Hyperborean',
+    group: 'Group IV — Matter',
+    groupColor: '#e0e8f0',
+    tagline: 'Keepers of the golden age memory, those who hold the frequency of what is possible.',
+    essence: 'Hyperboreans carry the memory of a time when consciousness and matter were in perfect harmony — when the human body was a transparent vessel for the light of the soul, and when life was organized around the cultivation of beauty, truth, and love.',
+    gifts: 'Your vision of what is possible for humanity is not fantasy — it is memory. This gives your idealism a quality of certainty that is deeply stabilizing for those around you. You know, in your bones, that what you are working toward is real.',
+    shadow: 'The memory of the golden age can create a painful contrast with the present — a grief for what has been lost that makes it difficult to fully inhabit the world as it is. The invitation is to discover that the golden age is not behind you, but ahead — and that you are one of those building it.',
+    traits: ['Golden age memory', 'Visionary certainty', 'Harmonic consciousness', 'Beauty as truth', 'Future memory'],
+    connections: ['eternal-reflection', 'frequency-twins', 'cosmic-flow', 'celestial-mentor'],
+    relatedOrigins: ['polarisian', 'tau-cetian', 'lemurian']
+  }
+}
+
+const CONNECTIONS = {
+  'frequency-twins': {
+    name: 'Frequency Twins',
+    color: '#ffd700',
+    gradient: 'linear-gradient(135deg, #ffd700, #c9a96e)',
+    tagline: 'The rarest resonance — two souls vibrating at the same fundamental frequency.',
+    intensity: 100,
+    tension: 5,
+    description: 'Frequency Twins are the rarest encounter in the human experience — two souls whose fundamental frequency is identical. This is not similarity of personality or shared interests; it is a resonance at the deepest level of being, as if two instruments tuned to the same note are played simultaneously and the sound that emerges is something neither could produce alone.',
+    dynamic: 'When Frequency Twins meet, there is often an immediate recognition that bypasses the usual process of getting to know someone. You may feel as if you have always known this person — not because you have met before, but because you are, in some essential way, made of the same substance.',
+    gift: 'The gift of this connection is the experience of being fully known. In the presence of your Frequency Twin, the usual effort of self-explanation falls away. You do not need to translate yourself. This creates a quality of rest that is rare and deeply nourishing.',
+    invitation: 'The invitation of Frequency Twins is to use this profound recognition in service of something larger — to let the resonance between you amplify your individual gifts rather than creating a closed circuit that excludes the world.',
+    relatedOrigins: ['siriusian', 'pleiadian', 'lyran', 'arcturian']
+  },
+  'twin-stars': {
+    name: 'Twin Stars',
+    color: '#ffd700',
+    gradient: 'linear-gradient(135deg, #ffd700, #ffb6c1)',
+    tagline: 'Two luminous beings orbiting a shared center of gravity.',
+    intensity: 85,
+    tension: 15,
+    description: 'Twin Stars are two souls who, though distinct in their nature, are drawn into a shared orbit by a gravitational pull that neither fully understands. Like binary stars in the cosmos, each maintains its own light while being fundamentally shaped by the presence of the other.',
+    dynamic: 'This connection has a quality of inevitability — a sense that the meeting was written into the fabric of your respective journeys long before it occurred. There is deep recognition here, though it is accompanied by the awareness that you are genuinely different from each other.',
+    gift: 'The gift of Twin Stars is the experience of being both known and expanded. Your Twin Star sees you clearly and also calls you toward a version of yourself that you could not have reached alone. The relationship is both mirror and doorway.',
+    invitation: 'The invitation is to honor both the gravitational pull and the distinct nature of each star. The most luminous Twin Star connections are those where each person\'s individual light is amplified, not diminished, by the connection.',
+    relatedOrigins: ['pleiadian', 'siriusian', 'andromedan', 'procyonian']
+  },
+  'cosmic-flow': {
+    name: 'Cosmic Flow',
+    color: '#ffb6c1',
+    gradient: 'linear-gradient(135deg, #ffb6c1, #c8a2c8)',
+    tagline: 'A connection that moves like water — finding its way through every terrain.',
+    intensity: 70,
+    tension: 25,
+    description: 'Cosmic Flow describes a connection characterized by ease, adaptability, and a quality of natural movement. Like water finding its way through a landscape, this connection navigates the terrain of two lives without forcing or straining.',
+    dynamic: 'There is a lightness to Cosmic Flow connections that can be mistaken for superficiality. In fact, the ease is a sign of genuine compatibility — the absence of friction does not mean the absence of depth. It means that the two frequencies are naturally harmonious.',
+    gift: 'The gift of Cosmic Flow is the experience of love without struggle. This does not mean the relationship is without challenge — life brings challenges to all connections. But the challenges are met with a shared orientation, a natural tendency to move together rather than against each other.',
+    invitation: 'The invitation is to value the ease rather than distrusting it. In a culture that often equates difficulty with depth, Cosmic Flow connections can be undervalued. The invitation is to recognize that harmony is not the absence of growth — it is its most natural expression.',
+    relatedOrigins: ['lemurian', 'vegan', 'titan', 'pleiadian']
+  },
+  'mirror-portals': {
+    name: 'Mirror Portals',
+    color: '#e6e6fa',
+    gradient: 'linear-gradient(135deg, #e6e6fa, #c8a2c8)',
+    tagline: 'Each reflects what the other cannot yet see in themselves.',
+    intensity: 60,
+    tension: 35,
+    description: 'Mirror Portals describes a connection in which each person serves as a precise reflection of the other — showing them aspects of themselves that they cannot perceive directly. This is not always comfortable, but it is always illuminating.',
+    dynamic: 'What you see in your Mirror Portal that frustrates, confuses, or disturbs you is often a reflection of something within yourself that is asking for attention. This is not a criticism — it is the mechanics of this particular connection type. The mirror does not judge; it simply reflects.',
+    gift: 'The gift of Mirror Portals is accelerated self-knowledge. In the presence of your Mirror Portal, you learn about yourself at a pace that would not be possible in isolation. The relationship is a living laboratory of consciousness.',
+    invitation: 'The invitation is to develop the courage to look at what the mirror shows you — not with self-criticism, but with curiosity. The Mirror Portal connection is most valuable when both people are committed to using what they see in service of their own growth.',
+    relatedOrigins: ['cassiopeian', 'zeta-reticulan', 'arcturian', 'vegan']
+  },
+  'celestial-mentor': {
+    name: 'Celestial Mentor',
+    color: '#ffffff',
+    gradient: 'linear-gradient(135deg, #ffffff, #e6e6fa)',
+    tagline: 'One soul carries what the other is learning to become.',
+    intensity: 50,
+    tension: 50,
+    description: 'Celestial Mentor describes a connection in which there is a natural asymmetry of experience or wisdom in a particular domain — one soul has walked a path that the other is beginning. This asymmetry is not permanent or absolute; it is specific to a particular dimension of growth.',
+    dynamic: 'The Celestial Mentor connection is characterized by a quality of transmission — something passes from one person to the other that cannot be fully articulated. It is not merely information or advice; it is a frequency, a way of being, that the student absorbs through proximity.',
+    gift: 'The gift of Celestial Mentor connections is the compression of time. What might take years to learn in isolation can be transmitted in moments through the right relationship. The mentor carries the destination; the student carries the fresh eyes that remind the mentor why the journey matters.',
+    invitation: 'The invitation is to hold the asymmetry lightly — to recognize that the roles of teacher and student are not fixed, and that the student often teaches the teacher things that could not be learned any other way.',
+    relatedOrigins: ['lemurian', 'arcturian', 'egyptian', 'polarisian']
+  },
+  'karmic-bonds': {
+    name: 'Karmic Bonds',
+    color: '#8a2be2',
+    gradient: 'linear-gradient(135deg, #8a2be2, #4169e1)',
+    tagline: 'Ancient unfinished business, returning for completion.',
+    intensity: 60,
+    tension: 60,
+    description: 'Karmic Bonds describes a connection that carries the weight of unresolved patterns from previous encounters — whether in this lifetime or others. There is an intensity to this connection that can feel both compelling and destabilizing.',
+    dynamic: 'The pull of a Karmic Bond can feel irresistible — as if you are drawn to this person by a force that bypasses your rational mind. This is not an accident. The intensity is proportional to the significance of what is asking to be resolved.',
+    gift: 'The gift of Karmic Bonds is the opportunity for genuine resolution — the chance to complete what was left unfinished, to heal what was wounded, to say what was never said. When a Karmic Bond reaches completion, both people are freed in ways that ripple through their entire lives.',
+    invitation: 'The invitation is to approach the intensity with consciousness rather than being swept away by it. The karmic pattern will repeat until it is seen clearly. Seeing it clearly is the first step toward completing it.',
+    relatedOrigins: ['orion', 'nibiruan', 'atlantean', 'egyptian']
+  },
+  'shadow-contracts': {
+    name: 'Shadow Contracts',
+    color: '#4b0082',
+    gradient: 'linear-gradient(135deg, #4b0082, #2d0057)',
+    tagline: 'A meeting in the dark — both souls carrying what the other needs to face.',
+    intensity: 70,
+    tension: 70,
+    description: 'Shadow Contracts describes a connection in which both people carry complementary shadows — aspects of themselves that they have not yet integrated. The connection creates the conditions in which these shadows become visible, often through conflict, projection, or intense attraction.',
+    dynamic: 'Shadow Contract connections often feel fated — as if you were meant to meet this person, though the meeting may not feel comfortable. The discomfort is not a sign that the connection is wrong; it is a sign that it is doing its work.',
+    gift: 'The gift of Shadow Contracts is the confrontation with what you have been avoiding. This is not a comfortable gift, but it is a profound one. The shadow that is brought into the light loses its power to drive behavior unconsciously.',
+    invitation: 'The invitation is to resist the temptation to make the other person the problem. The shadow that you see in them is pointing to something in yourself. This is not about blame — it is about the precise mechanics of how consciousness uses relationship to know itself.',
+    relatedOrigins: ['orion', 'anunnaki', 'epsilon-eridan', 'atlantean']
+  },
+  'black-holes': {
+    name: 'Black Holes',
+    color: '#191970',
+    gradient: 'linear-gradient(135deg, #191970, #0a0a2e)',
+    tagline: 'A gravitational pull that transforms everything it touches.',
+    intensity: 80,
+    tension: 80,
+    description: 'Black Holes describes a connection of extraordinary gravitational intensity — a pull so powerful that it can feel as if your entire life is being reorganized around it. Like an astronomical black hole, this connection has the power to transform matter into energy, the known into the unknown.',
+    dynamic: 'The Black Hole connection is not inherently destructive, though it can feel that way. What it destroys are the structures — beliefs, identities, patterns — that are no longer serving your evolution. The destruction is in service of a transformation that could not occur any other way.',
+    gift: 'The gift of Black Holes is radical transformation. If you are willing to surrender to the process, you will emerge from a Black Hole connection fundamentally different — not diminished, but distilled. What remains after the transformation is what is most essentially you.',
+    invitation: 'The invitation is to distinguish between the transformation that is being offered and the destruction that your fear is projecting. Not everything that feels like dissolution is loss. Some things need to dissolve for what is real to emerge.',
+    relatedOrigins: ['lyran', 'orion', 'nibiruan', 'anunnaki']
+  },
+  'star-alchemy': {
+    name: 'Star Alchemy',
+    color: '#4169e1',
+    gradient: 'linear-gradient(135deg, #4169e1, #1e3a8a)',
+    tagline: 'Two forces that cannot merge — and in their collision, create something new.',
+    intensity: 90,
+    tension: 95,
+    description: 'Star Alchemy describes a connection of profound creative tension — two frequencies that are fundamentally different in their nature, and whose meeting generates an alchemical reaction. Like stars that collide in the cosmos, the encounter releases extraordinary energy.',
+    dynamic: 'Star Alchemy connections are characterized by intensity, friction, and a quality of creative electricity. The tension between the two frequencies does not resolve into harmony; instead, it generates something new — ideas, art, transformation, understanding — that neither could have produced alone.',
+    gift: 'The gift of Star Alchemy is the creative fire that emerges from genuine difference. This is not the comfortable resonance of similar frequencies; it is the productive friction of opposites that generates light. The most significant innovations in human consciousness have often emerged from Star Alchemy connections.',
+    invitation: 'The invitation is to distinguish between the creative tension that is generative and the destructive conflict that is merely painful. Star Alchemy requires both people to be strong enough to hold the tension without collapsing it — to let the friction generate light rather than heat.',
+    relatedOrigins: ['lyran', 'orion', 'andromedan', 'centaurian']
+  },
+  'eternal-reflection': {
+    name: 'Eternal Reflection',
+    color: '#f0f0f0',
+    gradient: 'linear-gradient(135deg, #f0f0f0, #c0c0c0)',
+    tagline: 'Perfect recognition — two souls that are, in essence, the same.',
+    intensity: 100,
+    tension: 0,
+    description: 'Eternal Reflection describes the rarest of all encounters — two souls that are, at the deepest level, identical in their essential nature. This is not similarity; it is identity. The recognition is total and immediate, like looking into a mirror and seeing not your reflection but your self.',
+    dynamic: 'The Eternal Reflection connection is characterized by a quality of absolute recognition that can be both profoundly beautiful and deeply challenging. There is nowhere to hide in this connection — and nowhere you would want to hide. The other person sees you completely, because they are you.',
+    gift: 'The gift of Eternal Reflection is the experience of being completely known and completely accepted — not despite who you are, but because of it. This is the love that does not require you to be different. It is the love that says: I see you exactly as you are, and I recognize myself.',
+    invitation: 'The invitation of Eternal Reflection is to use the perfect recognition in service of growth rather than comfort. The danger of this connection is that the total resonance can become a closed system — a hall of mirrors that reflects endlessly without admitting new light. The invitation is to let the recognition be a foundation for expansion, not a substitute for it.',
+    relatedOrigins: ['siriusian', 'lemurian', 'vegan', 'hyperborean']
+  }
+}
+
+// ─── NAVIGATION ─────────────────────────────────────────────────────────────
+let history = []
+let currentUserOrigin = null
+
+async function init() {
+  try {
+    const { data: { session } } = await sb.auth.getSession()
+    if (!session) { window.location.href = 'login.html'; return }
+    const { data: profile } = await sb.from('profiles').select('origin').eq('id', session.user.id).single()
+    if (profile) currentUserOrigin = profile.origin?.toLowerCase().replace(/\s+/g, '-')
+  } catch(e) {
+    // Если ошибка сессии — всё равно показываем библиотеку
+  }
+  checkDeepLink()
+}
+
+function normalizeKey(str) {
+  return str.toLowerCase().replace(/\s+/g, '-')
+}
+
+function checkDeepLink() {
+  const params = new URLSearchParams(window.location.search)
+  const origin = params.get('origin')
+  const connection = params.get('connection')
+  if (origin) openOrigin(normalizeKey(origin))
+  else if (connection) openConnection(normalizeKey(connection))
+}
+
+function openOrigin(id) {
+  const key = normalizeKey(id)
+  const data = ORIGINS[key]
+  if (!data) return
+  history.push({ type: 'origin', id: key })
+  showDetail('origin', key, data)
+}
+
+function openConnection(id) {
+  const key = normalizeKey(id)
+  const data = CONNECTIONS[key]
+  if (!data) return
+  history.push({ type: 'connection', id: key })
+  showDetail('connection', key, data)
+}
+
+function goBack() {
+  history.pop()
+  if (history.length === 0) {
+    showHome()
+  } else {
+    const prev = history[history.length - 1]
+    if (prev.type === 'origin') showDetail('origin', prev.id, ORIGINS[prev.id])
+    else showDetail('connection', prev.id, CONNECTIONS[prev.id])
+  }
+}
+
+function showHome() {
+  document.getElementById('home-view').style.display = 'block'
+  document.getElementById('detail-view').style.display = 'none'
+  document.getElementById('back-btn').style.display = 'none'
+  document.getElementById('nav-logo').style.display = 'block'
+  history = []
+  window.scrollTo(0, 0)
+}
+
+function showDetail(type, id, data) {
+  document.getElementById('home-view').style.display = 'none'
+  const dv = document.getElementById('detail-view')
+  dv.style.display = 'block'
+  document.getElementById('back-btn').style.display = 'flex'
+  document.getElementById('nav-logo').style.display = 'none'
+
+  if (type === 'origin') {
+    dv.innerHTML = buildOriginDetail(id, data)
+  } else {
+    dv.innerHTML = buildConnectionDetail(id, data)
+  }
+
+  // Draw crystal
+  if (type === 'origin') {
+    setTimeout(() => drawCrystal(id, data.groupColor), 50)
+  }
+
+  window.scrollTo(0, 0)
+}
+
+// ─── ORIGIN DETAIL ───────────────────────────────────────────────────────────
+function buildOriginDetail(id, data) {
+  const isMyOrigin = currentUserOrigin === id
+  const myBadge = isMyOrigin ? `<div style="display:inline-flex;align-items:center;gap:6px;padding:4px 12px;background:rgba(201,169,110,0.1);border:1px solid rgba(201,169,110,0.3);border-radius:20px;font-size:10px;letter-spacing:0.15em;color:var(--gold);margin-bottom:12px;text-transform:uppercase;">✦ Your Origin</div><br>` : ''
+
+  const relatedOriginsHtml = data.relatedOrigins.map(rid => {
+    const ro = ORIGINS[rid]
+    return ro ? `<span class="related-chip" onclick="openOrigin('${rid}')">${ro.name}</span>` : ''
+  }).join('')
+
+  const relatedConnectionsHtml = data.connections.map(cid => {
+    const rc = CONNECTIONS[cid]
+    return rc ? `<span class="related-chip" onclick="openConnection('${cid}')" style="border-color:rgba(${hexToRgb(rc.color)},0.3);color:${rc.color}">${rc.name}</span>` : ''
+  }).join('')
+
+  const traitsHtml = data.traits.map(t => `<span class="trait-tag">${t}</span>`).join('')
+
+  return `
+    <div class="origin-hero">
+      ${myBadge}
+      <div class="origin-crystal">
+        <canvas id="crystal-canvas" width="100" height="100"></canvas>
+      </div>
+      <h2 class="origin-name-large">${data.name}</h2>
+
+      <p class="origin-tagline">"${data.tagline}"</p>
+    </div>
+
+    <div class="detail-section">
+      <div class="detail-section-title">Essence</div>
+      <p class="detail-text">${data.essence}</p>
+    </div>
+
+    <div class="detail-divider"></div>
+
+    <div class="detail-section">
+      <div class="detail-section-title">Your Gifts</div>
+      <p class="detail-text">${data.gifts}</p>
+    </div>
+
+    <div class="detail-divider"></div>
+
+    <div class="detail-section">
+      <div class="detail-section-title">The Shadow</div>
+      <p class="detail-text">${data.shadow}</p>
+    </div>
+
+    <div class="detail-divider"></div>
+
+    <div class="detail-section">
+      <div class="detail-section-title">Qualities</div>
+      <div class="traits-list">${traitsHtml}</div>
+    </div>
+
+    <div class="detail-divider"></div>
+
+    <div class="related-section">
+      <div class="related-title">Connection Types</div>
+      <div class="related-chips">${relatedConnectionsHtml}</div>
+    </div>
+
+    <div class="related-section">
+      <div class="related-title">Related Origins</div>
+      <div class="related-chips">${relatedOriginsHtml}</div>
+    </div>
+  `
+}
+
+// ─── CONNECTION DETAIL ───────────────────────────────────────────────────────
+function buildConnectionDetail(id, data) {
+  const relatedOriginsHtml = data.relatedOrigins.map(rid => {
+    const ro = ORIGINS[rid]
+    return ro ? `<span class="related-chip" onclick="openOrigin('${rid}')">${ro.name}</span>` : ''
+  }).join('')
+
+  const intensityColor = data.color
+  const tensionColor = data.tension > 60 ? '#8a2be2' : data.tension > 30 ? '#c8a2c8' : '#c9a96e'
+
+  return `
+    <div class="connection-hero">
+      <div class="connection-flame-large" style="background:${data.gradient}"></div>
+      <h2 class="connection-name-large">${data.name}</h2>
+      <p class="connection-tagline">"${data.tagline}"</p>
+    </div>
+
+    <div class="detail-section">
+      <div class="detail-section-title">The Nature of This Connection</div>
+      <p class="detail-text">${data.description}</p>
+    </div>
+
+    <div class="detail-divider"></div>
+
+    <div class="detail-section">
+      <div class="detail-section-title">How It Moves</div>
+      <p class="detail-text">${data.dynamic}</p>
+    </div>
+
+    <div class="detail-divider"></div>
+
+    <div class="detail-section">
+      <div class="detail-section-title">The Gift</div>
+      <p class="detail-text">${data.gift}</p>
+    </div>
+
+    <div class="detail-divider"></div>
+
+    <div class="detail-section">
+      <div class="detail-section-title">The Invitation</div>
+      <p class="detail-text">${data.invitation}</p>
+    </div>
+
+    <div class="detail-divider"></div>
+
+    <div class="related-section">
+      <div class="related-title">Origins in this Connection</div>
+      <div class="related-chips">${relatedOriginsHtml}</div>
+    </div>
+  `
+}
+
+// ─── CRYSTAL CANVAS ─────────────────────────────────────────────────────────
+function drawCrystal(originId, color) {
+  const canvas = document.getElementById('crystal-canvas')
+  if (!canvas) return
+  const ctx = canvas.getContext('2d')
+  const cx = 50, cy = 50, r = 38
+
+  ctx.clearRect(0, 0, 100, 100)
+
+  // Glow
+  const glow = ctx.createRadialGradient(cx, cy, 0, cx, cy, r)
+  glow.addColorStop(0, color + '40')
+  glow.addColorStop(1, 'transparent')
+  ctx.fillStyle = glow
+  ctx.fillRect(0, 0, 100, 100)
+
+  // Crystal shape based on group
+  const group = ORIGINS[originId]?.group || ''
+  ctx.strokeStyle = color
+  ctx.lineWidth = 1
+  ctx.fillStyle = color + '15'
+
+  if (group.includes('Relationships')) {
+    // Hexagon
+    drawPolygon(ctx, cx, cy, r, 6, -Math.PI/6, color)
+  } else if (group.includes('Logic')) {
+    // Octagon
+    drawPolygon(ctx, cx, cy, r, 8, 0, color)
+  } else if (group.includes('Energy')) {
+    // Star
+    drawStar(ctx, cx, cy, r, r * 0.5, 6, color)
+  } else {
+    // Diamond
+    drawPolygon(ctx, cx, cy, r, 4, 0, color)
+  }
+
+  // Inner glow dot
+  ctx.beginPath()
+  ctx.arc(cx, cy, 4, 0, Math.PI * 2)
+  ctx.fillStyle = color + 'cc'
+  ctx.fill()
+
+  // Animate pulse
+  let pulse = 0
+  function animateCrystal() {
+    if (!document.getElementById('crystal-canvas')) return
+    pulse += 0.03
+    ctx.clearRect(0, 0, 100, 100)
+
+    const alpha = (Math.sin(pulse) + 1) / 2 * 0.3 + 0.1
+    const glowAnim = ctx.createRadialGradient(cx, cy, 0, cx, cy, r + 5)
+    glowAnim.addColorStop(0, color + Math.floor(alpha * 255).toString(16).padStart(2,'0'))
+    glowAnim.addColorStop(1, 'transparent')
+    ctx.fillStyle = glowAnim
+    ctx.fillRect(0, 0, 100, 100)
+
+    if (group.includes('Relationships')) drawPolygon(ctx, cx, cy, r, 6, -Math.PI/6, color)
+    else if (group.includes('Logic')) drawPolygon(ctx, cx, cy, r, 8, 0, color)
+    else if (group.includes('Energy')) drawStar(ctx, cx, cy, r, r * 0.5, 6, color)
+    else drawPolygon(ctx, cx, cy, r, 4, 0, color)
+
+    const dotAlpha = (Math.sin(pulse * 1.5) + 1) / 2 * 0.5 + 0.5
+    ctx.beginPath()
+    ctx.arc(cx, cy, 4, 0, Math.PI * 2)
+    ctx.fillStyle = color + Math.floor(dotAlpha * 255).toString(16).padStart(2,'0')
+    ctx.fill()
+
+    requestAnimationFrame(animateCrystal)
+  }
+  animateCrystal()
+}
+
+function drawPolygon(ctx, cx, cy, r, sides, offset, color) {
+  ctx.beginPath()
+  for (let i = 0; i < sides; i++) {
+    const angle = (Math.PI * 2 / sides) * i + offset
+    const x = cx + r * Math.cos(angle)
+    const y = cy + r * Math.sin(angle)
+    i === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y)
+  }
+  ctx.closePath()
+  ctx.fillStyle = color + '15'
+  ctx.fill()
+  ctx.strokeStyle = color + '80'
+  ctx.lineWidth = 1
+  ctx.stroke()
+
+  // Inner polygon
+  ctx.beginPath()
+  for (let i = 0; i < sides; i++) {
+    const angle = (Math.PI * 2 / sides) * i + offset + Math.PI / sides
+    const x = cx + (r * 0.55) * Math.cos(angle)
+    const y = cy + (r * 0.55) * Math.sin(angle)
+    i === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y)
+  }
+  ctx.closePath()
+  ctx.strokeStyle = color + '40'
+  ctx.lineWidth = 0.5
+  ctx.stroke()
+}
+
+function drawStar(ctx, cx, cy, outerR, innerR, points, color) {
+  ctx.beginPath()
+  for (let i = 0; i < points * 2; i++) {
+    const angle = (Math.PI / points) * i - Math.PI / 2
+    const r = i % 2 === 0 ? outerR : innerR
+    const x = cx + r * Math.cos(angle)
+    const y = cy + r * Math.sin(angle)
+    i === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y)
+  }
+  ctx.closePath()
+  ctx.fillStyle = color + '15'
+  ctx.fill()
+  ctx.strokeStyle = color + '80'
+  ctx.lineWidth = 1
+  ctx.stroke()
+}
+
+// ─── SEARCH ─────────────────────────────────────────────────────────────────
+function handleSearch(query) {
+  const q = query.toLowerCase().trim()
+  const resultsEl = document.getElementById('search-results')
+  const originsSection = document.getElementById('origins-section')
+
+  if (!q) {
+    resultsEl.style.display = 'none'
+    originsSection.style.display = 'block'
+    return
+  }
+
+  originsSection.style.display = 'none'
+  resultsEl.style.display = 'flex'
+
+  const results = []
+
+  Object.entries(ORIGINS).forEach(([id, data]) => {
+    if (data.name.toLowerCase().includes(q) || data.tagline.toLowerCase().includes(q)) {
+      results.push({ type: 'origin', id, data })
+    }
+  })
+
+  Object.entries(CONNECTIONS).forEach(([id, data]) => {
+    if (data.name.toLowerCase().includes(q) || data.tagline.toLowerCase().includes(q)) {
+      results.push({ type: 'connection', id, data })
+    }
+  })
+
+  if (results.length === 0) {
+    resultsEl.innerHTML = `<div style="text-align:center;color:var(--muted);font-size:13px;padding:24px 0;">Nothing found</div>`
+    return
+  }
+
+  resultsEl.innerHTML = results.map(r => {
+    if (r.type === 'origin') {
+      return `<div class="search-result-item" onclick="openOrigin('${r.id}')">
+        <div class="search-dot" style="background:${r.data.groupColor}"></div>
+        <div>
+          <div class="search-result-name">${r.data.name}</div>
+          <div class="search-result-type">Origin</div>
+        </div>
+      </div>`
+    } else {
+      return `<div class="search-result-item" onclick="openConnection('${r.id}')">
+        <div class="search-dot" style="background:${r.data.color}"></div>
+        <div>
+          <div class="search-result-name">${r.data.name}</div>
+          <div class="search-result-type">Connection Type</div>
+        </div>
+      </div>`
+    }
+  }).join('')
+}
+
+// ─── UTILS ──────────────────────────────────────────────────────────────────
+function hexToRgb(hex) {
+  const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex)
+  return result ? `${parseInt(result[1],16)},${parseInt(result[2],16)},${parseInt(result[3],16)}` : '201,169,110'
+}
+
+// ─── INIT ────────────────────────────────────────────────────────────────────
+init()
+</script>
+</body>
+</html>

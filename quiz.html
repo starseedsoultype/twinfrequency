@@ -1,0 +1,1332 @@
+
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Starseed Soul Origin</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+:root {
+  --bg: #07050f;
+  --bg2: #0e0820;
+  --bg3: #130d22;
+  --border: #221133;
+  --border2: #332244;
+  --text: #f0eaff;
+  --text2: #ccbbdd;
+  --text3: #9988aa;
+  --text4: #7766aa;
+  --accent: #9966cc;
+  --accent2: #bb88ff;
+  --gold: #d4a843;
+  --green: #44cc88;
+  --red: #ff5544;
+}
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: 'Georgia', serif;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 0 16px 80px;
+}
+
+/* PROGRESS */
+.progress-wrap {
+width: 100%; max-width: 640px;
+position: sticky; top: 0;
+background: var(–bg);
+z-index: 10;
+padding: 20px 0 16px;
+display: none;
+}
+.progress-meta {
+display: flex; justify-content: space-between;
+font-size: 10px; letter-spacing: 2px; color: var(–text4);
+text-transform: uppercase; margin-bottom: 8px;
+}
+.progress-bg { width: 100%; height: 2px; background: var(–bg3); border-radius: 1px; }
+.progress-fill {
+height: 100%;
+background: linear-gradient(90deg, #553388, #9966cc);
+border-radius: 1px; transition: width 0.4s ease;
+}
+
+/* INTRO */
+#intro {
+max-width: 560px; width: 100%;
+text-align: center; padding-top: 80px;
+}
+.eyebrow { font-size: 10px; letter-spacing: 5px; color: var(–text4); text-transform: uppercase; margin-bottom: 16px; }
+.intro-title { font-size: 28px; color: var(–text); letter-spacing: 2px; margin-bottom: 16px; font-weight: normal; }
+.intro-body { font-size: 14px; color: var(–text3); line-height: 1.9; margin-bottom: 12px; }
+.divider { width: 60px; height: 1px; background: var(–border2); margin: 28px auto; }
+.intro-note { font-size: 11px; color: var(–text4); letter-spacing: 1px; margin-bottom: 40px; font-style: italic; }
+.start-btn {
+padding: 14px 48px; border: 1px solid var(–accent);
+background: var(–bg3); color: var(–accent2);
+font-family: Georgia, serif; font-size: 13px; letter-spacing: 3px;
+text-transform: uppercase; cursor: pointer; border-radius: 2px;
+transition: all 0.2s;
+}
+.start-btn:hover { background: #1a0a2e; border-color: var(–accent2); }
+
+/* QUIZ */
+#quiz { max-width: 640px; width: 100%; padding-top: 20px; display: none; }
+
+.q-block { animation: fadeIn 0.4s ease; }
+@keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+
+.q-num { font-size: 9px; letter-spacing: 3px; color: var(–text4); text-transform: uppercase; margin-bottom: 14px; }
+.q-text { font-size: 17px; color: var(–text); line-height: 1.8; margin-bottom: 28px; font-style: italic; }
+
+/* FORCE4 */
+.opts-force4 { display: flex; flex-direction: column; gap: 10px; }
+.opt-btn {
+background: var(–bg2); border: 1px solid var(–border);
+padding: 16px 18px; text-align: left; cursor: pointer;
+font-family: Georgia, serif; font-size: 13px; color: var(–text2);
+line-height: 1.65; border-radius: 3px; transition: all 0.2s;
+position: relative;
+}
+.opt-btn:hover { border-color: var(–accent); color: var(–text); background: var(–bg3); }
+.opt-btn:active { border-color: var(–accent2); background: #1a0a2e; transform: scale(0.99); }
+.opt-btn.selected { border-color: var(–accent2); color: var(–text); background: #1a0a2e; }
+.opt-btn.selected::after {
+content: ‘✦’; position: absolute; right: 16px; top: 50%;
+transform: translateY(-50%); color: var(–accent2); font-size: 12px;
+}
+
+/* MOST LEAST */
+.ml-step {
+font-size: 11px; letter-spacing: 2px; color: var(–accent2);
+text-transform: uppercase; margin-bottom: 14px; text-align: center;
+padding: 8px; background: var(–bg3); border-radius: 3px;
+border: 1px solid var(–border2);
+}
+.opts-ml2 { display: flex; flex-direction: column; gap: 8px; }
+.ml2-btn {
+width: 100%; padding: 16px 18px; text-align: left; cursor: pointer;
+font-family: Georgia, serif; font-size: 13px; color: var(–text2);
+line-height: 1.65; border-radius: 3px; transition: all 0.2s;
+position: relative; border: 1px solid var(–border);
+background: var(–bg2);
+}
+.ml2-btn:hover { border-color: var(–border2); }
+.ml2-btn:active { background: var(–bg3); transform: scale(0.99); }
+.ml2-btn.is-most {
+border-color: var(–green); background: #041208; color: var(–text);
+}
+.ml2-btn.is-most::after {
+content: ‘✦ MOST’; position: absolute; right: 14px; top: 50%;
+transform: translateY(-50%); color: var(–green);
+font-size: 10px; letter-spacing: 2px;
+}
+.ml2-btn.is-least {
+border-color: var(–red); background: #120404; color: var(–text);
+}
+.ml2-btn.is-least::after {
+content: ‘✕ LEAST’; position: absolute; right: 14px; top: 50%;
+transform: translateY(-50%); color: var(–red);
+font-size: 10px; letter-spacing: 2px;
+}
+.ml2-btn.is-disabled { opacity: 0.4; cursor: default; }
+
+/* RANKING */
+.rank-instruction {
+font-size: 10px; letter-spacing: 2px; color: var(–text4);
+text-transform: uppercase; margin-bottom: 16px;
+}
+.opts-rank { display: flex; flex-direction: column; gap: 8px; }
+.rank-item {
+display: flex; gap: 10px; align-items: center;
+background: var(–bg2); border: 1px solid var(–border);
+padding: 12px 14px; border-radius: 3px;
+transition: all 0.2s;
+}
+.rank-item.rank-selected { border-color: var(–accent2); background: #1a0a2e; }
+.rank-num {
+width: 28px; height: 28px; border-radius: 50%;
+border: 1px solid var(–border2); color: var(–accent2);
+font-size: 12px; font-weight: bold;
+display: flex; align-items: center; justify-content: center;
+flex-shrink: 0; background: var(–bg3);
+}
+.rank-text { font-size: 13px; color: var(–text2); line-height: 1.5; flex: 1; }
+.rank-item.rank-unset { border-color: var(–border2); }
+.rank-item.rank-unset .rank-num { color: var(–text4); border-color: var(–border); }
+.rank-arrows { display: flex; flex-direction: column; gap: 4px; flex-shrink: 0; }
+.rank-arrow {
+width: 44px; height: 44px; background: var(–bg3);
+border: 1px solid var(–border); border-radius: 3px;
+color: var(–text4); font-size: 16px; cursor: pointer;
+display: flex; align-items: center; justify-content: center;
+transition: all 0.15s; user-select: none; -webkit-tap-highlight-color: transparent;
+}
+.rank-arrow:hover { border-color: var(–accent); color: var(–accent2); }
+.rank-arrow:active { background: var(–bg2); color: var(–accent2); }
+.rank-arrow:disabled { opacity: 0.2; pointer-events: none; }
+
+/* BINARY */
+.opts-binary { display: flex; flex-direction: column; gap: 10px; }
+
+/* NAV */
+.nav-row {
+display: flex; justify-content: space-between; align-items: center;
+margin-top: 28px; padding-top: 20px; border-top: 1px solid var(–border);
+}
+.nav-back {
+background: transparent; border: 1px solid var(–border);
+color: var(–text4); padding: 10px 20px; cursor: pointer;
+font-family: Georgia, serif; font-size: 11px; letter-spacing: 2px;
+text-transform: uppercase; border-radius: 2px; transition: all 0.2s;
+}
+.nav-back:hover { border-color: var(–border2); color: var(–text3); }
+.nav-back:disabled { opacity: 0.2; pointer-events: none; }
+.nav-next {
+background: var(–bg3); border: 1px solid var(–accent);
+color: var(–accent2); padding: 12px 28px; cursor: pointer;
+font-family: Georgia, serif; font-size: 12px; letter-spacing: 3px;
+text-transform: uppercase; border-radius: 2px; transition: all 0.2s;
+}
+.nav-next:hover { background: #1a0a2e; border-color: var(–accent2); }
+.nav-next:disabled { opacity: 0.3; cursor: not-allowed; }
+
+/* RESULT */
+#result { max-width: 640px; width: 100%; display: none; padding-top: 40px; }
+.result-eyebrow { text-align: center; font-size: 10px; letter-spacing: 5px; color: var(–text4); text-transform: uppercase; margin-bottom: 16px; }
+.result-crystal { display: flex; justify-content: center; margin-bottom: 24px; }
+.result-group { display: none; }
+.result-subtitle { font-size: 11px; color: var(–text4); letter-spacing: 3px; text-transform: uppercase; text-align: center; margin-bottom: 32px; }
+.result-origin { font-size: 32px; letter-spacing: 2px; text-align: center; margin-bottom: 6px; font-style: italic; }
+.result-channels { display: none; }
+
+.preview-box {
+background: var(–bg2); border: 1px solid var(–border2);
+padding: 28px; border-radius: 4px; margin-bottom: 24px;
+}
+.preview-box h2 { font-size: 10px; letter-spacing: 4px; color: var(–text4); text-transform: uppercase; margin-bottom: 20px; text-align: center; }
+.preview-section { margin-bottom: 20px; }
+.preview-label { font-size: 9px; letter-spacing: 3px; color: var(–accent); text-transform: uppercase; margin-bottom: 8px; }
+.preview-text { font-size: 14px; color: var(–text2); line-height: 1.9; }
+.preview-blurred { filter: blur(5px); user-select: none; -webkit-user-select: none; pointer-events: none; color: var(–text3); }
+
+.unlock-box {
+background: linear-gradient(135deg, #0e0820, #1a0a2e);
+border: 1px solid var(–accent); padding: 32px 24px;
+border-radius: 4px; text-align: center; margin-bottom: 24px;
+}
+.unlock-title { font-size: 22px; color: var(–text); letter-spacing: 1px; margin-bottom: 8px; font-style: italic; }
+.unlock-sub { font-size: 13px; color: var(–text3); line-height: 1.7; margin-bottom: 24px; }
+.unlock-list { text-align: left; margin-bottom: 28px; display: flex; flex-direction: column; gap: 8px; }
+.unlock-item { font-size: 12px; color: var(–text2); display: flex; align-items: flex-start; gap: 10px; }
+.unlock-item::before { content: ‘✦’; color: var(–accent); flex-shrink: 0; margin-top: 2px; }
+.portal-num { font-size: 11px; letter-spacing: 6px; color: var(–gold); text-transform: uppercase; margin-bottom: 16px; font-family: Georgia, serif; }
+.price { font-size: 32px; color: var(–gold); margin-bottom: 6px; }
+.price-note { font-size: 10px; color: var(–text4); margin-bottom: 20px; letter-spacing: 1px; }
+.unlock-btn {
+display: block; width: 100%; padding: 16px;
+background: linear-gradient(135deg, #553388, #7744aa);
+border: none; color: #fff; font-family: Georgia, serif;
+font-size: 14px; letter-spacing: 3px; text-transform: uppercase;
+cursor: pointer; border-radius: 3px; transition: all 0.2s;
+text-decoration: none; text-align: center; box-sizing: border-box;
+}
+.unlock-btn:hover { background: linear-gradient(135deg, #6644aa, #9955cc); }
+
+.retake-btn {
+width: 100%; padding: 12px; background: transparent;
+border: 1px solid var(–border); color: var(–text4);
+font-family: Georgia, serif; font-size: 11px; letter-spacing: 2px;
+text-transform: uppercase; cursor: pointer; border-radius: 2px; transition: all 0.2s;
+}
+.retake-btn:hover { border-color: var(–border2); color: var(–text3); }
+
+/* APP ENTRY BOX */
+.app-entry-box {
+  background: linear-gradient(135deg, #06040f, #0d0820);
+  border: 1px solid rgba(201,169,110,0.4);
+  padding: 28px 24px;
+  border-radius: 4px;
+  text-align: center;
+  margin-bottom: 24px;
+}
+.app-entry-label {
+  font-size: 10px;
+  letter-spacing: 4px;
+  color: #c9a96e;
+  text-transform: uppercase;
+  margin-bottom: 16px;
+}
+.app-entry-btn {
+  display: block;
+  width: 100%;
+  padding: 16px;
+  background: linear-gradient(135deg, #1a1408, #2a2010);
+  border: 1px solid rgba(201,169,110,0.6);
+  color: #e8d5b0;
+  font-family: Georgia, serif;
+  font-size: 14px;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  cursor: pointer;
+  border-radius: 3px;
+  transition: all 0.25s;
+  margin-bottom: 12px;
+}
+.app-entry-btn:hover {
+  background: linear-gradient(135deg, #2a2010, #3a3018);
+  border-color: rgba(201,169,110,0.9);
+  color: #f0e0c0;
+}
+.app-entry-note {
+  font-size: 11px;
+  color: #6b6478;
+  letter-spacing: 1px;
+  line-height: 1.6;
+}
+
+/* EMAIL CAPTURE */
+#email-capture {
+  max-width: 560px; width: 100%;
+  text-align: center; padding-top: 80px; display: none;
+}
+.ec-eyebrow { font-size: 10px; letter-spacing: 5px; color: var(--text4); text-transform: uppercase; margin-bottom: 24px; }
+.ec-title { font-size: 26px; color: var(--text); letter-spacing: 1px; margin-bottom: 12px; font-style: italic; font-family: Georgia, serif; }
+.ec-sub { font-size: 14px; color: var(--text3); line-height: 1.8; margin-bottom: 32px; }
+.ec-form { display: flex; flex-direction: column; gap: 12px; max-width: 360px; margin: 0 auto; }
+.ec-input {
+  padding: 14px 18px; background: var(--bg3);
+  border: 1px solid var(--border2); color: var(--text);
+  font-family: Georgia, serif; font-size: 14px;
+  border-radius: 3px; outline: none; text-align: center;
+  transition: border-color 0.2s;
+}
+.ec-input:focus { border-color: var(--accent); }
+.ec-input::placeholder { color: var(--text4); }
+.ec-btn {
+  padding: 15px; background: linear-gradient(135deg, #553388, #7744aa);
+  border: none; color: #fff; font-family: Georgia, serif;
+  font-size: 13px; letter-spacing: 3px; text-transform: uppercase;
+  cursor: pointer; border-radius: 3px; transition: all 0.2s;
+}
+.ec-btn:hover { background: linear-gradient(135deg, #6644aa, #9955cc); }
+.ec-note { font-size: 10px; color: var(--text4); margin-top: 8px; letter-spacing: 1px; }
+.ec-error { font-size: 12px; color: var(--red); margin-top: 4px; display: none; }
+
+/* SOUL RESONANCE PHRASE */
+.soul-resonance {
+  background: linear-gradient(135deg, #0e0820, #130d22);
+  border: 1px solid var(--border2); border-left: 3px solid var(--accent);
+  padding: 20px 24px; border-radius: 4px; margin-bottom: 24px;
+  font-size: 15px; color: var(--text2); line-height: 1.85;
+  font-style: italic; text-align: center;
+}
+</style>
+
+</head>
+<body>
+
+<div class="progress-wrap" id="progressWrap">
+  <div class="progress-meta">
+    <span>Origin Consciousness</span>
+    <span id="progressText">1 / 28</span>
+  </div>
+  <div class="progress-bg"><div class="progress-fill" id="progressFill" style="width:0%"></div></div>
+</div>
+
+<!-- INTRO -->
+
+<div id="intro">
+  <div class="eyebrow">Origin Consciousness System</div>
+  <div class="intro-title">Your Starseed Soul Origin</div>
+  <div class="divider"></div>
+  <div class="intro-body">
+    Your soul arrived here carrying a specific frequency. A particular way of seeing, of knowing, of moving through this dimension. What follows is a remembering.
+  </div>
+  <div class="intro-body">
+    You are entering a PORTAL 11.11. The moment the soul sees itself completely. Answer from the place that knows before thinking begins.
+  </div>
+  <div class="intro-note">28 questions · 7 minutes · answer from inner knowing</div>
+  <button class="start-btn" onclick="startQuiz()">Begin</button>
+</div>
+
+<!-- QUIZ -->
+
+<div id="quiz"></div>
+
+<!-- RESULT -->
+
+<div id="result"></div>
+
+<!-- EMAIL CAPTURE -->
+<div id="email-capture">
+  <div class="ec-eyebrow">Origin Consciousness System</div>
+  <div class="ec-title">Your Origin has been identified</div>
+  <div class="ec-sub">Enter your email to receive your Soul Frequency reading and unlock your result.</div>
+  <form class="ec-form" id="ecForm">
+    <input type="hidden" name="access_key" value="5e2462a8-4fac-406d-bf44-c9457170c983">
+    <input type="hidden" name="subject" value="New Starseed Soul Quiz Lead">
+    <input type="hidden" name="from_name" value="Starseed Soul Quiz">
+    <input type="hidden" name="redirect" value="false">
+    <input class="ec-input" type="email" name="email" id="ecEmail" placeholder="your@email.com" required autocomplete="email">
+    <div class="ec-error" id="ecError">Please enter a valid email address</div>
+    <button class="ec-btn" type="submit">Reveal My Origin</button>
+    <div class="ec-note">No spam. Unsubscribe anytime.</div>
+  </form>
+</div>
+
+<script>
+// ── TYPES ──────────────────────────────────────────────────────────────────
+const TYPES = [
+  { name:"Siriusian",       funcs:["R","E","M","L"], group:"I" },
+  { name:"Pleiadian",       funcs:["R","M","L","E"], group:"I" },
+  { name:"Lemurian",        funcs:["R","E","L","M"], group:"I" },
+  { name:"Cassiopeian",     funcs:["R","L","M","E"], group:"I" },
+  { name:"Procyonian",      funcs:["R","M","E","L"], group:"I" },
+  { name:"Lyran",           funcs:["R","L","E","M"], group:"I" },
+  { name:"Arcturian",       funcs:["L","E","M","R"], group:"II" },
+  { name:"Orion",           funcs:["L","M","R","E"], group:"II" },
+  { name:"Vegan",           funcs:["L","E","R","M"], group:"II" },
+  { name:"Zeta Reticulan",  funcs:["L","R","E","M"], group:"II" },
+  { name:"Epsilon Eridan",  funcs:["L","M","E","R"], group:"II" },
+  { name:"Atlantean",       funcs:["L","R","M","E"], group:"II" },
+  { name:"Andromedan",      funcs:["E","R","L","M"], group:"III" },
+  { name:"Polarisian",      funcs:["E","L","M","R"], group:"III" },
+  { name:"Nibiruan",        funcs:["E","M","R","L"], group:"III" },
+  { name:"Egyptian",        funcs:["E","L","R","M"], group:"III" },
+  { name:"Titanian",           funcs:["E","M","L","R"], group:"III" },
+  { name:"Blue Avian",      funcs:["E","R","M","L"], group:"III" },
+  { name:"Tau Cetian",      funcs:["M","R","E","L"], group:"IV" },
+  { name:"Aldebaran",       funcs:["M","L","R","E"], group:"IV" },
+  { name:"Centaurian",      funcs:["M","L","E","R"], group:"IV" },
+  { name:"Herculean",       funcs:["M","E","R","L"], group:"IV" },
+  { name:"Anunnaki",        funcs:["M","E","L","R"], group:"IV" },
+  { name:"Hyperborean",     funcs:["M","R","L","E"], group:"IV" },
+];
+
+const FC = {
+  R:{ hex:"#28b450", name:"Relationships", sym:"🜄" },
+  E:{ hex:"#ffc814", name:"Energy",        sym:"🜂" },
+  M:{ hex:"#d22828", name:"Matter",        sym:"🜔" },
+  L:{ hex:"#3c78ff", name:"Logic",         sym:"🜁" },
+};
+
+const CH_R = [0,80,56,34,17];
+const CH_W = [0,0.60,0.25,0.12,0.03];
+const FUNC_AXIS = { E:-Math.PI/2, M:Math.PI/2, R:0, L:Math.PI };
+
+// ── QUESTIONS ──────────────────────────────────────────────────────────────
+const QUESTIONS = [
+
+  // BLOCK 1 — ch1 detection — scenario, pick 1 of 4
+  {
+    id:1, block:1, type:"force4",
+    text:"Your soul has been in this dimension long enough to have a pattern. Think of the last time you walked into a situation that was already in motion — a group, a conversation, a moment with stakes. Before you decided anything, before you chose to pay attention, something in you had already registered something. What was it?",
+    opts:[
+      { text:"The physical reality of what was actually here. What resources existed, what was solid, what was fragile in the material facts of the situation.", f:"M" },
+      { text:"The structure of what was happening. Whether it held together or whether something was off at the foundation, before anyone had named it.", f:"L" },
+      { text:"The relational field. Who needed what from whom, what was moving beneath the surface, what was being carefully not said.", f:"R" },
+      { text:"The direction of desire in the room. Who was alive and moving toward something real, and what you yourself wanted from this moment.", f:"E" },
+    ]
+  },
+  {
+    id:2, block:1, type:"force4",
+    text:"A person you have just met is talking to you about something that matters to them. Seven minutes in, without deciding to assess them, without gathering information deliberately, you already know something. What do you know?",
+    opts:[
+      { text:"Whether the logic of what they are describing actually holds. Whether the framework they are using is sound or whether there is a crack in it they have not seen.", f:"L" },
+      { text:"What they actually need from this conversation, underneath what they are asking for.", f:"R" },
+      { text:"Whether they genuinely want to change this situation or whether some part of them is holding on to it.", f:"E" },
+      { text:"What the practical gap is. The concrete thing they are avoiding that would actually change the material reality of their situation.", f:"M" },
+    ]
+  },
+  {
+    id:3, block:1, type:"force4",
+    text:"Something goes wrong in a group you are part of. The energy shifts, the direction is lost, people are uncertain. You have not been asked to do anything. What happens in you first, automatically, before any decision?",
+    opts:[
+      { text:"You orient toward the practical reality. What is actually broken, what resource is missing, what concrete action would actually fix this.", f:"M" },
+      { text:"You read the room. Who is the source of the disruption, what is the real dynamic underneath what is being said, what does each person actually need right now.", f:"R" },
+      { text:"You assess the structure. Where the logic of what the group is doing broke down, what assumption led them here, what the sound path forward actually is.", f:"L" },
+      { text:"You feel the charge of the situation. Where the real desire in the group is, what everyone actually wants but is not saying, what direction would bring the energy back.", f:"E" },
+    ]
+  },
+  {
+    id:4, block:1, type:"force4",
+    text:"Think of something other people around you have always worked hard to develop — something they take courses in, read about, practice. You watch them work at it and something in you is quietly confused, because for you this has simply always been there. What is it?",
+    opts:[
+      { text:"Knowing what they want. You watch people search for this and you genuinely do not understand the search. The desire has always been clear to you.", f:"E" },
+      { text:"Reading people. The emotional reality of a room, what someone means underneath what they say. You have never had to learn this.", f:"R" },
+      { text:"Seeing how things are structured. Whether an argument holds, whether a plan is sound, whether something is built on something that will bear weight.", f:"L" },
+      { text:"Being at home in the physical world. Money, the body, practical matters. You have never had the anxiety about these things that seems so common in others.", f:"M" },
+    ]
+  },
+  {
+    id:5, block:1, type:"force4",
+    text:"You are with a group of people making a decision together. The conversation goes on longer than it needs to. Something is obvious to you that no one else seems to be addressing. What is it, most often?",
+    opts:[
+      { text:"The practical reality everyone is avoiding. What the material facts actually are, what is actually possible, what the physical constraints actually are.", f:"M" },
+      { text:"What people actually want. Underneath the stated positions, there is a real desire in the room that no one is naming, and until someone names it nothing will move.", f:"E" },
+      { text:"The relational reality underneath the decision. Who trusts whom, where the real tension is, what the decision is actually about for each person.", f:"R" },
+      { text:"The structural flaw in how the group is thinking. The assumption that is wrong, the step that was skipped, the reason the conversation keeps circling.", f:"L" },
+    ]
+  },
+  {
+    id:6, block:1, type:"force4",
+    text:"Your cosmic family shares a specific quality of effortless perception. When you encounter one of them you recognize it immediately because it mirrors something you have always done without thinking. A stranger sits down next to you. Within minutes you know they are one of yours. What gave them away?",
+    opts:[
+      { text:"The way they handled something practical. They moved through the material reality of the situation with a fluency that looked like ease because it was ease.", f:"M" },
+      { text:"The way they thought. The structure of what they said, the precision of how they assessed something, the immediate recognition of what held and what did not.", f:"L" },
+      { text:"The way they felt the room. They already knew what was happening between the people present before anyone told them.", f:"R" },
+      { text:"The aliveness in them. The quality of desire that was running underneath everything they said and did. Real, prior, not performed.", f:"E" },
+    ]
+  },
+  {
+    id:7, block:1, type:"force4",
+    text:"There is something you do so automatically that you have almost never thought of it as something you do. It is simply how you are. Other souls work toward it, practice it, try to cultivate it. You have been doing it since before you had a name for it. What is it?",
+    opts:[
+      { text:"Feeling the relational field. Knowing what moves between people, what is needed, what is true beneath the surface of a conversation. You have always done this.", f:"R" },
+      { text:"Following your own desire. Knowing which direction you want to move before the thinking begins. The desire has always been prior to the deliberation.", f:"E" },
+      { text:"Being at home in matter. Navigating the physical world, the body, resources, practical reality, with a groundedness that has always simply been yours.", f:"M" },
+      { text:"Seeing how things are structured. Feeling immediately whether something holds or whether it has a flaw at the foundation. You have always done this.", f:"L" },
+    ]
+  },
+  {
+    id:8, block:1, type:"force4", check:true,
+    text:"The soul remembers through the body. There are moments when something lands in you before thought, before language, before any decision to pay attention. A recognition that runs faster than analysis. In those moments, what is your body recognizing?",
+    opts:[
+      { text:"Whether the structure of the situation is sound. The felt sense of coherence or its absence, arriving before deliberate examination.", f:"L" },
+      { text:"The relational truth. Who is real, who is performing, what is actually moving between the people present.", f:"R" },
+      { text:"The practical reality. What is solid and what is fragile in the material facts of what is here.", f:"M" },
+      { text:"The direction of desire. What this moment wants to move toward, what the real charge underneath the surface actually is.", f:"E" },
+    ]
+  },
+
+  // BLOCK 2 — ch2 detection — Most/Least
+  {
+    id:9, block:2, type:"most_least",
+    text:"Below are four things souls bring into the rooms they enter. Choose the one that is most true of you and the one that is least true.",
+    opts:[
+      { text:"Presence that makes people feel genuinely seen. A quality of attention that creates safety for what is real.", f:"R" },
+      { text:"Charge that makes things move. An aliveness that activates something in the people and spaces around you.", f:"E" },
+      { text:"Groundedness that makes people feel stable. A relationship with physical reality that others find anchoring.", f:"M" },
+      { text:"Clarity that makes complexity navigable. A quality of thought that illuminates what was obscure.", f:"L" },
+    ]
+  },
+  {
+    id:10, block:2, type:"most_least",
+    text:"Below are four ways a soul leaves a mark on a conversation. Choose the one that most often describes what you leave behind — and the one that least describes you.",
+    opts:[
+      { text:"People leave feeling understood at a level they did not expect. Something in the contact was real in a way that stays with them.", f:"R" },
+      { text:"People leave feeling more alive than when they arrived. Something in your presence activated a charge they carry with them after.", f:"E" },
+      { text:"People leave with something concrete. A practical thing got clearer, a real problem got handled, the material situation shifted.", f:"M" },
+      { text:"People leave thinking differently. Something in how you framed things reorganized how they see the situation.", f:"L" },
+    ]
+  },
+  {
+    id:11, block:2, type:"most_least",
+    text:"Four souls are described by how others experience them. Choose the one that most resembles how others experience you — and the one that least resembles you.",
+    opts:[
+      { text:"The one people call when they need to feel less alone. When something real needs to be said and they need someone who will actually hear it.", f:"R" },
+      { text:"The one people call when they need to feel alive again. When the charge has gone out of something and they need someone who carries it.", f:"E" },
+      { text:"The one people call when something needs to actually get done. When the practical reality needs to be handled and they need someone who knows how to be here.", f:"M" },
+      { text:"The one people call when something needs to be understood. When the complexity needs to be mapped and they need someone who sees the structure.", f:"L" },
+    ]
+  },
+  {
+    id:12, block:2, type:"most_least",
+    text:"Below are four things that flow from you freely, without effort, without needing acknowledgment. Choose the one that is most yours — and the one that is least yours.",
+    opts:[
+      { text:"The capacity to create real contact. To be genuinely present with another soul in a way that makes the meeting actual.", f:"R" },
+      { text:"The capacity to bring desire into a room. To carry a charge that is real and that others feel and are affected by.", f:"E" },
+      { text:"The capacity to make things real. To bring something from the possible into the actual, to create something in the physical world.", f:"M" },
+      { text:"The capacity to generate clarity. To take what is complex and find the structure inside it, and offer that structure to others.", f:"L" },
+    ]
+  },
+  {
+    id:13, block:2, type:"most_least",
+    text:"Four souls describe what they love to do when they are most fully themselves. Choose the one that resonates most — and the one that resonates least.",
+    opts:[
+      { text:"I love being in real contact with someone. When the conversation goes somewhere neither of us planned and something true gets said.", f:"R" },
+      { text:"I love moving toward something I actually want. When the desire is clear and I am following it and everything else falls away.", f:"E" },
+      { text:"I love making something real. When I can feel the weight of what I built, see it exist, know it will hold.", f:"M" },
+      { text:"I love understanding something I did not understand before. When the structure of something becomes clear and I can feel it click into place.", f:"L" },
+    ]
+  },
+  {
+    id:14, block:2, type:"most_least",
+    text:"Four gifts are described below. Choose the one your soul has been offering since before you had words for it — and the one that feels most foreign to you.",
+    opts:[
+      { text:"The gift of being met. Of creating the conditions for genuine contact in a world full of surfaces.", f:"R" },
+      { text:"The gift of aliveness. Of carrying a desire that is real and that invites other souls to remember their own.", f:"E" },
+      { text:"The gift of reality. Of knowing how to be here, in the body, in the physical world, in the truth of what is actually present.", f:"M" },
+      { text:"The gift of clarity. Of seeing what holds and what does not, and being willing to name it.", f:"L" },
+    ]
+  },
+
+  // BLOCK 3 — ch3 detection — scenario, obsession
+  {
+    id:15, block:3, type:"force4",
+    text:"There is a domain your soul cannot leave alone. Not because it is easy — because it pulls. You return to it, think about it, have strong opinions about it, notice when others get it wrong. Which of these is that domain?",
+    opts:[
+      { text:"The way people connect with each other. The quality of relationships, what love actually requires, what genuine contact looks like. You have thought about this more than most.", f:"R" },
+      { text:"The question of desire and aliveness. What it means to actually want something, to live a life that is truly yours, to follow the real direction of a soul. You return to this again and again.", f:"E" },
+      { text:"The physical world. Money, health, the body, what it means to be genuinely stable and grounded in material reality. This pulls at you, occupies you, matters to you in a way that is hard to explain.", f:"M" },
+      { text:"The question of what is true. Whether things hold together logically, whether frameworks are sound, whether people are thinking correctly. You cannot leave a flawed argument alone.", f:"L" },
+    ]
+  },
+  {
+    id:16, block:3, type:"force4",
+    text:"Your soul is watching someone work in a domain it cares deeply about. They are doing it carelessly. Something in you rises — not anger exactly, but a pull toward it, a need to engage. Which domain is this most likely to be?",
+    opts:[
+      { text:"How they are relating to other people. The quality of the contact they are creating or destroying. You feel this in your body and you cannot look away.", f:"R" },
+      { text:"How they are relating to their own desire. Whether they are living truly or performing a life that is not theirs. This pulls at you in a way that is hard to explain.", f:"E" },
+      { text:"How they are handling the physical reality. The body, the money, the practical truth of the situation. You see what is coming before they do and you cannot stay quiet.", f:"M" },
+      { text:"How they are thinking. The assumption they are making that is wrong, the conclusion that does not follow, the framework that will not hold. You feel the flaw structurally and it will not let you go.", f:"L" },
+    ]
+  },
+  {
+    id:17, block:3, type:"force4",
+    text:"There is a question your soul has been working on for most of this lifetime. It comes back in different forms, in different relationships, in different circumstances — but it is always the same question underneath. Which of these is closest to that question?",
+    opts:[
+      { text:"What does real connection actually require? What is the difference between genuine contact and the performance of it? How do you love someone without losing yourself in the field?", f:"R" },
+      { text:"What does it mean to actually want something? How do you know when desire is real and when it is borrowed? How do you follow your own direction without apology?", f:"E" },
+      { text:"What does it mean to be genuinely at home in this physical world? How do you build something real that stays? What does the body actually need?", f:"M" },
+      { text:"What does it mean to think clearly? How do you know when a framework actually holds? How do you see truly rather than seeing what you want to see?", f:"L" },
+    ]
+  },
+  {
+    id:18, block:3, type:"force4",
+    text:"Your soul has strong opinions. There is a domain where you find other people's carelessness almost intolerable — where you see so clearly what is needed and feel the pull to engage even when it is not your place. Which domain is this?",
+    opts:[
+      { text:"Relationships. How people treat each other, what they ask of each other, what they call love. You have a standard here that is hard to explain to people who do not share it.", f:"R" },
+      { text:"Desire and aliveness. Whether people are living truly or performing. Whether they are following their real direction or doing what they think they should. You feel the difference acutely.", f:"E" },
+      { text:"Physical reality. How people handle money, their bodies, their practical lives. The waste, the avoidance, the cost of ignoring what is real. You see it and you cannot always stay quiet.", f:"M" },
+      { text:"Truth and structure. Whether people are thinking correctly, whether the frameworks they are using are sound, whether the conclusions they are drawing actually follow. You feel a flawed argument the way others feel a wrong note.", f:"L" },
+    ]
+  },
+  {
+    id:19, block:3, type:"force4",
+    text:"Where does your soul overreach — where does it try to perform a mastery it is still growing into, and feel the strain of that reaching?",
+    opts:[
+      { text:"In the relational field. I take on the dynamics of those around me, try to hold more than is mine to hold, feel responsible for connections I cannot control.", f:"R" },
+      { text:"In the domain of desire. I perform a certainty about what I want that is sometimes real and sometimes a reach — and in the gap between those two things is where I lose myself.", f:"E" },
+      { text:"In the material world. I project a competence with resources and physical reality that I am still developing. The gap between what I understand and what I can actually hold is where it gets hard.", f:"M" },
+      { text:"In the domain of thought. I take positions with more certainty than I actually have, defend frameworks I am still questioning, and feel the strain of leading in a domain where I am still growing.", f:"L" },
+    ]
+  },
+  {
+    id:20, block:3, type:"force4", check:true,
+    text:"The soul learns through specific territory. There is a domain where your deepest learning has happened in this lifetime — where life has brought you the most material to work with, the most complex situations, the most opportunities to grow. Which domain has given you the most to work with?",
+    opts:[
+      { text:"The physical world. Money, the body, stability, what it means to be genuinely grounded in material reality.", f:"M" },
+      { text:"The relational field. Connection, love, what happens between people, what genuine contact actually requires.", f:"R" },
+      { text:"The domain of thought. Frameworks, truth, what it means to think clearly and to know when something actually holds.", f:"L" },
+      { text:"The domain of desire. What you actually want, whether you are living it, what it costs to follow your real direction.", f:"E" },
+    ]
+  },
+
+  // BLOCK 4 — ch4 detection — Most/Least
+  {
+    id:21, block:4, type:"most_least",
+    text:"Every soul has a domain where it rests rather than leads. Where it receives rather than generates. Below are four domains. Choose the one where you most naturally receive without needing to direct — and the one where you least naturally do this.",
+    opts:[
+      { text:"In the relational field. If someone else is reading the room and managing the connections, I can move through it without needing to be the one who sees.", f:"R" },
+      { text:"In the domain of desire and direction. If the environment provides charge and direction, I can follow that current without needing to generate my own.", f:"E" },
+      { text:"In the physical world. If someone else is handling the practical reality, the money, the body's needs, the logistics, I can receive that without needing to lead it.", f:"M" },
+      { text:"In the domain of thought and frameworks. If someone presents a coherent system, I can work within it without needing to build my own from scratch.", f:"L" },
+    ]
+  },
+  {
+    id:22, block:4, type:"most_least",
+    text:"Four souls describe a pattern they have noticed in themselves. Choose the one that most resonates with your own experience — and the one that least resonates.",
+    opts:[
+      { text:"I sometimes absorb the emotional reality of a situation without examining it. I receive the relational field around me before I have decided whether it is good for me.", f:"R" },
+      { text:"I sometimes follow a current that is not mine. The energy or direction of an environment or a person pulls me along before I have noticed it is happening.", f:"E" },
+      { text:"I sometimes accept what is provided in the physical world without asking whether it is actually right. Food, comfort, practical arrangements. I receive without evaluating.", f:"M" },
+      { text:"I sometimes adopt a framework someone else built without testing it first. If it is presented clearly enough, I work within it before I have checked whether the foundation holds.", f:"L" },
+    ]
+  },
+  {
+    id:23, block:4, type:"most_least",
+    text:"Below are four situations. Choose the one where you most prefer to simply receive the result without involvement in the process — and the one where you least feel this way.",
+    opts:[
+      { text:"Understanding where I stand with people. Just tell me whether things are okay, what the relational reality is. I do not need to map it myself.", f:"R" },
+      { text:"Knowing what I want. Sometimes I would prefer the desire to simply arrive already clear, already certain. I do not always want to search for it.", f:"E" },
+      { text:"The practical management of life. Just have it handled. The money, the logistics, the physical maintenance. I will receive what works.", f:"M" },
+      { text:"Having a framework to think within. Just give me a sound system. I will work within it and take it from there.", f:"L" },
+    ]
+  },
+  {
+    id:24, block:4, type:"most_least",
+    text:"Four souls describe where they have been most open to receiving something that was not quite right for them. Choose the one that most resembles your own pattern — and the one that least resembles you.",
+    opts:[
+      { text:"In relationships. I have stayed too long, trusted too readily, received dynamics I would have questioned in other domains. Here I receive before I read.", f:"R" },
+      { text:"In following someone else's direction. I have been swept into a current that was not mine and not noticed until I was far downstream.", f:"E" },
+      { text:"In material arrangements. I have accepted what was provided without asking whether it was actually good for me. In this territory I defer before I lead.", f:"M" },
+      { text:"In adopting a framework. I have built on a foundation someone else laid and discovered later it could not hold what I placed on it.", f:"L" },
+    ]
+  },
+
+  // BLOCK 5 — process vs result
+  {
+    id:25, block:5, type:"ranking",
+    text:"Below are four souls described by how they move through experience. Rank them from most like you (1) to least like you (4).",
+    opts:[
+      { text:"The soul that lives inside the experience. Completion is almost a loss. The texture of what is unfolding, the quality of being inside something, is what this soul came here for.", f:"E", mode:"processual" },
+      { text:"The soul that moves toward arrival. The completion is the point. Once something is done the energy goes immediately forward. Dwelling in the middle without moving is uncomfortable.", f:"R", mode:"resultative" },
+      { text:"The soul that needs to feel what was built. After something ends it wants to assess the physical reality of what is now here. What is solid, what will last, what actually exists.", f:"M", mode:"resultative" },
+      { text:"The soul that needs to understand what happened. After something ends it wants to know what it revealed, what framework it confirmed or broke, what structure is now visible.", f:"L", mode:"processual" },
+    ]
+  },
+  {
+    id:26, block:5, type:"force4",
+    text:"Something important in your life has recently come to an end. A conversation, a chapter, a connection. What is your first instinct?",
+    opts:[
+      { text:"To stay with it a little longer. To feel what it meant, let the experience continue even after the event has ended.", f:"E" },
+      { text:"To close it and move. It is done. Something else is already beginning. The energy goes forward.", f:"R" },
+      { text:"To assess what is actually here now. What is solid, what the material reality of what happened actually is, what was built and what was not.", f:"M" },
+      { text:"To understand what it revealed. What I now know that I did not know before. What the structure of what happened actually was.", f:"L" },
+    ]
+  },
+  {
+    id:27, block:5, type:"force4",
+    text:"When you need to understand something, which of these is how it actually happens for you?",
+    opts:[
+      { text:"Understanding arrives through contact. I move through something by being in relationship with it, talking about it, feeling it with someone else present.", f:"R" },
+      { text:"Understanding arrives through arrival. I think toward a conclusion. I want clarity, resolution, the point. Dwelling in the middle without moving is uncomfortable.", f:"E" },
+      { text:"Understanding arrives through handling. I work with what is physically present, test it, see what the material reality actually is. I understand by doing.", f:"M" },
+      { text:"Understanding arrives through taking apart. I examine the structure, find the principle underneath, see how it fits with what I already know. I understand by seeing pattern.", f:"L" },
+    ]
+  },
+  {
+    id:28, block:5, type:"ranking",
+    text:"Below are four things a soul might want most from this life. Rank them from what pulls you most (1) to what pulls you least (4).",
+    opts:[
+      { text:"To be in genuine contact. To meet other souls truly, to love and be loved with real presence, to create connection that is actual rather than performed.", f:"R" },
+      { text:"To be fully alive in desire. To want what you want without apology, to follow the real direction of your soul, to feel the charge of being genuinely in motion.", f:"E" },
+      { text:"To build something real. To leave something in the physical world that holds, that has weight, that will exist after you are gone.", f:"M" },
+      { text:"To understand truly. To see clearly, to think without illusion, to know what actually holds and what does not.", f:"L" },
+    ]
+  },
+];
+
+// TIEBREAK QUESTIONS
+const TIEBREAK = {
+  "R_E": { id:"tb_re", type:"binary",
+    text:"Your soul is in a situation where something needs to happen. You have full energy and you can give yourself completely to only one thing right now. Which pull is stronger?",
+    opts:[
+      { text:"The pull toward the person in front of you. Something in the relational field needs your full presence and you feel that need more strongly than anything else right now.", f:"R" },
+      { text:"The pull toward what you want. Your own desire is clear and it is moving and following it fully right now is what your soul is asking of you.", f:"E" },
+    ]
+  },
+  "R_M": { id:"tb_rm", type:"binary",
+    text:"Two things need your attention. You can give yourself fully to only one. Which do you choose?",
+    opts:[
+      { text:"The relational reality. Something is happening between people that needs to be felt, held, addressed. The field is calling.", f:"R" },
+      { text:"The physical reality. Something in the material world needs to be handled, built, or grounded. The concrete situation is calling.", f:"M" },
+    ]
+  },
+  "R_L": { id:"tb_rl", type:"binary",
+    text:"Something important needs to happen and you have the capacity to bring either of these to it. Which one comes first?",
+    opts:[
+      { text:"Your full presence to the people involved. You read the field, you feel what each person needs, you create the conditions for genuine contact.", f:"R" },
+      { text:"Your full clarity to the structure of the situation. You assess what is actually true, what holds and what does not, what the sound path forward actually is.", f:"L" },
+    ]
+  },
+  "E_M": { id:"tb_em", type:"binary",
+    text:"Your soul is being asked to choose where to put its deepest attention right now. Which pulls more strongly?",
+    opts:[
+      { text:"The question of desire. What you actually want, whether you are following your real direction, whether the charge in you is moving toward something true.", f:"E" },
+      { text:"The question of what is real. The physical situation, the material facts, the concrete reality of what is actually here and what it actually requires.", f:"M" },
+    ]
+  },
+  "E_L": { id:"tb_el", type:"binary",
+    text:"Two kinds of knowing are available to you. In this moment, which do you trust more?",
+    opts:[
+      { text:"What you want. The desire is clear and it is running and it knows something that analysis does not have access to. You trust the charge.", f:"E" },
+      { text:"What holds together. The logic is sound or it is not, the structure is true or it is not, and you trust that assessment over the desire in this moment.", f:"L" },
+    ]
+  },
+  "M_L": { id:"tb_ml", type:"binary",
+    text:"Your soul is most native in one of these two territories. Which one?",
+    opts:[
+      { text:"The physical world. Matter, the body, resources, what is real and what will hold in the concrete dimension of existence. You are at home here in a way that feels innate.", f:"M" },
+      { text:"The world of structure and thought. How things fit together, whether frameworks hold, the architecture of ideas and systems. You are at home here in a way that feels innate.", f:"L" },
+    ]
+  },
+};
+
+// PREVIEW TEXTS
+const PREVIEWS = {
+  R: {
+    1:"Connection is not something you seek — it is the medium you live in. You read the space between people the way others read words on a page. Your greatest gift is invisible to you, because for you, it has always simply been the air.",
+    2:"You bring people into contact with something real in themselves. In conversation, in presence, in the quality of attention you offer — you are a catalyst for genuine meeting. This is your natural creative force in the world.",
+    3:"Relationships are where your deepest learning happens — and your deepest wounds. You are drawn to the complexity of human connection, sometimes more than is comfortable. This tension is your growth edge.",
+    4:"You receive connection easily, without much analysis. When someone offers warmth or belonging, you absorb it naturally — trusting what arrives without needing to verify it first.",
+  },
+  E: {
+    1:"You were born already knowing what you want. Not as a thought, but as a current — something that runs underneath everything and does not ask permission. Others often feel more alive in your presence without knowing why.",
+    2:"Your aliveness is visible. When you move toward something you want, the room notices. You bring energy into spaces that needed it — this is your creative contribution, whether you intend it or not.",
+    3:"The question of desire — what you truly want, whether you are living your actual life — runs through everything you do. This is not a flaw. It is the territory of your transformation.",
+    4:"You receive energy from your environment freely. You don't guard it or analyze it — it simply flows in. Other people's charge becomes available to you without resistance.",
+  },
+  M: {
+    1:"You understand the physical world — money, the body, space, time — with an authority that is simply native to you. You have never needed to learn how to be real. You arrived here already knowing.",
+    2:"You make things real. Ideas that float in other people's minds land in the physical world when you're involved. This is your specific creative power — the capacity to bring things into form.",
+    3:"The material world is where you work hardest on yourself — money, health, physical stability — this is the terrain of your growth. You think deeply about these things. That depth is the gift inside the wound.",
+    4:"In material matters, you receive what comes easily and don't overthink it. Someone handles the food, the space, the logistics — and you absorb it, trusting the provision without needing to direct it.",
+  },
+  L: {
+    1:"You understand how things work. Not as an intellectual exercise, but as a fundamental orientation — the way a fish understands water. Structure, causality, the architecture of systems — this is your native language.",
+    2:"You generate ideas and frameworks that others find clarifying. When you speak your thinking aloud, something in the room settles. This is your creative gift — the capacity to make the complex navigable.",
+    3:"You are drawn to other people's systems and ideas, evaluating them, questioning them, weighing them. This intelligence is most alive when you allow it to be fed by those who think structurally at the deepest level.",
+    4:"You receive frameworks and explanations readily. When something is presented to you coherently, you absorb it and use it — trusting the structure you're given rather than needing to build it from scratch.",
+  },
+};
+
+// ── STATE ──────────────────────────────────────────────────────────────────
+let current = 0;
+let answers = {};
+let tbQueue = [];
+let scores = { R:0, E:0, M:0, L:0 };
+
+// Контекст: пришёл из онбординга (зарегистрированный) или с лендинга
+const isOnboarding = new URLSearchParams(window.location.search).get('redirect') === 'onboarding';
+
+// ── GUMROAD LINKS — replace each URL with your actual Gumroad product link ──
+// To update: find GUMROAD_LINKS below, paste your link for each soul type
+const GUMROAD_LINKS = {
+  "Siriusian":       "https://starseedsoul.gumroad.com/l/soul-20",
+  "Pleiadian":       "https://starseedsoul.gumroad.com/l/soul-17",
+  "Lemurian":        "https://starseedsoul.gumroad.com/l/soul-13",
+  "Cassiopeian":     "https://starseedsoul.gumroad.com/l/soul-7",
+  "Procyonian":      "https://starseedsoul.gumroad.com/l/soul-19",
+  "Lyran":           "https://starseedsoul.gumroad.com/l/soul-14",
+  "Arcturian":       "https://starseedsoul.gumroad.com/l/soul-4",
+  "Orion":           "https://starseedsoul.gumroad.com/l/soul-16",
+  "Vegan":           "https://starseedsoul.gumroad.com/l/soul-23",
+  "Zeta Reticulan":  "https://starseedsoul.gumroad.com/l/soul-24",
+  "Epsilon Eridan":  "https://starseedsoul.gumroad.com/l/soul-10",
+  "Atlantean":       "https://starseedsoul.gumroad.com/l/soul-5",
+  "Andromedan":      "https://starseedsoul.gumroad.com/l/soul-2",
+  "Polarisian":      "https://starseedsoul.gumroad.com/l/soul-18",
+  "Nibiruan":        "https://starseedsoul.gumroad.com/l/soul-15",
+  "Egyptian":        "https://starseedsoul.gumroad.com/l/soul-9",
+  "Titanian":        "https://starseedsoul.gumroad.com/l/soul-22",
+  "Blue Avian":      "https://starseedsoul.gumroad.com/l/soul-6",
+  "Tau Cetian":      "https://starseedsoul.gumroad.com/l/soul-21",
+  "Aldebaran":       "https://starseedsoul.gumroad.com/l/soul-1",
+  "Centaurian":      "https://starseedsoul.gumroad.com/l/soul-8",
+  "Herculean":       "https://starseedsoul.gumroad.com/l/soul-11",
+  "Anunnaki":        "https://starseedsoul.gumroad.com/l/soul-3",
+  "Hyperborean":     "https://starseedsoul.gumroad.com/l/soul-12",
+};
+
+// ── SCORING ────────────────────────────────────────────────────────────────
+function scoreQuestion(q, ans) {
+  if (q.type === "force4") {
+    const f = q.opts[ans].f;
+    const pts = q.block === 1 ? 3 : q.block === 3 ? 2 : 1;
+    scores[f] += pts;
+  }
+  else if (q.type === "most_least") {
+    if (ans.most !== null) scores[q.opts[ans.most].f] += 2;
+    if (ans.least !== null) scores[q.opts[ans.least].f] -= 1;
+  }
+  else if (q.type === "ranking") {
+    ans.forEach((optIdx, pos) => {
+      const pts = [3, 2, 1, 0][pos];
+      scores[q.opts[optIdx].f] += pts;
+    });
+  }
+  else if (q.type === "binary") {
+    scores[q.opts[ans].f] += 5;
+  }
+}
+
+function calculateResult() {
+  // Recalculate scores from scratch including any TB answers
+  scores = { R:0, E:0, M:0, L:0 };
+  QUESTIONS.forEach(q => {
+    if (answers[q.id] !== undefined) scoreQuestion(q, answers[q.id]);
+  });
+  tbQueue.forEach(tb => {
+    if (answers[tb.id] !== undefined) scoreQuestion(tb, answers[tb.id]);
+  });
+
+  // Find pairs in a tie (difference < 3)
+  const sorted = Object.entries(scores).sort((a,b) => b[1]-a[1]);
+  let needTB = null;
+  for (let i = 0; i < 3; i++) {
+    if (Math.abs(sorted[i][1] - sorted[i+1][1]) < 3) {
+      const pair = [sorted[i][0], sorted[i+1][0]].sort().join("_");
+      const alreadyAsked = tbQueue.find(tb => tb.pair === pair);
+      if (!alreadyAsked && tbQueue.length < 3) {
+        needTB = pair;
+        break;
+      }
+    }
+  }
+
+  if (needTB) {
+    const tb = TIEBREAK[needTB];
+    if (tb) {
+      tbQueue.push({ ...tb, pair: needTB });
+      renderTB();
+      return;
+    }
+  }
+
+  showEmailCapture();
+}
+
+function getType() {
+  const sorted = Object.entries(scores).sort((a,b) => b[1]-a[1]);
+  const order = sorted.map(s => s[0]);
+  const match = TYPES.find(t => t.funcs.join("") === order.join(""));
+  if (!match) {
+    // Fallback: find closest type by matching as many positions as possible
+    let best = TYPES[0];
+    let bestScore = -1;
+    TYPES.forEach(t => {
+      let s = 0;
+      t.funcs.forEach((f, i) => { if (f === order[i]) s++; });
+      if (s > bestScore) { bestScore = s; best = t; }
+    });
+    return best;
+  }
+  return match;
+}
+
+// ── QUIZ ENGINE ────────────────────────────────────────────────────────────
+function startQuiz() {
+  document.getElementById('intro').style.display = 'none';
+  document.getElementById('quiz').style.display = 'block';
+  document.getElementById('progressWrap').style.display = 'block';
+  renderQuestion();
+}
+
+function renderQuestion() {
+  const q = QUESTIONS[current];
+  updateProgress();
+  const quizEl = document.getElementById('quiz');
+
+  let html = `<div class="q-block">
+    <div class="q-num">Question ${current + 1} of ${QUESTIONS.length}</div>
+    <div class="q-text">${q.text}</div>`;
+
+  if (q.type === "force4") {
+    html += `<div class="opts-force4">`;
+    q.opts.forEach((opt, i) => {
+      const sel = answers[q.id] === i ? 'selected' : '';
+      html += `<button class="opt-btn ${sel}" onclick="selectForce4(${q.id}, ${i})">${opt.text}</button>`;
+    });
+    html += `</div>`;
+  }
+  else if (q.type === "most_least") {
+    const saved = answers[q.id] || { most: null, least: null };
+    const hasMost = saved.most !== null;
+    const hasLeast = saved.least !== null;
+
+    let stepText = '';
+    if (!hasMost) stepText = 'Step 1 of 2 — Tap the one that is MOST like you';
+    else if (!hasLeast) stepText = 'Step 2 of 2 — Tap the one that is LEAST like you';
+    else stepText = 'Both selected — tap any to change';
+
+    html += `<div class="ml-step">${stepText}</div>
+    <div class="opts-ml2">`;
+    q.opts.forEach((opt, i) => {
+      const isMost = saved.most === i;
+      const isLeast = saved.least === i;
+      let cls = 'ml2-btn';
+      if (isMost) cls += ' is-most';
+      else if (isLeast) cls += ' is-least';
+      html += `<button class="${cls}" onclick="selectML2(${q.id}, ${i})">${opt.text}</button>`;
+    });
+    html += `</div>`;
+  }
+  else if (q.type === "ranking") {
+    const saved = answers[q.id];
+    const order = saved || q.opts.map((_, i) => i);
+    const isConfirmed = !!saved;
+    html += `<div class="rank-instruction">Use arrows to rank — most like you at top</div>
+    <div class="opts-rank" id="rankList">`;
+    order.forEach((optIdx, pos) => {
+      html += `<div class="rank-item" data-idx="${optIdx}" data-pos="${pos}">
+        <div class="rank-num">${pos + 1}</div>
+        <div class="rank-text">${q.opts[optIdx].text}</div>
+        <div class="rank-arrows">
+          <button class="rank-arrow" onclick="moveRank(${q.id}, ${pos}, -1)" ${pos === 0 ? 'disabled' : ''}>↑</button>
+          <button class="rank-arrow" onclick="moveRank(${q.id}, ${pos}, 1)" ${pos === order.length - 1 ? 'disabled' : ''}>↓</button>
+        </div>
+      </div>`;
+    });
+    html += `</div>`;
+    if (!isConfirmed) {
+      html += `<div style="margin-top:12px">
+        <button class="nav-next" style="width:100%" onclick="confirmRanking(${q.id})">Confirm this order</button>
+      </div>`;
+    }
+  }
+
+  const isAnswered = isQuestionAnswered(q);
+  const isLast = current === QUESTIONS.length - 1;
+  const hideNavNext = q.type === "ranking" && !isAnswered;
+
+  html += `<div class="nav-row">
+    <button class="nav-back" onclick="goBack()" ${current === 0 ? 'disabled' : ''}>Back</button>
+    <button class="nav-next" onclick="goNext()" ${isAnswered && !hideNavNext ? '' : 'disabled'} ${hideNavNext ? 'style="display:none"' : ''} id="nextBtn">
+      ${isLast ? 'See My Origin' : 'Continue'}
+    </button>
+  </div></div>`;
+
+  quizEl.innerHTML = html;
+
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+function renderTB() {
+  const tb = tbQueue[tbQueue.length - 1];
+  const quizEl = document.getElementById('quiz');
+  const tbLabel = 'One more question before your origin is revealed';
+  document.getElementById('progressText').textContent = 'Almost there';
+
+  let html = `<div class="q-block">
+    <div class="q-num" style="color:var(--accent2)">${tbLabel}</div>
+    <div class="q-text">${tb.text}</div>
+    <div class="opts-binary">`;
+  tb.opts.forEach((opt, i) => {
+    const sel = answers[tb.id] === i ? 'selected' : '';
+    html += `<button class="opt-btn ${sel}" onclick="selectTB('${tb.id}', ${i})">${opt.text}</button>`;
+  });
+  html += `</div>
+    <div class="nav-row">
+      <button class="nav-back" onclick="goBackFromTB()">Back</button>
+      <button class="nav-next" onclick="finishTB()" ${answers[tb.id] !== undefined ? '' : 'disabled'} id="nextBtn">
+        Reveal My Origin
+      </button>
+    </div></div>`;
+
+  quizEl.innerHTML = html;
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+function isQuestionAnswered(q) {
+  if (q.type === "most_least") {
+    const a = answers[q.id];
+    return a && a.most !== null && a.least !== null && a.most !== a.least;
+  }
+  if (q.type === "ranking") return answers[q.id] !== undefined;
+  return answers[q.id] !== undefined && answers[q.id] !== null;
+}
+
+function selectForce4(qId, idx) {
+  answers[qId] = idx;
+  renderQuestion();
+}
+
+function selectML2(qId, idx) {
+  if (!answers[qId]) answers[qId] = { most: null, least: null };
+  const a = answers[qId];
+
+  // Tapping current Most — clear both and restart
+  if (a.most === idx) { a.most = null; a.least = null; renderQuestion(); return; }
+  // Tapping current Least — clear least only
+  if (a.least === idx) { a.least = null; renderQuestion(); return; }
+  // No Most yet — set Most
+  if (a.most === null) { a.most = idx; renderQuestion(); return; }
+  // Has Most, no Least — set Least (cannot be same as Most)
+  if (a.least === null && idx !== a.most) { a.least = idx; renderQuestion(); return; }
+  // Both set, tapping unselected — replace Least (cannot be same as Most)
+  if (idx !== a.most) { a.least = idx; renderQuestion(); }
+}
+
+function selectTB(tbId, idx) {
+  answers[tbId] = idx;
+  renderTB();
+}
+
+function finishTB() {
+  calculateResult();
+}
+
+function goNext() {
+  const q = QUESTIONS[current];
+  if (!isQuestionAnswered(q)) return;
+  if (current === QUESTIONS.length - 1) {
+    calculateResult();
+    return;
+  }
+  current++;
+  renderQuestion();
+}
+
+function goBackFromTB() {
+  const tb = tbQueue[tbQueue.length - 1];
+  if (tb) delete answers[tb.id];
+  tbQueue.pop();
+  current = QUESTIONS.length - 1;
+  document.getElementById('progressText').textContent = `${QUESTIONS.length} / ${QUESTIONS.length}`;
+  document.getElementById('progressFill').style.width = '100%';
+  renderQuestion();
+}
+
+function goBack() {
+  if (current > 0) { current--; renderQuestion(); }
+}
+
+function updateProgress() {
+  const pct = Math.round((current / QUESTIONS.length) * 100);
+  document.getElementById('progressFill').style.width = pct + '%';
+  document.getElementById('progressText').textContent = `${current + 1} / ${QUESTIONS.length}`;
+}
+
+// ── ARROW RANKING ──────────────────────────────────────────────────────────
+function confirmRanking(qId) {
+  const q = QUESTIONS.find(q => q.id === qId);
+  if (!answers[qId]) answers[qId] = q.opts.map((_, i) => i);
+  renderQuestion();
+}
+
+function moveRank(qId, pos, dir) {
+  const q = QUESTIONS.find(q => q.id === qId);
+  const order = answers[qId] ? [...answers[qId]] : q.opts.map((_, i) => i);
+  const newPos = pos + dir;
+  if (newPos < 0 || newPos >= order.length) return;
+  [order[pos], order[newPos]] = [order[newPos], order[pos]];
+  answers[qId] = order;
+  renderQuestion();
+}
+// ── EMAIL CAPTURE LOGIC ───────────────────────────────────────────────────────────
+function showEmailCapture() {
+  document.getElementById('quiz').style.display = 'none';
+  document.getElementById('progressWrap').style.display = 'none';
+  document.getElementById('email-capture').style.display = 'block';
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+
+  const form = document.getElementById('ecForm');
+  form.addEventListener('submit', async function(e) {
+    e.preventDefault();
+    const email = document.getElementById('ecEmail').value.trim();
+    const errorEl = document.getElementById('ecError');
+    if (!email || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      errorEl.style.display = 'block';
+      return;
+    }
+    errorEl.style.display = 'none';
+    const btn = form.querySelector('.ec-btn');
+    btn.textContent = 'Opening portal...';
+    btn.disabled = true;
+    // Send email to Web3Forms
+    try {
+      const formData = new FormData(form);
+      await fetch('https://api.web3forms.com/submit', {
+        method: 'POST',
+        body: formData
+      });
+    } catch(err) {
+      // Silently continue even if submission fails
+    }
+    // Show result regardless
+    document.getElementById('email-capture').style.display = 'none';
+    showResult();
+  });
+}
+
+// ── RESULT ──────────────────────────────────────────────────────────────────────
+function showResult() {
+  document.getElementById('quiz').style.display = 'none';
+  document.getElementById('progressWrap').style.display = 'none';
+  document.getElementById('result').style.display = 'block';
+
+  const type = getType();
+  const [ch1, ch2, ch3] = type.funcs;
+  const fc1 = FC[ch1];
+
+  const SOUL_RESONANCE = {
+    "I":  "You have spent your life translating the unspoken spaces between people. Your sensitivity is not a burden to be managed\u2014it is the exact instrument you were sent here to use.",
+    "II": "You see the architecture underneath the chaos. Your constant need to understand how things connect is not overthinking\u2014it is your soul trying to build a map for others to follow.",
+    "III":"You have always known what you wanted before you had the words for it. Your intensity scares people, so you learned to turn it down. It is time to turn it back up.",
+    "IV": "You carry an innate authority over the physical world. While others get lost in ideas, you know exactly how to make things real. Your grounding is your greatest power."
+  };
+
+  const html = `
+    <div class="result-eyebrow">Origin Consciousness System</div>
+    <div class="result-crystal"><canvas id="resCrystal" width="200" height="200"></canvas></div>
+    <div class="result-origin" style="color:${fc1.hex}">${type.name}</div>
+    <div class="result-subtitle">Soul Origin Reading · ${new Date().toLocaleDateString('en-US', {year:'numeric', month:'long', day:'numeric'})}</div>
+
+    <div class="soul-resonance">${SOUL_RESONANCE[type.group]}</div>
+
+    <div class="preview-box">
+      <h2>Your Soul Frequency</h2>
+      <div class="preview-section">
+        <div class="preview-label">Your Core Frequency</div>
+        <div class="preview-text">${PREVIEWS[ch1][1]}</div>
+      </div>
+      <div class="preview-section">
+        <div class="preview-label">Your Creative Force</div>
+        <div class="preview-text">${PREVIEWS[ch2][2]}</div>
+      </div>
+      <div class="preview-section">
+        <div class="preview-label">Your Growth Edge &nbsp;🔒</div>
+        <div class="preview-text preview-blurred">${PREVIEWS[ch3][3]}</div>
+        <div style="font-size:11px;color:var(--text4);margin-top:8px;letter-spacing:2px;text-transform:uppercase">STEP THROUGH PORTAL 11.11 TO ACCESS YOUR DEEPER LAYERS</div>
+      </div>
+    </div>
+
+    <div class="unlock-box">
+      <div class="portal-num">PORTAL 11.11</div>
+      <div class="unlock-title">You are one step away</div>
+      <div class="unlock-sub">The reading has been prepared. What remains is the step through.</div>
+      <div class="unlock-list">
+        <div class="unlock-item">The full cosmic portrait of your soul origin. Where you came from and what you were sent here carrying</div>
+        <div class="unlock-item">All four layers of your frequency. How they move through your life, your relationships, your work, your body</div>
+        <div class="unlock-item">The territory where this incarnation is asking the most of you</div>
+        <div class="unlock-item">The place where you receive without discernment. And what that has cost you</div>
+        <div class="unlock-item">Your soul's specific mission in this dimension</div>
+        <div class="unlock-item">Your compatibility map. Which soul origins complete you and which ones pull</div>
+      </div>
+      <div class="price">$11.11</div>
+      <div class="price-note">One-time · Instant access · Yours forever</div>
+      <a href="${GUMROAD_LINKS[type.name]}" target="_blank" class="unlock-btn" id="portalBtn" data-url="${GUMROAD_LINKS[type.name]}">Complete the Portal</a>
+    </div>
+
+    ${isOnboarding ? `
+    <div class="app-entry-box" id="appEntryBox">
+      <div class="app-entry-label">Your origin is saved. You are ready.</div>
+      <button class="app-entry-btn" id="enterAppBtn">Enter Twin Frequency &nbsp;✦</button>
+      <div class="app-entry-note">Find your frequency matches — people who resonate with ${type.name}</div>
+    </div>
+    ` : `
+    <div class="app-entry-box" id="appEntryBox">
+      <div class="app-entry-label">Ready to meet your frequency matches?</div>
+      <button class="app-entry-btn" id="enterAppBtn">Join Twin Frequency &nbsp;✦</button>
+      <div class="app-entry-note">Create your profile as ${type.name} and find people who resonate</div>
+    </div>
+    `}
+
+    <button class="retake-btn" onclick="retake()" style="display:none">Begin again</button>
+  `;
+
+  document.getElementById('result').innerHTML = html;
+
+  // Attach portal button handler after DOM is ready
+  const portalBtn = document.getElementById('portalBtn');
+  if (portalBtn) {
+    portalBtn.addEventListener('click', function(e) {
+      const url = this.dataset.url;
+      if (url && url.includes('REPLACE')) {
+        e.preventDefault();
+        const overlay = document.createElement('div');
+        overlay.style.cssText = 'position:fixed;inset:0;background:rgba(7,5,15,0.92);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:100;padding:32px;text-align:center;';
+        overlay.innerHTML = `
+          <div style="font-size:10px;letter-spacing:4px;color:#7766aa;text-transform:uppercase;margin-bottom:16px">Origin Consciousness System</div>
+          <div style="font-size:22px;color:#f0eaff;margin-bottom:12px;font-family:Georgia,serif;font-style:italic">Portal opening soon</div>
+          <div style="font-size:13px;color:#9988aa;line-height:1.7;margin-bottom:28px;max-width:320px;font-family:Georgia,serif">Your reading has been prepared. The portal opens when payment is connected.</div>
+          <button onclick="this.parentElement.remove()" style="padding:12px 32px;border:1px solid #9966cc;background:#130d22;color:#bb88ff;font-family:Georgia,serif;font-size:12px;letter-spacing:2px;text-transform:uppercase;cursor:pointer;border-radius:2px;">Close</button>
+        `;
+        document.body.appendChild(overlay);
+      }
+    });
+  }
+
+  // Attach app entry button handler
+  const enterAppBtn = document.getElementById('enterAppBtn');
+  if (enterAppBtn) {
+    enterAppBtn.addEventListener('click', function() {
+      if (isOnboarding) {
+        // Зарегистрированный пользователь — сохранить Origin и войти в приложение
+        window.location.href = 'onboarding.html?origin=' + encodeURIComponent(type.name);
+      } else {
+        // Незарегистрированный — на регистрацию с предзаполненным Origin
+        window.location.href = 'login.html?join=1&origin=' + encodeURIComponent(type.name);
+      }
+    });
+  }
+
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+  setTimeout(() => drawCrystal(type), 100);
+}
+
+function retake() {
+  current = 0; answers = {}; tbQueue = [];
+  scores = { R:0, E:0, M:0, L:0 };
+  document.getElementById('result').style.display = 'none';
+  document.getElementById('progressWrap').style.display = 'none';
+  document.getElementById('intro').style.display = 'block';
+}
+
+// ── CRYSTAL ────────────────────────────────────────────────────────────────
+function drawCrystal(type) {
+  const canvas = document.getElementById('resCrystal');
+  if (!canvas) return;
+  const ctx = canvas.getContext('2d');
+  const W = canvas.width, H = canvas.height;
+  const cx = W/2, cy = H/2;
+  ctx.clearRect(0,0,W,H);
+
+  const channels = {};
+  type.funcs.forEach((f,i) => channels[f] = i+1);
+
+  let r=0,g=0,b=0;
+  const COLS = { E:{r:255,g:200,b:20}, M:{r:210,g:40,b:40}, R:{r:40,g:180,b:80}, L:{r:60,g:120,b:255} };
+  type.funcs.forEach((f,i) => { const w=CH_W[i+1]; r+=COLS[f].r*w; g+=COLS[f].g*w; b+=COLS[f].b*w; });
+  r=Math.round(r); g=Math.round(g); b=Math.round(b);
+
+  const tips = {};
+  for (const [f,ch] of Object.entries(channels)) {
+    tips[f] = { x: cx + Math.cos(FUNC_AXIS[f])*CH_R[ch]*0.9, y: cy + Math.sin(FUNC_AXIS[f])*CH_R[ch]*0.9 };
+  }
+
+  const bg=ctx.createRadialGradient(cx,cy,0,cx,cy,90);
+  bg.addColorStop(0,`rgba(${r},${g},${b},0.08)`); bg.addColorStop(1,'rgba(0,0,0,0)');
+  ctx.fillStyle=bg; ctx.fillRect(0,0,W,H);
+
+  [[cx,cy,tips.E.x,tips.E.y,tips.R.x,tips.R.y,'E','R',0.85],[cx,cy,tips.E.x,tips.E.y,tips.L.x,tips.L.y,'E','L',0.65],
+   [cx,cy,tips.M.x,tips.M.y,tips.R.x,tips.R.y,'M','R',0.55],[cx,cy,tips.M.x,tips.M.y,tips.L.x,tips.L.y,'M','L',0.40]]
+  .forEach(([x0,y0,x1,y1,x2,y2,f1,f2,bv]) => {
+    const c1=COLS[f1],c2=COLS[f2];
+    const bf={r:Math.round((c1.r+c2.r)/2),g:Math.round((c1.g+c2.g)/2),b:Math.round((c1.b+c2.b)/2)};
+    const a=0.18+bv*0.22;
+    ctx.save(); ctx.globalCompositeOperation='screen';
+    const grad=ctx.createLinearGradient(x0,y0,x2,y2);
+    grad.addColorStop(0,`rgba(${bf.r},${bf.g},${bf.b},${a+0.1})`);
+    grad.addColorStop(1,`rgba(${Math.round(r*.6)},${Math.round(g*.6)},${Math.round(b*.6)},${a*.5})`);
+    ctx.beginPath(); ctx.moveTo(x0,y0); ctx.lineTo(x1,y1); ctx.lineTo(x2,y2);
+    ctx.closePath(); ctx.fillStyle=grad; ctx.fill();
+    ctx.strokeStyle=`rgba(${bf.r+60},${bf.g+60},${bf.b+60},0.35)`;
+    ctx.lineWidth=0.8; ctx.stroke(); ctx.restore();
+  });
+
+  ctx.save(); ctx.globalCompositeOperation='screen';
+  ctx.beginPath(); ctx.moveTo(tips.E.x,tips.E.y); ctx.lineTo(tips.R.x,tips.R.y);
+  ctx.lineTo(tips.M.x,tips.M.y); ctx.lineTo(tips.L.x,tips.L.y); ctx.closePath();
+  ctx.strokeStyle=`rgba(${r+80},${g+80},${b+80},0.55)`; ctx.lineWidth=1.2; ctx.stroke(); ctx.restore();
+
+  ctx.save(); ctx.globalCompositeOperation='screen';
+  for (const [f,ch] of Object.entries(channels)) {
+    const tip=tips[f], fc=COLS[f];
+    const sz=[0,7,5,3.5,2][ch], gr=[0,20,14,9,5][ch], al=[0,0.45,0.3,0.2,0.1][ch];
+    const glow=ctx.createRadialGradient(tip.x,tip.y,0,tip.x,tip.y,gr);
+    glow.addColorStop(0,`rgba(${fc.r},${fc.g},${fc.b},${al})`);
+    glow.addColorStop(1,'rgba(0,0,0,0)');
+    ctx.fillStyle=glow; ctx.beginPath(); ctx.arc(tip.x,tip.y,gr,0,Math.PI*2); ctx.fill();
+    ctx.beginPath(); ctx.arc(tip.x,tip.y,sz,0,Math.PI*2);
+    ctx.fillStyle=`rgba(${fc.r},${fc.g},${fc.b},0.9)`; ctx.fill();
+  }
+  ctx.restore();
+
+  const sg=ctx.createRadialGradient(cx,cy,0,cx,cy,10);
+  sg.addColorStop(0,'rgba(255,255,255,0.85)'); sg.addColorStop(0.4,`rgba(${r+80},${g+80},${b+80},0.4)`); sg.addColorStop(1,'rgba(0,0,0,0)');
+  ctx.save(); ctx.globalCompositeOperation='screen';
+  ctx.fillStyle=sg; ctx.beginPath(); ctx.arc(cx,cy,10,0,Math.PI*2); ctx.fill(); ctx.restore();
+}
+</script>
+
+</body>
+</html>

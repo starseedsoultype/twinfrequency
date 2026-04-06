@@ -1,0 +1,579 @@
+<!DOCTYPE html>
+
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="description" content="Discover the frequency between two StarSeedSoul Origins. Explore your bond pattern and understand the dynamic behind your connection.">
+<title>Soul Bond Calculator — StarSeedSoul</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body {
+  background: #07050f;
+  color: #e0d8f0;
+  font-family: 'Georgia', serif;
+  min-height: 100vh;
+  padding: 30px 16px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+/* ── HEADER ── */
+.eyebrow { font-size: 10px; letter-spacing: 5px; color: #7766aa; text-transform: uppercase; text-align: center; margin-bottom: 6px; }
+h1 { font-size: 24px; color: #f0eaff; letter-spacing: 2px; text-align: center; font-weight: normal; margin-bottom: 4px; }
+.subtitle { font-size: 10px; letter-spacing: 3px; color: #9988bb; text-transform: uppercase; text-align: center; margin-bottom: 32px; }
+
+/* ── SELECTORS ── */
+.selectors {
+display: flex; gap: 24px; margin-bottom: 32px; flex-wrap: wrap; justify-content: center;
+}
+.selector-block { display: flex; flex-direction: column; align-items: center; gap: 8px; }
+.selector-label { font-size: 10px; letter-spacing: 3px; color: #aa99cc; text-transform: uppercase; font-weight: bold; }
+select {
+background: #130d22; border: 1px solid #553377; color: #eeddff;
+font-family: Georgia, serif; font-size: 13px; padding: 10px 16px;
+cursor: pointer; outline: none; border-radius: 2px; min-width: 180px;
+appearance: none; text-align: center;
+}
+select:focus { border-color: #9966cc; }
+.vs { font-size: 22px; color: #775599; align-self: flex-end; padding-bottom: 12px; }
+
+.calc-btn {
+padding: 12px 40px; border: 1px solid #8855cc; background: #1a0a2a;
+color: #eeddff; font-family: Georgia, serif; font-size: 12px; letter-spacing: 3px;
+text-transform: uppercase; cursor: pointer; transition: all 0.2s; border-radius: 2px;
+margin-bottom: 40px;
+}
+.calc-btn:hover { background: #2a1040; border-color: #bb88ff; }
+
+/* ── RESULT AREA ── */
+#result { width: 100%; max-width: 860px; display: none; flex-direction: column; align-items: center; }
+
+/* Bond type banner */
+.bond-banner {
+width: 100%; text-align: center; padding: 20px;
+border-top: 1px solid #331144; border-bottom: 1px solid #331144;
+margin-bottom: 32px;
+}
+.bond-symbol { font-size: 36px; margin-bottom: 8px; }
+.bond-name { font-size: 22px; letter-spacing: 3px; margin-bottom: 6px; font-weight: bold; }
+.bond-tension { font-size: 11px; color: #bb99dd; letter-spacing: 3px; text-transform: uppercase; }
+
+/* ── MERGED CRYSTAL ── */
+.merged-wrap {
+display: flex; flex-direction: column; align-items: center;
+gap: 12px; margin-bottom: 32px; width: 100%;
+}
+.merged-labels {
+display: flex; justify-content: space-between; width: 100%; max-width: 420px;
+padding: 0 8px;
+}
+.merged-label { display: flex; flex-direction: column; align-items: center; gap: 3px; }
+.crystal-name { font-size: 11px; letter-spacing: 2px; color: #ddccff; text-transform: uppercase; font-weight: bold; }
+.crystal-tagline { font-size: 9px; color: #9988aa; text-align: center; max-width: 140px; line-height: 1.5; }
+
+/* ── FUNCTION GRID ── */
+.func-grid {
+width: 100%; display: grid; grid-template-columns: repeat(2, 1fr);
+gap: 10px; margin-bottom: 32px;
+}
+@media (min-width: 600px) {
+.func-grid { grid-template-columns: repeat(4, 1fr); }
+}
+.func-cell {
+background: #0e0820; border: 1px solid #221133; padding: 14px 10px;
+border-radius: 3px; text-align: center;
+}
+.func-cell .func-sym { font-size: 16px; margin-bottom: 4px; }
+.func-cell .func-name { font-size: 11px; letter-spacing: 2px; text-transform: uppercase; margin-bottom: 6px; color: #ccbbee; }
+.func-cell .pair-quality { font-size: 10px; letter-spacing: 1px; text-transform: uppercase; margin-bottom: 6px; font-weight: bold; }
+.func-cell .pair-desc { font-size: 8px; color: #9988aa; line-height: 1.5; }
+
+/* quality colors — all high contrast */
+.q-ideal     { color: #44ff88 !important; border-color: #114422 !important; background: #040e08 !important; }
+.q-harmonic  { color: #44ccff !important; border-color: #082233 !important; background: #030c14 !important; }
+.q-tandem    { color: #cc88ff !important; border-color: #331155 !important; background: #090414 !important; }
+.q-mirror    { color: #cccccc !important; border-color: #222222 !important; background: #0a0a0a !important; }
+.q-mismatch  { color: #ffbb44 !important; border-color: #442200 !important; background: #100800 !important; }
+.q-trap      { color: #ff8844 !important; border-color: #441100 !important; background: #100400 !important; }
+.q-conflict  { color: #ff4444 !important; border-color: #550000 !important; background: #120000 !important; }
+
+/* ── BOND DESCRIPTION ── */
+.bond-desc {
+width: 100%; background: #0e0820; border: 1px solid #221133;
+padding: 24px; border-radius: 3px; margin-bottom: 32px;
+}
+.bond-desc h3 { font-size: 10px; letter-spacing: 3px; color: #aa99cc; text-transform: uppercase; margin-bottom: 14px; }
+.bond-desc p { font-size: 13px; color: #ccbbdd; line-height: 1.8; margin-bottom: 12px; }
+.bond-desc p.blurred {
+filter: blur(5px); user-select: none; -webkit-user-select: none;
+pointer-events: none; color: #c0b8d8;
+}
+.bond-unlock {
+display: block; margin-top: 16px; padding: 13px 24px; text-align: center;
+background: linear-gradient(135deg,#4a2a88,#6a3aaa);
+color: #fff; font-family: Georgia,serif; font-size: 12px;
+letter-spacing: 3px; text-transform: uppercase; text-decoration: none;
+border-radius: 3px; transition: all 0.2s;
+}
+.bond-unlock:hover { background: linear-gradient(135deg,#5a3a98,#7a4abb); }
+
+/* ── TENSION BAR ── */
+.tension-wrap { width: 100%; margin-bottom: 32px; }
+.tension-label { font-size: 10px; letter-spacing: 3px; color: #aa99cc; text-transform: uppercase; margin-bottom: 8px; text-align: center; }
+.tension-bar-bg { width: 100%; height: 6px; background: #130d22; border-radius: 3px; overflow: hidden; border: 1px solid #221133; }
+.tension-bar-fill { height: 100%; border-radius: 3px; transition: width 0.8s ease; }
+.tension-pct { font-size: 11px; color: #aa99cc; text-align: center; margin-top: 6px; }
+
+/* ── FOOTER ── */
+.result-footer { font-size: 9px; color: #443355; letter-spacing: 3px; text-transform: uppercase; margin-top: 8px; }
+
+/* ── NAV BUTTONS ── */
+.nav-row { display:flex; gap:12px; flex-wrap:wrap; justify-content:center; width:100%; max-width:520px; margin-top:32px; }
+.btn-gold {
+flex:1; min-width:180px; padding:14px 20px; text-align:center;
+background:transparent; border:1px solid #aa8822; color:#d4a843;
+font-family:Georgia,serif; font-size:12px; letter-spacing:2px; text-transform:uppercase;
+text-decoration:none; border-radius:3px; transition:all 0.2s;
+}
+.btn-gold:hover { background:rgba(212,168,67,0.08); border-color:#d4a843; }
+
+@media(max-width:520px) {
+h1 { font-size:22px; }
+.bond-desc p { font-size:15px; }
+.func-cell .pair-desc { font-size:11px; }
+.func-cell .pair-quality { font-size:11px; }
+.func-cell .func-name { font-size:12px; }
+select { font-size:14px; min-width:150px; }
+.crystal-tagline { font-size:12px; }
+.crystal-name { font-size:12px; }
+}
+</style>
+
+</head>
+<body>
+
+<div class="eyebrow">StarSeedSoul · Origin System</div>
+<h1>Soul Bond Calculator</h1>
+<div class="subtitle">Select two soul origins · Reveal the bond</div>
+
+<div class="selectors">
+  <div class="selector-block">
+    <div class="selector-label">First Soul</div>
+    <select id="type1"></select>
+  </div>
+  <div class="vs">✦</div>
+  <div class="selector-block">
+    <div class="selector-label">Second Soul</div>
+    <select id="type2"></select>
+  </div>
+</div>
+
+<button class="calc-btn" onclick="calculate()">Reveal Bond</button>
+
+<div id="result">
+  <div class="bond-banner">
+    <div class="bond-symbol" id="bondSymbol"></div>
+    <div class="bond-name" id="bondName"></div>
+    <div class="bond-tension" id="bondTension"></div>
+  </div>
+
+  <div class="tension-wrap">
+    <div class="tension-label">Bond Tension</div>
+    <div class="tension-bar-bg">
+      <div class="tension-bar-fill" id="tensionFill"></div>
+    </div>
+    <div class="tension-pct" id="tensionPct"></div>
+  </div>
+
+  <div class="merged-wrap">
+    <canvas id="mergedCrystal" width="420" height="240"></canvas>
+    <div class="merged-labels">
+      <div class="merged-label">
+        <div class="crystal-name" id="cname1"></div>
+        <div class="crystal-tagline" id="ctagline1"></div>
+      </div>
+      <div class="merged-label">
+        <div class="crystal-name" id="cname2"></div>
+        <div class="crystal-tagline" id="ctagline2"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="func-grid" id="funcGrid"></div>
+
+  <div class="bond-desc">
+    <h3>Your Bond Reading</h3>
+    <p id="bondWhy"></p>
+    <p id="bondHow" class="blurred"></p>
+    <a href="https://starseedsoul.gumroad.com/?section=EQ01D5whAcB-aZ97zp8rmg==#EQ01D5whAcB-aZ97zp8rmg==" class="bond-unlock">✦ &nbsp; Unlock Full Reading &nbsp; ✦</a>
+  </div>
+
+  <div class="result-footer">StarSeedSoul · Soul Bond Matrix</div>
+
+  <div class="nav-row">
+    <a href="index.html" class="btn-gold">← StarSeedSoul System</a>
+  </div>
+</div>
+
+<script>
+// ── DATA ─────────────────────────────────────────────────────────────────────
+const TYPES = [
+  { name:"Siriusian",      funcs:["R","E","M","L"] },
+  { name:"Pleiadian",      funcs:["R","M","L","E"] },
+  { name:"Lemurian",       funcs:["R","E","L","M"] },
+  { name:"Cassiopeian",    funcs:["R","L","M","E"] },
+  { name:"Procyonian",     funcs:["R","M","E","L"] },
+  { name:"Lyran",          funcs:["R","L","E","M"] },
+  { name:"Arcturian",      funcs:["L","E","M","R"] },
+  { name:"Orion",          funcs:["L","M","R","E"] },
+  { name:"Vegan",          funcs:["L","E","R","M"] },
+  { name:"Zeta Reticulan", funcs:["L","R","E","M"] },
+  { name:"Epsilon Eridan", funcs:["L","M","E","R"] },
+  { name:"Atlantean",      funcs:["L","R","M","E"] },
+  { name:"Andromedan",     funcs:["E","R","L","M"] },
+  { name:"Polarisian",     funcs:["E","L","M","R"] },
+  { name:"Nibiruan",       funcs:["E","M","R","L"] },
+  { name:"Egyptian",       funcs:["E","L","R","M"] },
+  { name:"Titanian",          funcs:["E","M","L","R"] },
+  { name:"Blue Avian",     funcs:["E","R","M","L"] },
+  { name:"Tau Cetian",     funcs:["M","R","E","L"] },
+  { name:"Aldebaran",      funcs:["M","L","R","E"] },
+  { name:"Centaurian",     funcs:["M","L","E","R"] },
+  { name:"Herculean",      funcs:["M","E","R","L"] },
+  { name:"Anunnaki",       funcs:["M","E","L","R"] },
+  { name:"Hyperborean",    funcs:["M","R","L","E"] },
+];
+
+const FUNC_COLORS = {
+  E:{ r:255,g:200,b:20,  hex:"#ffc814", name:"Energy",        sym:"🜂", element:"Fire"  },
+  M:{ r:210,g:40, b:40,  hex:"#d22828", name:"Matter",        sym:"🜔", element:"Earth" },
+  R:{ r:40, g:180,b:80,  hex:"#28b450", name:"Relationships", sym:"🜄", element:"Water" },
+  L:{ r:60, g:120,b:255, hex:"#3c78ff", name:"Logic",         sym:"🜁", element:"Air"   },
+};
+
+const FUNC_AXIS = { E:-Math.PI/2, M:Math.PI/2, R:0, L:Math.PI };
+const CH_RADIUS = [0,80,56,34,17];
+const CH_WEIGHT = [0,0.60,0.25,0.12,0.03];
+
+const QUALITY_LABEL = {
+  ideal:"Ideal ✦", harmonic:"Harmonic ◈", tandem:"Tandem ◇",
+  mirror_1:"Mirror ○", mirror_2:"Mirror ○", mirror_3:"Mirror ○", mirror_4:"Mirror ○",
+  mismatch:"Mismatch ✕", trap:"Trap ⚠", conflict:"Conflict ✗"
+};
+
+const QUALITY_CSS = {
+  ideal:"q-ideal", harmonic:"q-harmonic", tandem:"q-tandem",
+  mirror_1:"q-mirror", mirror_2:"q-mirror", mirror_3:"q-mirror", mirror_4:"q-mirror",
+  mismatch:"q-mismatch", trap:"q-trap", conflict:"q-conflict"
+};
+
+const QUALITY_DESC = {
+  ideal:"The deepest resonance. What one soul carries, the other receives most naturally.",
+  harmonic:"A natural creative flow. One soul generates what the other grows through.",
+  tandem:"Two souls who create together. Different approaches, real collaboration.",
+  mirror_1:"The same foundational frequency. Deep recognition without words.",
+  mirror_2:"The same way of expressing. A shared creative language.",
+  mirror_3:"The same territory of growth. Shared sensitivity and depth.",
+  mirror_4:"The same blind spot. Shared patterns, shared questions.",
+  mismatch:"What one offers deeply, the other receives without much awareness.",
+  trap:"One soul reaches; the other cannot fully meet it here. A recurring gap.",
+  conflict:"Both souls lead in the same territory. Tension is structural, not personal.",
+};
+
+const BONDS = {
+  "Frequency Twins":   { sym:"⚡", tension:5,  color:"#cc99ff" },
+  "Twin Stars":        { sym:"🌟", tension:15, color:"#bbddff" },
+  "Cosmic Flow":       { sym:"✨", tension:25, color:"#aaccff" },
+  "Mirror Portals":    { sym:"🪞", tension:35, color:"#ccbbff" },
+  "Celestial Mentor":  { sym:"📚", tension:50, color:"#ddddaa" },
+  "Karmic Bonds":      { sym:"🔗", tension:60, color:"#ffcc88" },
+  "Shadow Contracts":  { sym:"🌓", tension:70, color:"#ffaa66" },
+  "Black Holes":       { sym:"🕳", tension:80, color:"#ff7755" },
+  "Star Alchemy":      { sym:"⚖️", tension:95, color:"#ff5544" },
+  "Eternal Reflection":{ sym:"♾", tension:0,  color:"#aaaaaa" },
+};
+
+const BOND_WHY = {
+  "Frequency Twins":"Every dimension of these two souls fits. Where one soul carries its deepest certainty, the other holds its most open receptivity. This happens across all four frequencies simultaneously, creating a harmony that is complete rather than partial. It is the rarest pattern in the system.",
+  "Twin Stars":"Two frequencies in these souls complete each other at the deepest level. The rest mirrors — the same expression, the same recognition. Two very different kinds of meeting happen at once: one soul fills what the other most needs, and both see themselves reflected in what remains.",
+  "Cosmic Flow":"These souls move at the same pace without needing to adjust. What one generates, the other absorbs naturally. What one expresses, the other recognises. The connection does not require effort to sustain. It simply runs.",
+  "Mirror Portals":"Real resonance alongside one persistent gap. These souls see each other clearly in most places and find one territory where they cannot quite reach each other no matter how they try. The recognition creates pull; the gap creates recurring friction in one specific area.",
+  "Celestial Mentor":"Genuine connection alongside genuine friction. These souls give each other real things — insight, perspective, challenge — but one frequency creates consistent tension. Growth happens here, and it arrives through difficulty rather than ease.",
+  "Karmic Bonds":"Enough resonance to keep drawing them back, enough friction to keep it unresolved. These souls meet in real ways and miss each other in real ways. The pattern tends to repeat until something shifts in how both people meet it.",
+  "Shadow Contracts":"These souls activate something deep in each other. The connection is real — but what surfaces tends toward the uncomfortable. The pattern is transformative for those who can meet what comes up, and destabilising for those who cannot.",
+  "Black Holes":"One soul reaches persistently toward the other; the other cannot fully meet that reach. The pull is intense precisely because the need is strong and the gap is structural. These connections generate enormous charge and tend to drain rather than sustain.",
+  "Star Alchemy":"Each soul's deepest certainty meets the other's deepest insecurity — in both directions. The tension is maximum and so is the potential. These are the connections that leave a mark regardless of how they resolve.",
+  "Eternal Reflection":"The same soul origin meeting itself. Total recognition, complete familiarity, no friction. Also no difference — and growth requires difference. This connection offers profound belonging and very little expansion.",
+};
+
+const BOND_HOW = {
+  "Frequency Twins":"They meet at every level without effort. No competition, no friction, no place where one soul consistently misses the other. The connection feels both inevitable and natural, like two things that were always meant to resonate together.",
+  "Twin Stars":"Deep completion alongside deep recognition. These souls feel like they fill each other where it matters most, and see themselves in what remains. The pull is strong and tends to feel both personal and larger than personal at once.",
+  "Cosmic Flow":"Easy, flowing, mutually supportive. These souls speak a similar language and tend to bring out each other's steadiness. The connection sustains rather than charges. A current more than a wave.",
+  "Mirror Portals":"Inspiring with a persistent edge. These souls see something real in each other and find one recurring place where they cannot quite close the distance. The resonance is genuine. So is the gap.",
+  "Celestial Mentor":"Requires maturity but the return is real. The teaching dynamic can move in both directions depending on which frequency is most alive between them. Growth is genuine and arrives through friction rather than flow.",
+  "Karmic Bonds":"Magnetic and unresolved. The souls keep returning to each other. Something real passes between them every time, and something fails to land every time. What is unfinished here tends to stay unfinished until both people bring real attention to the pattern.",
+  "Shadow Contracts":"Activating and rarely comfortable. These souls do not bore each other. What gets activated between them tends toward the difficult. The connection can become transformative or it can become a cycle — the difference is awareness.",
+  "Black Holes":"Intense and costly. The charge is real and so is the depletion. These connections tend to become the most significant in a person's life precisely because they are so activating. Sustaining them requires more than most people bring.",
+  "Star Alchemy":"This connection leaves a mark. Each person's deepest certainty collides with the other's deepest insecurity, and vice versa. The outcome depends entirely on what both people do with what surfaces. Transformation or damage — both are possible.",
+  "Eternal Reflection":"Instant understanding and complete recognition. No friction — and no expansion through difference. These souls offer each other profound belonging. What they cannot offer is growth through contact with something genuinely other.",
+};
+
+// ── HELPERS ──────────────────────────────────────────────────────────────────
+function chPairQuality(a, b) {
+  if (a === b) return `mirror_${a}`;
+  const pair = [Math.min(a,b), Math.max(a,b)];
+  const map = {
+    "1,4":"ideal","2,3":"harmonic","1,2":"tandem",
+    "3,4":"trap","2,4":"mismatch","1,3":"conflict"
+  };
+  return map[pair.join(",")] || "unknown";
+}
+
+function analyzePair(t1, t2) {
+  const result = {};
+  for (const f of ["R","E","M","L"]) {
+    const c1 = t1.funcs.indexOf(f) + 1;
+    const c2 = t2.funcs.indexOf(f) + 1;
+    result[f] = { c1, c2, q: chPairQuality(c1,c2) };
+  }
+  return result;
+}
+
+function classifyBond(t1, t2) {
+  if (t1.name === t2.name) return "Eternal Reflection";
+  const scoreMap = {ideal:3,harmonic:2,tandem:1,mirror_1:0,mirror_2:0,mirror_3:0,mirror_4:0,mismatch:-1,trap:-2,conflict:-3};
+  const analysis = analyzePair(t1, t2);
+  const s = Object.values(analysis).reduce((acc,v) => acc + (scoreMap[v.q]||0), 0);
+  if (s >= 10) return "Frequency Twins";
+  if (s >= 6)  return "Twin Stars";
+  if (s >= 4)  return "Cosmic Flow";
+  if (s >= 2)  return "Mirror Portals";
+  if (s >= 0)  return "Celestial Mentor";
+  if (s >= -1) return "Karmic Bonds";
+  if (s >= -3) return "Shadow Contracts";
+  if (s >= -5) return "Black Holes";
+  return "Star Alchemy";
+}
+
+function blendColors(funcs) {
+  let r=0,g=0,b=0;
+  funcs.forEach((f,i) => {
+    const w = CH_WEIGHT[i+1];
+    const c = FUNC_COLORS[f];
+    r += c.r*w; g += c.g*w; b += c.b*w;
+  });
+  return { r:Math.round(r), g:Math.round(g), b:Math.round(b) };
+}
+
+// ── DRAW MERGED CRYSTALS ──────────────────────────────────────────────────────
+
+function drawMergedCrystals(t1, t2, bondName) {
+  const canvas = document.getElementById('mergedCrystal');
+  const ctx = canvas.getContext('2d');
+  const W = canvas.width, H = canvas.height;
+  const cx = W/2, cy = H/2;
+
+  ctx.clearRect(0,0,W,H);
+  ctx.fillStyle = '#07050f';
+  ctx.fillRect(0,0,W,H);
+
+  const blend1 = blendColors(t1.funcs);
+  const blend2 = blendColors(t2.funcs);
+  const blendC = {
+    r: Math.round((blend1.r + blend2.r) / 2),
+    g: Math.round((blend1.g + blend2.g) / 2),
+    b: Math.round((blend1.b + blend2.b) / 2),
+  };
+
+  // Background glow
+  const bg = ctx.createRadialGradient(cx, cy, 0, cx, cy, 100);
+  bg.addColorStop(0, `rgba(${blendC.r},${blendC.g},${blendC.b},0.12)`);
+  bg.addColorStop(1, 'rgba(0,0,0,0)');
+  ctx.fillStyle = bg;
+  ctx.fillRect(0,0,W,H);
+
+  // Draw both crystals at SAME center, one rotated +22.5°, other -22.5°
+  const ROT = 22.5 * Math.PI / 180;
+
+  drawCrystalOnContextRotated(ctx, t1, cx, cy, 1.0, 0.82, +ROT);
+  drawCrystalOnContextRotated(ctx, t2, cx, cy, 1.0, 0.82, -ROT);
+
+  // Center star
+  const starGrad = ctx.createRadialGradient(cx, cy, 0, cx, cy, 14);
+  starGrad.addColorStop(0, 'rgba(255,255,255,0.7)');
+  starGrad.addColorStop(0.3, `rgba(${blendC.r+80},${blendC.g+80},${blendC.b+80},0.3)`);
+  starGrad.addColorStop(1, 'rgba(0,0,0,0)');
+  ctx.save();
+  ctx.globalCompositeOperation = 'screen';
+  ctx.fillStyle = starGrad;
+  ctx.beginPath(); ctx.arc(cx, cy, 14, 0, Math.PI*2); ctx.fill();
+  ctx.restore();
+}
+
+function drawCrystalOnContextRotated(ctx, type, cx, cy, scale, globalAlpha, rotation) {
+  const channels = {};
+  type.funcs.forEach((f,i) => channels[f] = i+1);
+  const blend = blendColors(type.funcs);
+
+  const R = [0, 80, 56, 34, 17].map(r => r * scale);
+
+  // Apply rotation to axes
+  const tips = {};
+  for (const [f,ch] of Object.entries(channels)) {
+    const baseAngle = FUNC_AXIS[f];
+    const angle = baseAngle + rotation;
+    tips[f] = { x: cx + Math.cos(angle)*R[ch], y: cy + Math.sin(angle)*R[ch] };
+  }
+
+  const tE=tips.E, tM=tips.M, tR=tips.R, tL=tips.L;
+
+  ctx.save();
+  ctx.globalAlpha = globalAlpha;
+  ctx.globalCompositeOperation = 'screen';
+
+  const faces = [
+    {pts:[cx,cy,tE.x,tE.y,tR.x,tR.y], f1:'E',f2:'R', b:0.85},
+    {pts:[cx,cy,tE.x,tE.y,tL.x,tL.y], f1:'E',f2:'L', b:0.65},
+    {pts:[cx,cy,tM.x,tM.y,tR.x,tR.y], f1:'M',f2:'R', b:0.55},
+    {pts:[cx,cy,tM.x,tM.y,tL.x,tL.y], f1:'M',f2:'L', b:0.40},
+  ];
+
+  faces.forEach(face => {
+    const c1=FUNC_COLORS[face.f1], c2=FUNC_COLORS[face.f2];
+    const bf={ r:Math.round((c1.r+c2.r)/2), g:Math.round((c1.g+c2.g)/2), b:Math.round((c1.b+c2.b)/2) };
+    const alpha = 0.14 + face.b * 0.18;
+    const pts = face.pts;
+
+    const grad = ctx.createLinearGradient(pts[0],pts[1],pts[4],pts[5]);
+    grad.addColorStop(0, `rgba(${bf.r},${bf.g},${bf.b},${alpha+0.1})`);
+    grad.addColorStop(1, `rgba(${Math.round(blend.r*.5)},${Math.round(blend.g*.5)},${Math.round(blend.b*.5)},${alpha*.4})`);
+
+    ctx.beginPath();
+    ctx.moveTo(pts[0],pts[1]); ctx.lineTo(pts[2],pts[3]); ctx.lineTo(pts[4],pts[5]);
+    ctx.closePath(); ctx.fillStyle=grad; ctx.fill();
+
+    ctx.beginPath();
+    ctx.moveTo(pts[0],pts[1]); ctx.lineTo(pts[2],pts[3]); ctx.lineTo(pts[4],pts[5]);
+    ctx.closePath();
+    ctx.strokeStyle=`rgba(${bf.r+80},${bf.g+80},${bf.b+80},0.5)`;
+    ctx.lineWidth=1.0; ctx.stroke();
+  });
+
+  // Outer silhouette
+  ctx.beginPath();
+  ctx.moveTo(tE.x,tE.y); ctx.lineTo(tR.x,tR.y); ctx.lineTo(tM.x,tM.y); ctx.lineTo(tL.x,tL.y);
+  ctx.closePath();
+  ctx.strokeStyle=`rgba(${blend.r+100},${blend.g+100},${blend.b+100},0.65)`;
+  ctx.lineWidth=1.5; ctx.stroke();
+
+  ctx.restore();
+  ctx.save();
+  ctx.globalAlpha = globalAlpha;
+  ctx.globalCompositeOperation = 'screen';
+
+  // Core glow
+  const coreGrad = ctx.createRadialGradient(cx,cy,0,cx,cy,24*scale);
+  coreGrad.addColorStop(0, `rgba(${blend.r},${blend.g},${blend.b},0.45)`);
+  coreGrad.addColorStop(0.5, `rgba(${blend.r},${blend.g},${blend.b},0.12)`);
+  coreGrad.addColorStop(1, 'rgba(0,0,0,0)');
+  ctx.fillStyle=coreGrad;
+  ctx.beginPath(); ctx.arc(cx, cy, 80*scale, 0, Math.PI*2); ctx.fill();
+
+  // Tip glows
+  for (const [f,ch] of Object.entries(channels)) {
+    const tip=tips[f], fc=FUNC_COLORS[f];
+    const size=[0,7,5,3.5,2][ch]*scale;
+    const glowR=[0,20,13,8,5][ch]*scale;
+    const a=[0,0.5,0.35,0.22,0.12][ch];
+    const glow=ctx.createRadialGradient(tip.x,tip.y,0,tip.x,tip.y,glowR);
+    glow.addColorStop(0,`rgba(${fc.r},${fc.g},${fc.b},${a})`);
+    glow.addColorStop(1,'rgba(0,0,0,0)');
+    ctx.fillStyle=glow; ctx.beginPath(); ctx.arc(tip.x,tip.y,glowR,0,Math.PI*2); ctx.fill();
+    ctx.beginPath(); ctx.arc(tip.x,tip.y,size,0,Math.PI*2);
+    ctx.fillStyle=`rgba(${fc.r},${fc.g},${fc.b},0.9)`; ctx.fill();
+  }
+
+  ctx.restore();
+}
+
+// ── CALCULATE ─────────────────────────────────────────────────────────────────
+function calculate() {
+  const i1 = parseInt(document.getElementById('type1').value);
+  const i2 = parseInt(document.getElementById('type2').value);
+  const t1 = TYPES[i1], t2 = TYPES[i2];
+
+  const analysis = analyzePair(t1, t2);
+  const bond = classifyBond(t1, t2);
+  const bondData = BONDS[bond];
+
+  // Bond banner
+  document.getElementById('bondSymbol').textContent = bondData.sym;
+  document.getElementById('bondName').textContent = bond;
+  document.getElementById('bondName').style.color = bondData.color;
+  document.getElementById('bondTension').textContent = `Tension: ${bondData.tension}%`;
+
+  // Tension bar
+  const fill = document.getElementById('tensionFill');
+  const pct = bondData.tension;
+  const barColor = pct <= 25 ? '#44cc88' : pct <= 50 ? '#ccaa44' : pct <= 75 ? '#ff8844' : '#ff4444';
+  fill.style.width = pct + '%';
+  fill.style.background = `linear-gradient(90deg, ${barColor}88, ${barColor})`;
+  document.getElementById('tensionPct').textContent = `${pct}% tension`;
+
+  // Merged crystal
+  drawMergedCrystals(t1, t2, bond);
+  document.getElementById('cname1').textContent = t1.name;
+  document.getElementById('cname2').textContent = t2.name;
+  document.getElementById('ctagline1').textContent = 'Soul Origin';
+  document.getElementById('ctagline2').textContent = 'Soul Origin';
+
+  // Function grid
+  const grid = document.getElementById('funcGrid');
+  grid.innerHTML = '';
+  for (const f of ['R','E','M','L']) {
+    const {c1,c2,q} = analysis[f];
+    const fc = FUNC_COLORS[f];
+    const cell = document.createElement('div');
+    cell.className = `func-cell ${QUALITY_CSS[q]}`;
+    cell.style.borderColor = `rgba(${fc.r},${fc.g},${fc.b},0.2)`;
+    cell.innerHTML = `
+      <div class="func-sym">${fc.sym}</div>
+      <div class="func-name" style="color:${fc.hex}">${fc.element}</div>
+      <div class="pair-quality ${QUALITY_CSS[q]}">${QUALITY_LABEL[q]}</div>
+      <div class="pair-desc">${QUALITY_DESC[q]}</div>
+    `;
+    grid.appendChild(cell);
+  }
+
+  // Bond description
+  document.getElementById('bondWhy').textContent = BOND_WHY[bond] || '';
+  document.getElementById('bondHow').textContent = BOND_HOW[bond] || '';
+
+  // Show result
+  const resultEl = document.getElementById('result');
+  resultEl.style.display = 'flex';
+  resultEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+// ── POPULATE SELECTS ──────────────────────────────────────────────────────────
+function populateSelects() {
+  ['type1','type2'].forEach((id, idx) => {
+    const sel = document.getElementById(id);
+    TYPES.forEach((t, i) => {
+      const opt = document.createElement('option');
+      opt.value = i;
+      opt.textContent = t.name + ' Souls';
+      if (i === (idx === 0 ? 12 : 0)) opt.selected = true; // default: Andromedan + Siriusian
+      sel.appendChild(opt);
+    });
+  });
+}
+
+populateSelects();
+</script>
+
+</body>
+</html>
