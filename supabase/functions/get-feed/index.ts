@@ -226,22 +226,29 @@ serve(async (req) => {
       }
     })
 
-    // Sort by score desc, then shuffle within same-score groups for variety
-    scored.sort((a: any, b: any) => {
-      if (b.compatibility_score !== a.compatibility_score) {
-        return b.compatibility_score - a.compatibility_score
-      }
-      return Math.random() - 0.5
-    })
+    // Weighted shuffle: add random jitter proportional to score
+    // so high-compatibility profiles appear more often but not always first
+    const PAGE_SIZE = 15
+    const url = new URL(req.url)
+    const page = parseInt(url.searchParams.get('page') || '0', 10)
 
-    // Return top 30
-    const feed = scored.slice(0, DAILY_SWIPE_LIMIT)
+    const shuffled = scored
+      .map((p: any) => ({ ...p, _sort: p.compatibility_score + Math.random() * 40 }))
+      .sort((a: any, b: any) => b._sort - a._sort)
+      .map(({ _sort, ...p }: any) => p)
+
+    const start = page * PAGE_SIZE
+    const feed = shuffled.slice(start, start + PAGE_SIZE)
+    const hasMore = start + PAGE_SIZE < shuffled.length
 
     return new Response(
       JSON.stringify({
         profiles: feed,
         daily_limit_reached: false,
         remaining_swipes: DAILY_SWIPE_LIMIT - (me.daily_swipes_count ?? 0),
+        has_more: hasMore,
+        page,
+        total: shuffled.length,
       }),
       {
         headers: {

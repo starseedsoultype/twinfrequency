@@ -308,18 +308,17 @@
     z-index: 10;
   }
 
-  .stamp-like {
-    left: 20px;
+   .stamp-like {
+    right: 20px;
     color: var(--gold);
     border-color: var(--gold);
-    transform: rotate(-15deg);
+    transform: rotate(15deg);
   }
-
   .stamp-pass {
-    right: 20px;
+    left: 20px;
     color: #e07070;
     border-color: #e07070;
-    transform: rotate(15deg);
+    transform: rotate(-15deg);
   }
 
   .stamp.show { opacity: 0.9; }
@@ -930,6 +929,9 @@
   let flameAnimFrame = null
   let currentMatchType = null
   let currentMatchedUserId = null
+  let feedPage = 0
+  let feedHasMore = false
+  let feedLoading = false
 
   // ─── Load ─────────────────────────────────────────────────
   window.addEventListener('load', async () => {
@@ -960,6 +962,8 @@
       if (feedResp.ok) {
         const feedData = await feedResp.json()
         profiles = feedData.profiles || []
+        feedHasMore = feedData.has_more || false
+        feedPage = feedData.page || 0
         feedLoaded = true
       }
     } catch (e) { console.warn('Edge Function unavailable, falling back', e) }
@@ -1146,12 +1150,83 @@
     setTimeout(() => {
       currentIndex++
       if (currentIndex >= profiles.length) {
-        document.getElementById('empty-state').classList.add('show')
+        if (feedHasMore && !feedLoading) {
+          loadNextFeedPage()
+        } else {
+          document.getElementById('empty-state').classList.add('show')
+        }
       } else {
         showCard(currentIndex)
       }
       isAnimating = false
     }, 400)
+  }
+
+  // ─── Load next feed page ─────────────────────────────────────
+  async function loadNextFeedPage() {
+    if (feedLoading || !feedHasMore) return
+    feedLoading = true
+    try {
+      const nextPage = feedPage + 1
+      const { data: { session } } = await sb.auth.getSession()
+      const resp = await fetch(`${SUPABASE_URL}/functions/v1/get-feed?page=${nextPage}`, {
+        headers: { 'Authorization': `Bearer ${session.access_token}`, 'Content-Type': 'application/json' }
+      })
+      if (resp.ok) {
+        const data = await resp.json()
+        const newProfiles = data.profiles || []
+        if (newProfiles.length > 0) {
+          const prevLen = profiles.length
+          profiles = [...profiles, ...newProfiles]
+          feedHasMore = data.has_more || false
+          feedPage = nextPage
+          // Add new cards to stack
+          const stack = document.getElementById('card-stack')
+          newProfiles.forEach((profile, i) => {
+            const card = document.createElement('div')
+            card.className = 'card'
+            card.dataset.index = prevLen + i
+            const connectionType = profile.connection_type || getConnectionType(myProfile?.origin, profile.origin)
+            const theme = MATCH_THEMES[connectionType] || MATCH_THEMES['Cosmic Flow']
+            const dotColor = theme.badgeColor
+            const isUnknown = connectionType === 'Unknown'
+            const displayType = isUnknown ? '? Unknown' : connectionType
+            const dotStyle = isUnknown ? 'border: 1px dashed ' + dotColor + '; background: transparent;' : 'background: ' + dotColor
+            card.innerHTML = `
+              <div class="card-photo" style="background-image: url('${profile.photo_url}')"></div>
+              <div class="stamp stamp-like">✶ Like</div>
+              <div class="stamp stamp-pass">Pass</div>
+              <div class="card-info">
+                <div class="card-connection" onclick="${isUnknown ? 'void(0)' : "openLibrary('" + connectionType + "')" }" style="border-color: ${dotColor}${isUnknown ? '55' : '33'}; background: ${dotColor}${isUnknown ? '10' : '18'}; ${isUnknown ? 'cursor:default;' : ''}">
+                  <div class="connection-dot" style="${dotStyle}"></div>
+                  <span class="connection-name" style="color: ${dotColor}; ${isUnknown ? 'font-style:italic;letter-spacing:0.15em;' : ''}">${displayType}</span>
+                </div>
+                <h2 class="card-name">${profile.name}<span class="card-age" style="font-family:'Jost';font-size:20px;font-weight:200;margin-left:12px">${profile.age}</span></h2>
+                <div class="card-meta">
+                  <span class="card-origin">${profile.origin}</span>
+                  <span class="card-dot">●</span>
+                  <span class="card-location">${profile.location || ''}</span>
+                </div>
+              </div>
+            `
+            stack.appendChild(card)
+          })
+          setupSwipe()
+          showCard(currentIndex)
+        } else {
+          feedHasMore = false
+          document.getElementById('empty-state').classList.add('show')
+        }
+      } else {
+        feedHasMore = false
+        document.getElementById('empty-state').classList.add('show')
+      }
+    } catch (e) {
+      console.warn('Failed to load next page:', e)
+      document.getElementById('empty-state').classList.add('show')
+    } finally {
+      feedLoading = false
+    }
   }
 
   // ═══════════════════════════════════════════════════════════

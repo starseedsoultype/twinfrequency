@@ -60,8 +60,16 @@
   .hero {
     position: fixed; top: 0; left: 0; right: 0;
     height: 55vh;
+    max-height: 480px;
     background-size: cover; background-position: center top;
     z-index: 0;
+  }
+  @media (min-width: 600px) {
+    .hero { max-height: 400px; height: 45vh; }
+    .scroll-content { max-width: 520px; margin: 0 auto; left: 50%; transform: translateX(-50%); right: auto; width: 520px; }
+    .actions { max-width: 520px; margin: 0 auto; left: 50%; transform: translateX(-50%); right: auto; width: 520px; }
+    .back-btn { left: calc(50% - 240px); }
+    .spacer { height: 36vh; }
   }
   .hero::after {
     content: '';
