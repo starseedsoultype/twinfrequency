@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>Twin Frequency</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;1,300;1,400&family=Jost:wght@200;300;400&display=swap" rel="stylesheet">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  :root { --gold: #c9a96e; --deep: #04030a; --text: #e8e0d5; --muted: #6b6478; }
+  html, body {
+    height: 100%; background: var(--deep); color: var(--text);
+    font-family: 'Jost', sans-serif; font-weight: 200;
+    display: flex; align-items: center; justify-content: center;
+  }
+  .container {
+    text-align: center; padding: 40px 32px; max-width: 320px;
+  }
+  .icon { font-size: 40px; margin-bottom: 24px; opacity: 0.4; }
+  h1 {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 28px; font-weight: 300; margin-bottom: 16px;
+    color: var(--text);
+  }
+  p {
+    font-size: 12px; color: var(--muted); letter-spacing: 0.08em;
+    line-height: 1.8; margin-bottom: 32px;
+  }
+  a {
+    display: inline-block; padding: 12px 28px;
+    border: 1px solid rgba(201,169,110,0.3); border-radius: 2px;
+    color: var(--gold); font-size: 10px; letter-spacing: 0.3em;
+    text-transform: uppercase; text-decoration: none;
+    transition: all 0.2s;
+  }
+  a:hover { background: rgba(201,169,110,0.08); }
+</style>
+</head>
+<body>
+<div class="container">
+  <div class="icon">✦</div>
+  <h1>Account Suspended</h1>
+  <p>Your account has been suspended due to a violation of our community guidelines.<br><br>If you believe this is a mistake, please contact us.</p>
+  <a href="mailto:support@twinfrequency.io">Contact Support</a>
+</div>
+</body>
+</html>

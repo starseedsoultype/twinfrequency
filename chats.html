@@ -656,6 +656,12 @@
     myUser = sessionData.session.user
     const { data: me } = await sb.from('profiles').select('*').eq('id', myUser.id).single()
     myProfile = me
+    // Ban check
+    if (me?.is_banned) {
+      await sb.auth.signOut()
+      window.location.href = 'banned.html'
+      return
+    }
 
     const params = new URLSearchParams(window.location.search)
     const tabParam = params.get('tab')

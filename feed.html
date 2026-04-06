@@ -940,11 +940,15 @@
     }
     myUser = sessionData.session.user
     accessToken = sessionData.session.access_token
-
     const { data: me } = await sb.from('profiles').select('*').eq('id', myUser.id).single()
     myProfile = me
-
-    // ── Загрузка ленты через Edge Function (алгоритм совместимости на сервере)
+    // ── Проверка бана
+    if (me?.is_banned) {
+      await sb.auth.signOut()
+      window.location.href = 'banned.html'
+      return
+    }
+    // ── Загрузка ленты через Edge Function (алгоритм совместимости на сервере)е)
     let feedLoaded = false
     try {
       const feedResp = await fetch(`${SUPABASE_URL}/functions/v1/get-feed`, {
