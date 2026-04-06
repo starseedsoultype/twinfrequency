@@ -60,16 +60,25 @@
   .hero {
     position: fixed; top: 0; left: 0; right: 0;
     height: 55vh;
-    max-height: 480px;
-    background-size: cover; background-position: center top;
+    max-height: 420px;
+    background-size: cover; background-position: center center;
     z-index: 0;
   }
   @media (min-width: 600px) {
-    .hero { max-height: 400px; height: 45vh; }
-    .scroll-content { max-width: 520px; margin: 0 auto; left: 50%; transform: translateX(-50%); right: auto; width: 520px; }
-    .actions { max-width: 520px; margin: 0 auto; left: 50%; transform: translateX(-50%); right: auto; width: 520px; }
-    .back-btn { left: calc(50% - 240px); }
-    .spacer { height: 36vh; }
+    .hero {
+      left: 50%; right: auto;
+      transform: translateX(-50%);
+      width: 480px;
+      height: 380px;
+      max-height: 380px;
+      border-radius: 0 0 20px 20px;
+      background-size: cover;
+      background-position: center center;
+    }
+    .scroll-content { max-width: 480px; margin: 0 auto; left: 50%; transform: translateX(-50%); right: auto; width: 480px; }
+    .actions { max-width: 480px; left: 50%; transform: translateX(-50%); right: auto; width: 480px; }
+    .back-btn { left: calc(50% - 220px); }
+    .spacer { height: 340px; }
   }
   .hero::after {
     content: '';
