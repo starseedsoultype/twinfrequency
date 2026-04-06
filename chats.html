@@ -1085,27 +1085,96 @@
   // ─── Actions ──────────────────────────────────────────────
   function reportUser() {
     closeContextMenu()
-    showModal(
-      'Report this person',
-      'Your report will be reviewed. This person will not be notified.',
-      [{ text: 'Send Report', action: async () => {
-        // TODO: insert into reports table
-        closeModal()
-        showToast('Report sent')
-      }}]
-    )
+    if (!currentChat?.other?.id) return
+
+    // Show report reason picker
+    const reasons = [
+      { value: 'spam',          label: 'Spam or scam' },
+      { value: 'inappropriate', label: 'Inappropriate content' },
+      { value: 'harassment',    label: 'Harassment or threats' },
+      { value: 'other',         label: 'Other' },
+    ]
+    let selectedReason = null
+
+    const overlay = document.getElementById('modal-overlay')
+    const sheet = overlay.querySelector('.modal-sheet')
+    overlay.querySelector('.modal-title').textContent = 'Report this person'
+    overlay.querySelector('.modal-sub').textContent = 'Select a reason. This person will not be notified.'
+
+    const actionsEl = document.getElementById('modal-actions')
+    actionsEl.innerHTML = ''
+
+    // Reason chips
+    const chipWrap = document.createElement('div')
+    chipWrap.style.cssText = 'display:flex;flex-wrap:wrap;gap:8px;margin-bottom:16px;'
+    reasons.forEach(r => {
+      const chip = document.createElement('button')
+      chip.textContent = r.label
+      chip.style.cssText = 'padding:7px 14px;border-radius:20px;font-family:Jost,sans-serif;font-size:10px;letter-spacing:0.15em;text-transform:uppercase;cursor:pointer;border:1px solid rgba(201,169,110,0.25);background:rgba(201,169,110,0.04);color:var(--muted);transition:all 0.2s;'
+      chip.onclick = () => {
+        selectedReason = r.value
+        chipWrap.querySelectorAll('button').forEach(b => {
+          b.style.background = 'rgba(201,169,110,0.04)'
+          b.style.borderColor = 'rgba(201,169,110,0.25)'
+          b.style.color = 'var(--muted)'
+        })
+        chip.style.background = 'rgba(201,169,110,0.12)'
+        chip.style.borderColor = 'rgba(201,169,110,0.5)'
+        chip.style.color = 'var(--gold)'
+      }
+      chipWrap.appendChild(chip)
+    })
+    actionsEl.appendChild(chipWrap)
+
+    // Submit button
+    const submitBtn = document.createElement('button')
+    submitBtn.className = 'modal-btn'
+    submitBtn.textContent = 'Send Report'
+    submitBtn.onclick = async () => {
+      if (!selectedReason) { showToast('Please select a reason'); return }
+      const { error } = await sb.from('reports').insert({
+        reporter_id: myUser.id,
+        reported_id: currentChat.other.id,
+        reason: selectedReason,
+        status: 'pending'
+      })
+      if (error) { console.error('Report error:', error); showToast('Error sending report'); return }
+      document.getElementById('modal-overlay').classList.remove('show')
+      showToast('Report sent — thank you')
+    }
+    actionsEl.appendChild(submitBtn)
+
+    overlay.classList.add('show')
   }
 
   function blockUser() {
     closeContextMenu()
+    if (!currentChat?.other?.id) return
+    const otherId = currentChat.other.id
+    const otherName = currentChat.other.name || 'this person'
     showModal(
-      'Block this person',
-      'They will no longer appear in your feed and cannot message you.',
+      `Block ${otherName}`,
+      'They will no longer appear in your feed and cannot message you. This cannot be undone.',
       [{ text: 'Block', action: async () => {
-        // TODO: insert into blocks table
-        closeModal()
+        // Insert block
+        const { error: blockErr } = await sb.from('blocks').insert({
+          blocker_id: myUser.id,
+          blocked_id: otherId
+        })
+        if (blockErr && blockErr.code !== '23505') {
+          console.error('Block error:', blockErr)
+          showToast('Error blocking user')
+          return
+        }
+        // Also unmatch if there is an active match
+        if (currentChat?.matchId) {
+          await sb.from('messages').delete().eq('match_id', currentChat.matchId)
+          await sb.from('matches').delete().eq('id', currentChat.matchId)
+        }
+        document.getElementById('modal-overlay').classList.remove('show')
         closeChat()
-        showToast('User blocked')
+        await loadMatches()
+        showToast(`${otherName} blocked`)
       }, danger: true }]
     )
   }

@@ -955,10 +955,18 @@
     } catch (e) { console.warn('Edge Function unavailable, falling back', e) }
     // ── Фолбэк: прямой запрос если Edge Function недоступна
     if (!feedLoaded) {
+      // Загрузить заблокированных пользователей
+      const { data: blockRows } = await sb.from('blocks')
+        .select('blocker_id, blocked_id')
+        .or(`blocker_id.eq.${myUser.id},blocked_id.eq.${myUser.id}`)
+      const blockedIds = new Set((blockRows || []).map(b =>
+        b.blocker_id === myUser.id ? b.blocked_id : b.blocker_id
+      ))
+
       const { data: realProfiles } = await sb.from('profiles').select('*').neq('id', myUser.id).order('created_at')
       const { data: testProfiles } = await sb.from('test_profiles').select('*').order('created_at')
       const markedTestProfiles = (testProfiles || []).map(p => ({ ...p, is_test: true }))
-      profiles = [...(realProfiles || []), ...markedTestProfiles]
+      profiles = [...(realProfiles || []), ...markedTestProfiles].filter(p => !blockedIds.has(p.id))
     }
 
     document.getElementById('loader').classList.add('hide')
