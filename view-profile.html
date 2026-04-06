@@ -65,20 +65,38 @@
     z-index: 0;
   }
   @media (min-width: 600px) {
+    body { display: flex; justify-content: center; }
     .hero {
-      left: 50%; right: auto;
+      position: absolute;
+      left: 50%;
       transform: translateX(-50%);
       width: 480px;
-      height: 380px;
-      max-height: 380px;
-      border-radius: 0 0 20px 20px;
-      background-size: cover;
-      background-position: center center;
+      height: 360px;
+      max-height: 360px;
+      border-radius: 0 0 16px 16px;
     }
-    .scroll-content { max-width: 480px; margin: 0 auto; left: 50%; transform: translateX(-50%); right: auto; width: 480px; }
-    .actions { max-width: 480px; left: 50%; transform: translateX(-50%); right: auto; width: 480px; }
-    .back-btn { left: calc(50% - 220px); }
-    .spacer { height: 340px; }
+    .scroll-content {
+      position: absolute;
+      width: 480px;
+      left: 50%;
+      transform: translateX(-50%);
+      top: 0; bottom: 0;
+      inset: auto;
+    }
+    .actions {
+      position: fixed;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 480px;
+      right: auto;
+    }
+    .back-btn {
+      position: absolute;
+      left: 50%;
+      margin-left: -220px;
+    }
+    .spacer { height: 320px; }
+    .nebula { display: none; }
   }
   .hero::after {
     content: '';
