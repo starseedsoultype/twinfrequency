@@ -183,21 +183,22 @@
   }
 
   .btn-enter {
-    padding: 16px 48px;
-    background: linear-gradient(135deg, rgba(201,169,110,0.18), rgba(201,169,110,0.08));
-    border: 1px solid rgba(201,169,110,0.5);
+    padding: 18px 56px;
+    background: linear-gradient(135deg, rgba(201,169,110,0.22), rgba(201,169,110,0.10));
+    border: 1px solid rgba(201,169,110,0.65);
     border-radius: 2px;
     color: var(--gold-soft);
     font-family: 'Jost', sans-serif;
-    font-size: 11px;
+    font-size: 12px;
     font-weight: 300;
-    letter-spacing: 0.45em;
+    letter-spacing: 0.35em;
     text-transform: uppercase;
     cursor: pointer;
     opacity: 0;
     transition: all 0.3s;
     position: relative;
     overflow: hidden;
+    box-shadow: 0 0 24px rgba(201,169,110,0.12);
   }
 
   .btn-enter::before {
@@ -213,12 +214,13 @@
   .btn-enter:hover { border-color: rgba(201,169,110,0.8); }
 
   .circle-notification {
-    margin-top: 16px;
-    font-size: 10px;
-    letter-spacing: 0.25em;
-    color: var(--muted);
+    margin-top: 14px;
+    font-size: 11px;
+    letter-spacing: 0.08em;
+    color: rgba(232,224,213,0.45);
     opacity: 0;
-    text-transform: uppercase;
+    text-transform: none;
+    font-style: italic;
   }
 
   @keyframes rotateRing {
@@ -314,9 +316,9 @@
   </p>
 
   <button class="btn-enter" id="btn-enter" onclick="enterFeed()">
-    Enter your circle
+    ✦ &nbsp;Start Exploring
   </button>
-  <p class="circle-notification" id="t7">✦ Your circle is already waiting</p>
+  <p class="circle-notification" id="t7">Tap to enter your feed and discover who's on your frequency</p>
 
 </div>
 
