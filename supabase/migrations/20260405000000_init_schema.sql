@@ -10,7 +10,7 @@ CREATE TYPE gender_type AS ENUM ('Women', 'Men', 'Non-binary', 'Other');
 CREATE TYPE origin_type AS ENUM (
   'Siriusian', 'Pleiadian', 'Lemurian', 'Cassiopeian', 'Procyonian', 'Lyran',
   'Arcturian', 'Orion', 'Vegan', 'Zeta Reticulan', 'Epsilon Eridan', 'Atlantean',
-  'Andromedan', 'Polarisian', 'Nibiruan', 'Egyptian', 'Titan', 'Blue Avian',
+  'Andromedan', 'Polarisian', 'Nibiruan', 'Egyptian', 'Titanian', 'Blue Avian',
   'Tau Cetian', 'Aldebaran', 'Centaurian', 'Herculean', 'Anunnaki', 'Hyperborean',
   'Unknown'
 );

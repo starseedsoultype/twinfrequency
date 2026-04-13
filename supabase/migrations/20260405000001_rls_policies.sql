@@ -117,7 +117,7 @@ BEGIN
   CASE user_origin
     WHEN 'Siriusian', 'Pleiadian', 'Lemurian', 'Cassiopeian', 'Procyonian', 'Lyran' THEN RETURN 1;
     WHEN 'Arcturian', 'Orion', 'Vegan', 'Zeta Reticulan', 'Epsilon Eridan', 'Atlantean' THEN RETURN 2;
-    WHEN 'Andromedan', 'Polarisian', 'Nibiruan', 'Egyptian', 'Titan', 'Blue Avian' THEN RETURN 3;
+    WHEN 'Andromedan', 'Polarisian', 'Nibiruan', 'Egyptian', 'Titanian', 'Blue Avian' THEN RETURN 3;
     WHEN 'Tau Cetian', 'Aldebaran', 'Centaurian', 'Herculean', 'Anunnaki', 'Hyperborean' THEN RETURN 4;
     ELSE RETURN 0; -- Unknown
   END CASE;
