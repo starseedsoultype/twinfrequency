@@ -26,15 +26,30 @@
     overflow: hidden;
   }
 
-  /* DESKTOP: allow scroll if content taller than viewport */
+  /* DESKTOP: fit everything in one screen, no scroll */
   @media (min-width: 600px) {
-    html, body { overflow-y: auto; }
+    html, body { overflow: hidden; }
+    .nebula-blue, .nebula-purple { display: none; }
+    .nebula-gold { width: 400px; height: 400px; }
     .container {
-      min-height: 100vh;
-      height: auto;
-      padding: 60px 24px;
-      justify-content: center;
+      height: 100vh;
+      padding: 20px 24px;
+      gap: 0;
     }
+    .symbol-wrap {
+      width: 80px;
+      height: 80px;
+      margin-bottom: 16px;
+    }
+    .symbol-wrap svg { width: 80px; height: 80px; }
+    #crystal-canvas { width: 60px !important; height: 60px !important; margin-bottom: 12px !important; }
+    .welcome-line { margin-bottom: 4px; }
+    .name-line { font-size: clamp(32px, 5vw, 48px); margin-bottom: 2px; }
+    .divider-dot { margin: 10px auto; }
+    .frequency-line { margin-bottom: 2px; }
+    .origin-line { font-size: clamp(22px, 4vw, 34px); margin-bottom: 16px; }
+    .message-line { margin-bottom: 24px; font-size: 12px; }
+    .btn-enter { padding: 14px 48px; }
   }
 
   canvas#stars {
