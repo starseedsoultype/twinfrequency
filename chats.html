@@ -609,6 +609,14 @@
 
   const GROUP_EMOJIS = { 1: '✦', 2: '◈', 3: '⬡', 4: '◉', 0: '?' }
 
+  const GROUP_DESCRIPTIONS = {
+    1: 'A warm circle for those who feel everything deeply. Connection is the frequency you were born to speak.',
+    2: 'A sanctuary for cosmic seekers and truth-tellers. Connect with minds that question everything and illuminate the path forward.',
+    3: 'Where high frequencies converge. Meet others who understand the power of vibration and the magic of energetic alignment.',
+    4: 'A gathering of those who have always known they were old souls. The wisdom you carry is recognized here.',
+    0: 'A gentle space for souls still finding their frequency. You are exactly where you need to be.'
+  }
+
   // Full connection type algorithm (mirrors feed.html and Edge Function)
   // Uses the ORIGIN_GROUP map defined above
   function getConnectionType(origin1, origin2) {
@@ -821,9 +829,7 @@
     item.className = 'circle-item'
     item.onclick = () => openGroupChat(name, origins, emoji, groupId)
 
-    const previewText = isActive
-      ? 'Your circle is speaking ✦'
-      : `${origins.length || '?'} soul types`
+    const previewText = GROUP_DESCRIPTIONS[groupId] || `${origins.length || '?'} soul types`
 
     item.innerHTML = `
       <div class="circle-avatar" style="border-color:${isActive ? 'rgba(201,169,110,0.4)' : 'var(--border)'}">
@@ -886,7 +892,7 @@
     const gh = document.getElementById('group-header')
     document.getElementById('group-header-name').textContent = name
     document.getElementById('group-header-sub').textContent =
-      groupId === 0 ? 'For those still discovering their frequency' : 'Your origin circle'
+      GROUP_DESCRIPTIONS[groupId] || 'Your origin circle'
     const chips = document.getElementById('group-origins-chips')
     chips.innerHTML = origins.map(o => `<div class="origin-chip">${o}</div>`).join('')
     gh.style.display = ''
