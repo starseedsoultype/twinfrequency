@@ -17,7 +17,7 @@ import { createClient } from "https://esm.sh/@supabase/supabase-js@2"
 const ORIGIN_GROUP: Record<string, number> = {
   Siriusian: 1, Pleiadian: 1, Lemurian: 1, Cassiopeian: 1, Procyonian: 1, Lyran: 1,
   Arcturian: 2, Orion: 2, Vegan: 2, "Zeta Reticulan": 2, "Epsilon Eridan": 2, Atlantean: 2,
-  Andromedan: 3, Polarisian: 3, Nibiruan: 3, Egyptian: 3, Titan: 3, "Blue Avian": 3,
+  Andromedan: 3, Polarisian: 3, Nibiruan: 3, Egyptian: 3, Titanian: 3, "Blue Avian": 3,
   "Tau Cetian": 4, Aldebaran: 4, Centaurian: 4, Herculean: 4, Anunnaki: 4, Hyperborean: 4,
 }
 

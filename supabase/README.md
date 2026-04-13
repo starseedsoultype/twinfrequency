@@ -117,7 +117,7 @@ Realtime: `sb.channel('messages:{match_id}').on('postgres_changes', ...)`
 |----|------|
 | 1 | Relationships Circle (Siriusian, Pleiadian, Lemurian, Cassiopeian, Procyonian, Lyran) |
 | 2 | Logic Circle (Arcturian, Orion, Vegan, Zeta Reticulan, Epsilon Eridan, Atlantean) |
-| 3 | Energy Circle (Andromedan, Polarisian, Nibiruan, Egyptian, Mayan, Blue Avian) |
+| 3 | Energy Circle (Andromedan, Polarisian, Nibiruan, Egyptian, Titanian, Blue Avian) |
 | 4 | Matter Circle (Tau Cetian, Aldebaran, Centaurian, Herculean, Anunnaki, Hyperborean) |
 | 0 | Open Frequency (Unknown Origin) |
 
