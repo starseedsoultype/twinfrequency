@@ -26,6 +26,17 @@
     overflow: hidden;
   }
 
+  /* DESKTOP: allow scroll if content taller than viewport */
+  @media (min-width: 600px) {
+    html, body { overflow-y: auto; }
+    .container {
+      min-height: 100vh;
+      height: auto;
+      padding: 60px 24px;
+      justify-content: center;
+    }
+  }
+
   canvas#stars {
     position: fixed;
     inset: 0;
@@ -358,7 +369,7 @@
     initParticles()
     try { initCrystal(userOrigin) } catch(e) { console.warn('Crystal init failed:', e) }
     startAnimation()
-    // Fallback: ensure button is always visible after 5s no matter what
+    // Fallback: ensure button is always visible after 3.5s no matter what
     setTimeout(() => {
       const btn = document.getElementById('btn-enter')
       if (btn && parseFloat(getComputedStyle(btn).opacity) < 0.5) {
@@ -367,7 +378,19 @@
         const t7 = document.getElementById('t7')
         if (t7) { t7.style.transition = 'opacity 0.8s ease'; t7.style.opacity = '1' }
       }
-    }, 5000)
+    }, 3500)
+    // Immediate fallback for desktop — show all elements right away if viewport is large
+    if (window.innerWidth >= 600) {
+      setTimeout(() => {
+        ['crystal-canvas','symbol','t1','t2','t3','t4','t5','t6','btn-enter','t7'].forEach(id => {
+          const el = document.getElementById(id)
+          if (el && parseFloat(getComputedStyle(el).opacity) < 0.5) {
+            el.style.transition = 'opacity 0.8s ease'
+            el.style.opacity = '1'
+          }
+        })
+      }, 3600)
+    }
   })
 
   function startAnimation() {
