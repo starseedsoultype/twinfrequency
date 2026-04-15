@@ -1001,10 +1001,12 @@ src="https://www.facebook.com/tr?id=847407428375701&ev=PageView&noscript=1"
         const allowed = genderMap[searchGender]
         if (allowed) realQuery = realQuery.in('gender', allowed)
       }
-      const { data: realProfiles } = await realQuery.order('created_at')
-      const { data: testProfiles } = await sb.from('test_profiles').select('*').order('created_at')
+      const { data: realProfiles } = await realQuery
+      const { data: testProfiles } = await sb.from('test_profiles').select('*')
       const markedTestProfiles = (testProfiles || []).map(p => ({ ...p, is_test: true }))
-      profiles = [...(realProfiles || []), ...markedTestProfiles].filter(p => !blockedIds.has(p.id))
+      // Shuffle fallback feed randomly to avoid always showing same order
+      const combined = [...(realProfiles || []), ...markedTestProfiles].filter(p => !blockedIds.has(p.id))
+      profiles = combined.sort(() => Math.random() - 0.5)
     }
 
     document.getElementById('loader').classList.add('hide')
@@ -1157,6 +1159,18 @@ src="https://www.facebook.com/tr?id=847407428375701&ev=PageView&noscript=1"
       const stamp = card.querySelector('.stamp-pass')
       stamp.classList.add('show')
       setTimeout(() => stamp.classList.remove('show'), 400)
+
+      // Record pass swipe — expires after 7 days, then person reappears in feed
+      ;(async () => {
+        try {
+          if (!profile.is_test) {
+            await sb.from('swipes').upsert(
+              { actor_id: myUser.id, target_id: profile.id, action: 'pass', created_at: new Date().toISOString() },
+              { onConflict: 'actor_id,target_id' }
+            )
+          }
+        } catch (e) { console.warn('Pass record error:', e) }
+      })()
     }
 
     setTimeout(() => {
