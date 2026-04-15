@@ -391,6 +391,9 @@ text-transform: uppercase; cursor: pointer; border-radius: 2px; transition: all 
     <input type="hidden" name="subject" value="New Starseed Soul Quiz Lead">
     <input type="hidden" name="from_name" value="Starseed Soul Quiz">
     <input type="hidden" name="redirect" value="false">
+    <input type="hidden" name="soul_type" id="ecSoulType" value="">
+    <input type="hidden" name="soul_group" id="ecSoulGroup" value="">
+    <input type="hidden" name="soul_scores" id="ecSoulScores" value="">
     <input class="ec-input" type="email" name="email" id="ecEmail" placeholder="your@email.com" required autocomplete="email">
     <div class="ec-error" id="ecError">Please enter a valid email address</div>
     <button class="ec-btn" type="submit">Reveal My Origin</button>
@@ -1174,6 +1177,13 @@ function showEmailCapture() {
   document.getElementById('email-capture').style.display = 'block';
   window.scrollTo({ top: 0, behavior: 'smooth' });
 
+  // Pre-fill hidden fields with quiz result before user submits email
+  const preType = getType();
+  document.getElementById('ecSoulType').value = preType.name;
+  document.getElementById('ecSoulGroup').value = preType.group;
+  const sortedScores = Object.entries(scores).sort((a,b) => b[1]-a[1]).map(([f,s]) => f+':'+s).join(', ');
+  document.getElementById('ecSoulScores').value = sortedScores;
+
   const form = document.getElementById('ecForm');
   form.addEventListener('submit', async function(e) {
     e.preventDefault();
@@ -1274,6 +1284,9 @@ function showResult() {
       <div class="app-entry-label">Ready to meet your frequency matches?</div>
       <button class="app-entry-btn" id="enterAppBtn">Join Twin Frequency &nbsp;✦</button>
       <div class="app-entry-note">Create your profile as ${type.name} and find people who resonate</div>
+      <div style="margin-top:16px">
+        <a href="https://twinfrequency.io/feed.html" style="display:inline-block;padding:10px 28px;border:1px solid rgba(153,102,204,0.4);color:#9988aa;font-family:Georgia,serif;font-size:11px;letter-spacing:2px;text-transform:uppercase;text-decoration:none;border-radius:2px;transition:all 0.2s" onmouseover="this.style.borderColor='rgba(153,102,204,0.8)';this.style.color='#ccbbdd'" onmouseout="this.style.borderColor='rgba(153,102,204,0.4)';this.style.color='#9988aa'">Already have an account? Go to Feed &nbsp;→</a>
+      </div>
     </div>
     `}
 
