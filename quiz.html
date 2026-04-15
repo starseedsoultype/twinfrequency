@@ -1273,22 +1273,11 @@ function showResult() {
       <a href="${GUMROAD_LINKS[type.name]}" target="_blank" class="unlock-btn" id="portalBtn" data-url="${GUMROAD_LINKS[type.name]}">Complete the Portal</a>
     </div>
 
-    ${isOnboarding ? `
     <div class="app-entry-box" id="appEntryBox">
-      <div class="app-entry-label">Your origin is saved. You are ready.</div>
-      <button class="app-entry-btn" id="enterAppBtn">Enter Twin Frequency &nbsp;✦</button>
-      <div class="app-entry-note">Find your frequency matches — people who resonate with ${type.name}</div>
+      <div class="app-entry-label">Your origin has been revealed</div>
+      <button class="app-entry-btn" id="enterAppBtn">Find Your Frequency Matches &nbsp;✦</button>
+      <div class="app-entry-note">Meet people who resonate with ${type.name}</div>
     </div>
-    ` : `
-    <div class="app-entry-box" id="appEntryBox">
-      <div class="app-entry-label">Ready to meet your frequency matches?</div>
-      <button class="app-entry-btn" id="enterAppBtn">Join Twin Frequency &nbsp;✦</button>
-      <div class="app-entry-note">Create your profile as ${type.name} and find people who resonate</div>
-      <div style="margin-top:16px">
-        <a href="https://twinfrequency.io/feed.html" style="display:inline-block;padding:10px 28px;border:1px solid rgba(153,102,204,0.4);color:#9988aa;font-family:Georgia,serif;font-size:11px;letter-spacing:2px;text-transform:uppercase;text-decoration:none;border-radius:2px;transition:all 0.2s" onmouseover="this.style.borderColor='rgba(153,102,204,0.8)';this.style.color='#ccbbdd'" onmouseout="this.style.borderColor='rgba(153,102,204,0.4)';this.style.color='#9988aa'">Already have an account? Go to Feed &nbsp;→</a>
-      </div>
-    </div>
-    `}
 
     <button class="retake-btn" onclick="retake()" style="display:none">Begin again</button>
   `;
@@ -1316,14 +1305,17 @@ function showResult() {
   }
 
   // Attach app entry button handler
+  // Both flows lead to congratulations → feed
+  // Logged-in (onboarding): save origin → congratulations → feed
+  // New user (landing): register → onboarding → congratulations → feed
   const enterAppBtn = document.getElementById('enterAppBtn');
   if (enterAppBtn) {
     enterAppBtn.addEventListener('click', function() {
       if (isOnboarding) {
-        // Зарегистрированный пользователь — сохранить Origin и войти в приложение
+        // Залогиненный — сохранить Origin, перейти на congratulations через onboarding
         window.location.href = 'onboarding.html?origin=' + encodeURIComponent(type.name);
       } else {
-        // Незарегистрированный — на регистрацию с предзаполненным Origin
+        // Новый пользователь — на регистрацию с предзаполненным Origin
         window.location.href = 'login.html?join=1&origin=' + encodeURIComponent(type.name);
       }
     });
