@@ -1250,27 +1250,9 @@ function showResult() {
         <div class="preview-text">${PREVIEWS[ch2][2]}</div>
       </div>
       <div class="preview-section">
-        <div class="preview-label">Your Growth Edge &nbsp;🔒</div>
-        <div class="preview-text preview-blurred">${PREVIEWS[ch3][3]}</div>
-        <div style="font-size:11px;color:var(--text4);margin-top:8px;letter-spacing:2px;text-transform:uppercase">STEP THROUGH PORTAL 11.11 TO ACCESS YOUR DEEPER LAYERS</div>
+        <div class="preview-label">Your Growth Edge</div>
+        <div class="preview-text">${PREVIEWS[ch3][3]}</div>
       </div>
-    </div>
-
-    <div class="unlock-box">
-      <div class="portal-num">PORTAL 11.11</div>
-      <div class="unlock-title">You are one step away</div>
-      <div class="unlock-sub">The reading has been prepared. What remains is the step through.</div>
-      <div class="unlock-list">
-        <div class="unlock-item">The full cosmic portrait of your soul origin. Where you came from and what you were sent here carrying</div>
-        <div class="unlock-item">All four layers of your frequency. How they move through your life, your relationships, your work, your body</div>
-        <div class="unlock-item">The territory where this incarnation is asking the most of you</div>
-        <div class="unlock-item">The place where you receive without discernment. And what that has cost you</div>
-        <div class="unlock-item">Your soul's specific mission in this dimension</div>
-        <div class="unlock-item">Your compatibility map. Which soul origins complete you and which ones pull</div>
-      </div>
-      <div class="price">$11.11</div>
-      <div class="price-note">One-time · Instant access · Yours forever</div>
-      <a href="${GUMROAD_LINKS[type.name]}" target="_blank" class="unlock-btn" id="portalBtn" data-url="${GUMROAD_LINKS[type.name]}">Complete the Portal</a>
     </div>
 
     <div class="app-entry-box" id="appEntryBox">
@@ -1284,25 +1266,7 @@ function showResult() {
 
   document.getElementById('result').innerHTML = html;
 
-  // Attach portal button handler after DOM is ready
-  const portalBtn = document.getElementById('portalBtn');
-  if (portalBtn) {
-    portalBtn.addEventListener('click', function(e) {
-      const url = this.dataset.url;
-      if (url && url.includes('REPLACE')) {
-        e.preventDefault();
-        const overlay = document.createElement('div');
-        overlay.style.cssText = 'position:fixed;inset:0;background:rgba(7,5,15,0.92);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:100;padding:32px;text-align:center;';
-        overlay.innerHTML = `
-          <div style="font-size:10px;letter-spacing:4px;color:#7766aa;text-transform:uppercase;margin-bottom:16px">Origin Consciousness System</div>
-          <div style="font-size:22px;color:#f0eaff;margin-bottom:12px;font-family:Georgia,serif;font-style:italic">Portal opening soon</div>
-          <div style="font-size:13px;color:#9988aa;line-height:1.7;margin-bottom:28px;max-width:320px;font-family:Georgia,serif">Your reading has been prepared. The portal opens when payment is connected.</div>
-          <button onclick="this.parentElement.remove()" style="padding:12px 32px;border:1px solid #9966cc;background:#130d22;color:#bb88ff;font-family:Georgia,serif;font-size:12px;letter-spacing:2px;text-transform:uppercase;cursor:pointer;border-radius:2px;">Close</button>
-        `;
-        document.body.appendChild(overlay);
-      }
-    });
-  }
+  // No Gumroad portal button in the app — users are already valuable inside Twin Frequency
 
   // Attach app entry button handler
   // Both flows lead to congratulations → feed
