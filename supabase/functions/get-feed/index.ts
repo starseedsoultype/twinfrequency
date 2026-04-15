@@ -131,14 +131,27 @@ serve(async (req) => {
       )
     }
 
-    // Get already-swiped profile IDs (table is 'likes', columns: from_user, to_user)
-    const { data: swipedRows } = await supabase
+    // Get liked profile IDs (permanent exclusion)
+    const { data: likedRows } = await supabase
       .from("likes")
       .select("to_user")
       .eq("from_user", user.id)
 
-    const swipedIds = new Set((swipedRows || []).map((r: any) => r.to_user))
+    const swipedIds = new Set((likedRows || []).map((r: any) => r.to_user))
     swipedIds.add(user.id) // exclude self
+
+    // Get pass swipes newer than 7 days (older passes expire — person reappears)
+    const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString()
+    const { data: passRows } = await supabase
+      .from("swipes")
+      .select("target_id")
+      .eq("actor_id", user.id)
+      .eq("action", "pass")
+      .gte("created_at", sevenDaysAgo)
+
+    for (const r of passRows || []) {
+      swipedIds.add(r.target_id)
+    }
 
     // Get blocked users (both directions)
     const { data: blockRows } = await supabase
