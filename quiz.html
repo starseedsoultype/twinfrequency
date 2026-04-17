@@ -1362,6 +1362,37 @@ function drawCrystal(type) {
   ctx.save(); ctx.globalCompositeOperation='screen';
   ctx.fillStyle=sg; ctx.beginPath(); ctx.arc(cx,cy,10,0,Math.PI*2); ctx.fill(); ctx.restore();
 }
+
+// u2500u2500u2500 ANALYTICS u2500u2500u2500u2500u2500u2500u2500u2500u2500u2500u2500u2500u2500u2500u2500u2500u2500u2500u2500u2500u2500u2500u2500u2500u2500u2500u2500u2500u2500u2500u2500u2500u2500u2500u2500u2500u2500u2500u2500u2500u2500u2500u2500u2500u2500u2500u2500u2500u2500u2500u2500u2500u2500u2500u2500u2500u2500u2500u2500u2500u2500u2500
+const _SB_URL = 'https://pewgupxikbswhaqxjrwk.supabase.co';
+const _SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBld2d1cHhpa2Jzd2hhcXhqcndrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzUyNjY0MTEsImV4cCI6MjA5MDg0MjQxMX0.rQIz0R_4Oz6VqHgSvjx9YAtF8BojdcMU7RcqDiVP1NU';
+const _sessionId = Math.random().toString(36).slice(2) + Date.now().toString(36);
+
+function track(event, resultKey) {
+  try {
+    fetch(_SB_URL + '/rest/v1/quiz_analytics', {
+      method: 'POST',
+      headers: {
+        'apikey': _SB_KEY,
+        'Authorization': 'Bearer ' + _SB_KEY,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ event: event, result_key: resultKey || null, session_id: _sessionId, quiz_type: 'soul_origin' })
+    });
+  } catch(e) { /* silent fail */ }
+}
+
+// Track page visit on load
+track('quiz_open');
+
+// Patch showEmailCapture to track completion
+const _origShowEmailCapture = showEmailCapture;
+window.showEmailCapture = function() {
+  const t = getType();
+  track('quiz_complete', t ? t.name.toLowerCase().replace(/\\s+/g, '_') : 'unknown');
+  _origShowEmailCapture();
+};
+
 </script>
 
 </body>
