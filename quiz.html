@@ -1377,7 +1377,7 @@ function track(event, resultKey) {
         'Authorization': 'Bearer ' + _SB_KEY,
         'Content-Type': 'application/json'
       },
-      body: JSON.stringify({ event: event, result_key: resultKey || null, session_id: _sessionId, quiz_type: 'soul_origin' })
+      body: JSON.stringify({ event: event, result_key: resultKey || null, session_id: _sessionId, quiz_type: 'soul_origin_app' })
     });
   } catch(e) { /* silent fail */ }
 }
