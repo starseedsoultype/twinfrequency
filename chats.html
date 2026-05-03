@@ -624,6 +624,8 @@ src="https://www.facebook.com/tr?id=847407428375701&ev=PageView&noscript=1"
   const { createClient } = supabase
   const sb = createClient(SUPABASE_URL, SUPABASE_ANON_KEY)
 
+  const DEFAULT_PROFILE_IMAGE = '/images/twinf-placeholder.png'
+
   // ─── Connection type colors ───────────────────────────────
   const CONNECTION_COLORS = {
     'Frequency Twins': '#c9a96e',
@@ -817,7 +819,7 @@ src="https://www.facebook.com/tr?id=847407428375701&ev=PageView&noscript=1"
       item.className = 'match-item'
       item.onclick = () => openMatchChat(match, other, connType, color)
       item.innerHTML = `
-        <div class="match-avatar" style="background-image:url('${other.photo_url || ''}')">
+        <div class="match-avatar" style="background-image:url('${other.photo_url && other.photo_url.trim() ? other.photo_url : DEFAULT_PROFILE_IMAGE}')">
           <div class="type-ring" style="border-color:${color}60"></div>
         </div>
         <div class="match-info">
@@ -1031,7 +1033,7 @@ src="https://www.facebook.com/tr?id=847407428375701&ev=PageView&noscript=1"
     row.className = 'msg-row' + (isMine ? ' mine' : '')
     row.dataset.msgId = msg.id
 
-    const avatarUrl = msg.sender?.photo_url || ''
+    const avatarUrl = msg.sender?.photo_url && msg.sender.photo_url.trim() ? msg.sender.photo_url : DEFAULT_PROFILE_IMAGE
     const bubble = escapeHtml(msg.content || '')
     const time = formatTime(msg.created_at)
 
@@ -1039,7 +1041,7 @@ src="https://www.facebook.com/tr?id=847407428375701&ev=PageView&noscript=1"
       ${!isMine ? `<div class="msg-avatar" style="background-image:url('${avatarUrl}')"></div>` : ''}
       <div class="msg-bubble">${bubble}</div>
       <div class="msg-time">${time}</div>
-      ${isMine ? `<div class="msg-avatar" style="background-image:url('${myProfile?.photo_url || ''}')"></div>` : ''}`
+      ${isMine ? `<div class="msg-avatar" style="background-image:url('${myProfile?.photo_url && myProfile.photo_url.trim() ? myProfile.photo_url : DEFAULT_PROFILE_IMAGE}')"></div>` : ''}`
 
     return row
   }

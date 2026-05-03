@@ -1094,6 +1094,8 @@ src="https://www.facebook.com/tr?id=847407428375701&ev=PageView&noscript=1"
   const { createClient } = supabase
   const sb = createClient(SUPABASE_URL, SUPABASE_ANON_KEY)
 
+  const DEFAULT_PROFILE_IMAGE = '/images/twinf-placeholder.png'
+
   // ─── ORIGINS ──────────────────────────────────────────────
   const ORIGINS = [
     'Siriusian','Pleiadian','Lemurian','Cassiopeian','Procyonian','Lyran',
@@ -1142,9 +1144,7 @@ src="https://www.facebook.com/tr?id=847407428375701&ev=PageView&noscript=1"
     document.getElementById('hero-age').textContent = p.age ? `${p.age} years` : ''
     document.getElementById('origin-label').textContent = p.origin || 'Unknown Origin'
 
-    if (p.photo_url) {
-      document.getElementById('photo-avatar').style.backgroundImage = `url('${p.photo_url}')`
-    }
+    document.getElementById('photo-avatar').style.backgroundImage = `url('${p.photo_url && p.photo_url.trim() ? p.photo_url : DEFAULT_PROFILE_IMAGE}')`
 
     if (p.location) {
       document.getElementById('hero-location').style.display = 'flex'
