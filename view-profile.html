@@ -327,6 +327,8 @@ src="https://www.facebook.com/tr?id=847407428375701&ev=PageView&noscript=1"
   const { createClient } = supabase
   const sb = createClient(SUPABASE_URL, SUPABASE_ANON_KEY)
 
+  const DEFAULT_PROFILE_IMAGE = '/images/twinf-placeholder.png'
+
   const ORIGIN_GROUP = {
     Siriusian:1, Pleiadian:1, Lemurian:1, Cassiopeian:1, Procyonian:1, Lyran:1,
     Arcturian:2, Orion:2, Vegan:2, 'Zeta Reticulan':2, 'Epsilon Eridan':2, Atlantean:2,
@@ -450,9 +452,7 @@ src="https://www.facebook.com/tr?id=847407428375701&ev=PageView&noscript=1"
 
   function render() {
     // Hero photo
-    if (profile.photo_url) {
-      document.getElementById('hero-photo').style.backgroundImage = `url('${profile.photo_url}')`
-    }
+    document.getElementById('hero-photo').style.backgroundImage = `url('${profile.photo_url && profile.photo_url.trim() ? profile.photo_url : DEFAULT_PROFILE_IMAGE}')`
 
     // Name & age
     document.getElementById('profile-name').innerHTML =

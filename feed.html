@@ -770,6 +770,8 @@ src="https://www.facebook.com/tr?id=847407428375701&ev=PageView&noscript=1"
   const { createClient } = supabase
   const sb = createClient(SUPABASE_URL, SUPABASE_ANON_KEY)
 
+  const DEFAULT_PROFILE_IMAGE = '/images/twinf-placeholder.png'
+
   // ═══════════════════════════════════════════════════════════
   // 10 типов связи — цвета, характер пламени, фоновые частицы
   // ═══════════════════════════════════════════════════════════
@@ -1110,7 +1112,7 @@ src="https://www.facebook.com/tr?id=847407428375701&ev=PageView&noscript=1"
       const dotStyle = isUnknown ? 'border: 1px dashed ' + dotColor + '; background: transparent;' : 'background: ' + dotColor
 
       card.innerHTML = `
-        <div class="card-photo" style="background-image: url('${esc(profile.photo_url)}')"></div>
+        <div class="card-photo" style="background-image: url('${esc(profile.photo_url && profile.photo_url.trim() ? profile.photo_url : DEFAULT_PROFILE_IMAGE)}')"></div>
         <div class="stamp stamp-like">✦ Like</div>
         <div class="stamp stamp-pass">Pass</div>
         <div class="card-info">
@@ -1273,7 +1275,7 @@ src="https://www.facebook.com/tr?id=847407428375701&ev=PageView&noscript=1"
             const displayType = isUnknown ? '? Unknown' : connectionType
             const dotStyle = isUnknown ? 'border: 1px dashed ' + dotColor + '; background: transparent;' : 'background: ' + dotColor
             card.innerHTML = `
-              <div class="card-photo" style="background-image: url('${profile.photo_url}')"></div>
+              <div class="card-photo" style="background-image: url('${profile.photo_url && profile.photo_url.trim() ? profile.photo_url : DEFAULT_PROFILE_IMAGE}')"></div>
               <div class="stamp stamp-like">✶ Like</div>
               <div class="stamp stamp-pass">Pass</div>
               <div class="card-info">
@@ -1330,12 +1332,10 @@ src="https://www.facebook.com/tr?id=847407428375701&ev=PageView&noscript=1"
     document.getElementById('match-connection-badge').style.borderColor = theme.badgeColor + '55'
 
     // Фото
-    document.getElementById('match-photo-them').style.backgroundImage = `url('${profile.photo_url}')`
+    document.getElementById('match-photo-them').style.backgroundImage = `url('${profile.photo_url && profile.photo_url.trim() ? profile.photo_url : DEFAULT_PROFILE_IMAGE}')`
     document.getElementById('match-photo-them').style.borderColor = theme.badgeColor + '60'
-    if (myProfile?.photo_url) {
-      document.getElementById('match-photo-me').style.backgroundImage = `url('${myProfile.photo_url}')`
-      document.getElementById('match-photo-me').style.borderColor = theme.badgeColor + '60'
-    }
+    document.getElementById('match-photo-me').style.backgroundImage = `url('${myProfile?.photo_url && myProfile.photo_url.trim() ? myProfile.photo_url : DEFAULT_PROFILE_IMAGE}')`
+    document.getElementById('match-photo-me').style.borderColor = theme.badgeColor + '60'
 
     // Показать оверлей
     document.getElementById('match-overlay').classList.add('show')
