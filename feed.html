@@ -71,20 +71,39 @@ src="https://www.facebook.com/tr?id=847407428375701&ev=PageView&noscript=1"
 
   .nav-logo em { font-style: italic; color: var(--gold); }
 
-  .nav-icons {
+  /* BOTTOM NAV */
+  .bottom-nav {
+    position: fixed;
+    bottom: 0; left: 0; right: 0;
+    z-index: 50;
+    height: 56px;
     display: flex;
-    gap: 20px;
+    justify-content: space-around;
     align-items: center;
+    background: #110F1E;
+    border-top: 1px solid rgba(201,168,76,0.2);
+    padding: 0 0 env(safe-area-inset-bottom, 0);
   }
 
-  .nav-icon {
-    width: 36px; height: 36px;
-    display: flex; align-items: center; justify-content: center;
+  .nav-tab {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
     cursor: pointer;
-    opacity: 0.7;
-    transition: opacity 0.2s;
+    padding: 4px 16px;
+    color: #5A516E;
+    transition: color 0.2s;
   }
-  .nav-icon:hover { opacity: 1; }
+  .nav-tab.active { color: #C9A84C; }
+  .nav-tab:hover { color: #C9A84C; }
+
+  .nav-tab-label {
+    font-size: 8px;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    color: inherit;
+  }
 
   /* CARD STACK */
   .card-stack {
@@ -263,9 +282,9 @@ src="https://www.facebook.com/tr?id=847407428375701&ev=PageView&noscript=1"
   /* ACTION BUTTONS */
   .actions {
     position: fixed;
-    bottom: 0; left: 0; right: 0;
+    bottom: 56px; left: 0; right: 0;
     z-index: 50;
-    padding: 20px 24px 40px;
+    padding: 20px 24px 20px;
     display: flex;
     align-items: center;
     justify-content: center;
@@ -275,37 +294,58 @@ src="https://www.facebook.com/tr?id=847407428375701&ev=PageView&noscript=1"
 
   .btn-action {
     display: flex;
+    flex-direction: column;
     align-items: center;
     justify-content: center;
-    border-radius: 50%;
+    gap: 3px;
+    width: 38px;
+    height: 46px;
+    border-radius: 12px;
     cursor: pointer;
     transition: all 0.2s;
-    border: none;
-    background: rgba(255,255,255,0.06);
-    backdrop-filter: blur(10px);
+    background: #110F1E;
   }
 
   .btn-pass {
-    width: 64px; height: 64px;
-    border: 1px solid rgba(255,255,255,0.1);
+    border: 1px solid rgba(154,112,112,0.25);
+    color: #9A7070;
   }
 
   .btn-pass:hover {
-    background: rgba(255,100,100,0.15);
-    border-color: rgba(255,100,100,0.3);
+    background: rgba(154,112,112,0.12);
+    border-color: rgba(154,112,112,0.5);
+    transform: scale(1.05);
+  }
+
+  .btn-info {
+    border: 1px solid rgba(201,168,76,0.35);
+    color: #C9A84C;
+  }
+
+  .btn-info:hover {
+    background: rgba(201,168,76,0.1);
+    border-color: rgba(201,168,76,0.6);
     transform: scale(1.05);
   }
 
   .btn-like {
-    width: 64px; height: 64px;
-    border: 1px solid rgba(201,169,110,0.3);
-    background: rgba(201,169,110,0.08);
+    border: 1px solid rgba(201,168,76,0.35);
+    color: #C9A84C;
   }
 
   .btn-like:hover {
-    background: rgba(201,169,110,0.2);
-    border-color: rgba(201,169,110,0.6);
+    background: rgba(201,168,76,0.15);
+    border-color: rgba(201,168,76,0.6);
     transform: scale(1.05);
+  }
+
+  .btn-label {
+    font-family: 'Jost', sans-serif;
+    font-size: 7px;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    color: inherit;
+    line-height: 1;
   }
 
   /* LIKE/PASS STAMP */
@@ -608,25 +648,6 @@ src="https://www.facebook.com/tr?id=847407428375701&ev=PageView&noscript=1"
 <!-- TOP NAV -->
 <nav class="top-nav">
   <div class="nav-logo">Twin<em>F</em></div>
-  <div class="nav-icons">
-    <div class="nav-icon" onclick="window.location.href='library.html'" title="Library">
-      <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
-        <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20" stroke="var(--gold-soft)" stroke-width="1" stroke-linecap="round"/>
-        <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z" stroke="var(--gold-soft)" stroke-width="1" stroke-linecap="round"/>
-      </svg>
-    </div>
-    <div class="nav-icon" onclick="window.location.href='chats.html?tab=circle'" title="Chats">
-      <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
-        <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" stroke="var(--gold-soft)" stroke-width="1" stroke-linecap="round"/>
-      </svg>
-    </div>
-    <div class="nav-icon" onclick="window.location.href='profile.html'" title="Profile">
-      <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
-        <circle cx="12" cy="8" r="4" stroke="var(--gold-soft)" stroke-width="1"/>
-        <path d="M4 20c0-4 3.6-7 8-7s8 3 8 7" stroke="var(--gold-soft)" stroke-width="1" stroke-linecap="round"/>
-      </svg>
-    </div>
-  </div>
 </nav>
 
 
@@ -643,22 +664,55 @@ src="https://www.facebook.com/tr?id=847407428375701&ev=PageView&noscript=1"
 <!-- ACTION BUTTONS -->
 <div class="actions">
   <button class="btn-action btn-pass" onclick="swipe('pass')" title="Pass">
-    <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
-      <path d="M18 6L6 18M6 6l12 12" stroke="#e07070" stroke-width="1.5" stroke-linecap="round"/>
-    </svg>
-  </button>
-  <button class="btn-action btn-info" onclick="viewCurrentProfile()" title="View profile" style="width:48px;height:48px;border:1px solid rgba(255,255,255,0.12);">
     <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
-      <circle cx="12" cy="8" r="3" stroke="rgba(232,224,213,0.6)" stroke-width="1.5"/>
-      <path d="M6 20c0-3.314 2.686-6 6-6s6 2.686 6 6" stroke="rgba(232,224,213,0.6)" stroke-width="1.5" stroke-linecap="round"/>
+      <path d="M18 6L6 18M6 6l12 12" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
     </svg>
+    <span class="btn-label">PASS</span>
+  </button>
+  <button class="btn-action btn-info" onclick="viewCurrentProfile()" title="View profile">
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+      <circle cx="12" cy="8" r="3" stroke="currentColor" stroke-width="1.5"/>
+      <path d="M6 20c0-3.314 2.686-6 6-6s6 2.686 6 6" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>
+    </svg>
+    <span class="btn-label">PROFILE</span>
   </button>
   <button class="btn-action btn-like" onclick="swipe('like')" title="Like">
-    <svg width="26" height="26" viewBox="0 0 24 24" fill="none">
-      <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" stroke="var(--gold)" stroke-width="1.2" stroke-linecap="round" fill="rgba(201,169,110,0.1)"/>
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+      <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" fill="rgba(201,168,76,0.1)"/>
     </svg>
+    <span class="btn-label">LIKE</span>
   </button>
 </div>
+
+<!-- BOTTOM NAV -->
+<nav class="bottom-nav">
+  <div class="nav-tab active">
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
+      <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" stroke="currentColor" stroke-width="1.2" fill="none"/>
+    </svg>
+    <span class="nav-tab-label">EXPLORE</span>
+  </div>
+  <div class="nav-tab" onclick="window.location.href='chats.html'">
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
+      <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" stroke="currentColor" stroke-width="1" stroke-linecap="round"/>
+    </svg>
+    <span class="nav-tab-label">CIRCLE</span>
+  </div>
+  <div class="nav-tab" onclick="window.location.href='library.html'">
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
+      <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20" stroke="currentColor" stroke-width="1" stroke-linecap="round"/>
+      <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z" stroke="currentColor" stroke-width="1" stroke-linecap="round"/>
+    </svg>
+    <span class="nav-tab-label">LIBRARY</span>
+  </div>
+  <div class="nav-tab" onclick="window.location.href='profile.html'">
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
+      <circle cx="12" cy="8" r="4" stroke="currentColor" stroke-width="1"/>
+      <path d="M4 20c0-4 3.6-7 8-7s8 3 8 7" stroke="currentColor" stroke-width="1" stroke-linecap="round"/>
+    </svg>
+    <span class="nav-tab-label">PROFILE</span>
+  </div>
+</nav>
 
 <!-- EMPTY STATE -->
 <div class="empty-state" id="empty-state">

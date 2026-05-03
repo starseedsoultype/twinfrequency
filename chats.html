@@ -86,10 +86,37 @@ src="https://www.facebook.com/tr?id=847407428375701&ev=PageView&noscript=1"
     color: var(--text);
   }
   .nav-logo em { color: var(--gold); font-style: italic; }
-  .nav-icons { display: flex; gap: 16px; }
-  .nav-icon { cursor: pointer; opacity: 0.7; transition: opacity 0.2s; padding: 4px; }
-  .nav-icon:hover { opacity: 1; }
-  .nav-icon.active { opacity: 1; }
+  /* ── BOTTOM NAV ── */
+  .bottom-nav {
+    flex-shrink: 0;
+    height: 56px;
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+    background: #110F1E;
+    border-top: 1px solid rgba(201,168,76,0.2);
+    padding: 0 0 env(safe-area-inset-bottom, 0);
+  }
+
+  .nav-tab {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    cursor: pointer;
+    padding: 4px 16px;
+    color: #5A516E;
+    transition: color 0.2s;
+  }
+  .nav-tab.active { color: #C9A84C; }
+  .nav-tab:hover { color: #C9A84C; }
+
+  .nav-tab-label {
+    font-size: 8px;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    color: inherit;
+  }
 
   /* ── TABS ── */
   .tabs {
@@ -470,29 +497,6 @@ src="https://www.facebook.com/tr?id=847407428375701&ev=PageView&noscript=1"
 <div class="view" id="list-view">
   <nav class="top-nav">
     <div class="nav-logo">Twin<em>F</em></div>
-    <div class="nav-icons">
-      <div class="nav-icon active" title="Circle">
-        <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
-          <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" stroke="var(--gold)" stroke-width="1" stroke-linecap="round"/>
-        </svg>
-      </div>
-      <div class="nav-icon" onclick="window.location.href='feed.html'" title="Explore">
-        <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
-          <circle cx="12" cy="12" r="9" stroke="var(--gold-soft)" stroke-width="1"/>
-          <circle cx="12" cy="12" r="3" stroke="var(--gold-soft)" stroke-width="1"/>
-          <line x1="12" y1="3" x2="12" y2="6" stroke="var(--gold-soft)" stroke-width="1"/>
-          <line x1="12" y1="18" x2="12" y2="21" stroke="var(--gold-soft)" stroke-width="1"/>
-          <line x1="3" y1="12" x2="6" y2="12" stroke="var(--gold-soft)" stroke-width="1"/>
-          <line x1="18" y1="12" x2="21" y2="12" stroke="var(--gold-soft)" stroke-width="1"/>
-        </svg>
-      </div>
-      <div class="nav-icon" onclick="window.location.href='profile.html'" title="Profile">
-        <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
-          <circle cx="12" cy="8" r="4" stroke="var(--gold-soft)" stroke-width="1"/>
-          <path d="M4 20c0-4 3.6-7 8-7s8 3 8 7" stroke="var(--gold-soft)" stroke-width="1" stroke-linecap="round"/>
-        </svg>
-      </div>
-    </div>
   </nav>
 
   <div class="tabs">
@@ -510,6 +514,36 @@ src="https://www.facebook.com/tr?id=847407428375701&ev=PageView&noscript=1"
       <div id="circle-list"></div>
     </div>
   </div>
+
+  <!-- BOTTOM NAV -->
+  <nav class="bottom-nav">
+    <div class="nav-tab" onclick="window.location.href='feed.html'">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
+        <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" stroke="currentColor" stroke-width="1.2" fill="none"/>
+      </svg>
+      <span class="nav-tab-label">EXPLORE</span>
+    </div>
+    <div class="nav-tab active">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
+        <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" stroke="currentColor" stroke-width="1" stroke-linecap="round"/>
+      </svg>
+      <span class="nav-tab-label">CIRCLE</span>
+    </div>
+    <div class="nav-tab" onclick="window.location.href='library.html'">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
+        <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20" stroke="currentColor" stroke-width="1" stroke-linecap="round"/>
+        <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z" stroke="currentColor" stroke-width="1" stroke-linecap="round"/>
+      </svg>
+      <span class="nav-tab-label">LIBRARY</span>
+    </div>
+    <div class="nav-tab" onclick="window.location.href='profile.html'">
+      <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
+        <circle cx="12" cy="8" r="4" stroke="currentColor" stroke-width="1"/>
+        <path d="M4 20c0-4 3.6-7 8-7s8 3 8 7" stroke="currentColor" stroke-width="1" stroke-linecap="round"/>
+      </svg>
+      <span class="nav-tab-label">PROFILE</span>
+    </div>
+  </nav>
 </div>
 
 <!-- ════════════════════════════════════════

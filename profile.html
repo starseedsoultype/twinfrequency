@@ -648,26 +648,27 @@ src="https://www.facebook.com/tr?id=847407428375701&ev=PageView&noscript=1"
     position: fixed;
     bottom: 0; left: 0; right: 0;
     z-index: 50;
+    height: 56px;
     display: flex;
     justify-content: space-around;
     align-items: center;
-    padding: 12px 0 24px;
-    background: linear-gradient(to top, rgba(4,3,10,0.98), rgba(4,3,10,0.7));
-    border-top: 1px solid rgba(255,255,255,0.04);
+    background: #110F1E;
+    border-top: 1px solid rgba(201,168,76,0.2);
+    padding: 0 0 env(safe-area-inset-bottom, 0);
   }
 
   .nav-tab {
     display: flex; flex-direction: column; align-items: center; gap: 4px;
-    cursor: pointer; opacity: 0.4; transition: opacity 0.2s;
-    padding: 4px 16px;
+    cursor: pointer; padding: 4px 16px;
+    color: #5A516E; transition: color 0.2s;
   }
 
-  .nav-tab.active { opacity: 1; }
-  .nav-tab:hover { opacity: 0.8; }
+  .nav-tab.active { color: #C9A84C; }
+  .nav-tab:hover { color: #C9A84C; }
 
   .nav-tab-label {
-    font-size: 9px; letter-spacing: 0.2em; text-transform: uppercase;
-    color: var(--gold-soft);
+    font-size: 8px; letter-spacing: 0.05em; text-transform: uppercase;
+    color: inherit;
   }
 
   /* ── ORIGIN SELECT GRID ── */
@@ -1044,22 +1045,29 @@ src="https://www.facebook.com/tr?id=847407428375701&ev=PageView&noscript=1"
 <nav class="bottom-nav">
   <div class="nav-tab" onclick="window.location.href='feed.html'">
     <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
-      <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" stroke="var(--gold-soft)" stroke-width="1.2" fill="none"/>
+      <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" stroke="currentColor" stroke-width="1.2" fill="none"/>
     </svg>
-    <span class="nav-tab-label">Explore</span>
+    <span class="nav-tab-label">EXPLORE</span>
   </div>
-  <div class="nav-tab" onclick="window.location.href='chats.html?tab=circle'">
+  <div class="nav-tab" onclick="window.location.href='chats.html'">
     <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
-      <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" stroke="var(--gold-soft)" stroke-width="1" stroke-linecap="round"/>
+      <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" stroke="currentColor" stroke-width="1" stroke-linecap="round"/>
     </svg>
-    <span class="nav-tab-label">Circle</span>
+    <span class="nav-tab-label">CIRCLE</span>
+  </div>
+  <div class="nav-tab" onclick="window.location.href='library.html'">
+    <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
+      <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20" stroke="currentColor" stroke-width="1" stroke-linecap="round"/>
+      <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z" stroke="currentColor" stroke-width="1" stroke-linecap="round"/>
+    </svg>
+    <span class="nav-tab-label">LIBRARY</span>
   </div>
   <div class="nav-tab active">
     <svg width="22" height="22" viewBox="0 0 24 24" fill="none">
-      <circle cx="12" cy="8" r="4" stroke="var(--gold)" stroke-width="1.2"/>
-      <path d="M4 20c0-4 3.6-7 8-7s8 3 8 7" stroke="var(--gold)" stroke-width="1.2" stroke-linecap="round"/>
+      <circle cx="12" cy="8" r="4" stroke="currentColor" stroke-width="1.2"/>
+      <path d="M4 20c0-4 3.6-7 8-7s8 3 8 7" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/>
     </svg>
-    <span class="nav-tab-label" style="color:var(--gold)">Profile</span>
+    <span class="nav-tab-label">PROFILE</span>
   </div>
 </nav>
 
