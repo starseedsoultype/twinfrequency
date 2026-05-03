@@ -452,11 +452,13 @@ html, body {
   position: fixed;
   bottom: 0; left: 0; right: 0;
   z-index: 50;
-  padding: 12px 0 24px;
-  background: linear-gradient(to top, rgba(4,3,10,0.95) 60%, transparent);
+  height: 56px;
+  background: #110F1E;
+  border-top: 1px solid rgba(201,168,76,0.2);
   display: flex;
   justify-content: space-around;
   align-items: center;
+  padding: 0 0 env(safe-area-inset-bottom, 0);
 }
 
 .nav-item {
@@ -465,20 +467,20 @@ html, body {
   align-items: center;
   gap: 4px;
   cursor: pointer;
-  opacity: 0.4;
-  transition: opacity 0.2s;
+  color: #5A516E;
+  transition: color 0.2s;
   min-width: 60px;
 }
-.nav-item.active { opacity: 1; }
-.nav-item:hover { opacity: 0.8; }
+.nav-item.active { color: #C9A84C; }
+.nav-item:hover { color: #C9A84C; }
 
 .nav-item svg { width: 22px; height: 22px; }
 
 .nav-label {
-  font-size: 9px;
-  letter-spacing: 0.15em;
+  font-size: 8px;
+  letter-spacing: 0.05em;
   text-transform: uppercase;
-  color: var(--gold-soft);
+  color: inherit;
 }
 
 /* SEARCH RESULTS */
@@ -683,27 +685,27 @@ html, body {
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2">
       <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"/>
     </svg>
-    <span class="nav-label">Explore</span>
+    <span class="nav-label">EXPLORE</span>
   </div>
   <div class="nav-item" onclick="window.location.href='chats.html'">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2">
       <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>
     </svg>
-    <span class="nav-label">Circle</span>
+    <span class="nav-label">CIRCLE</span>
   </div>
   <div class="nav-item active">
-    <svg viewBox="0 0 24 24" fill="none" stroke="#c9a96e" stroke-width="1.2">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2">
       <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/>
       <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/>
     </svg>
-    <span class="nav-label" style="color:var(--gold)">Library</span>
+    <span class="nav-label">LIBRARY</span>
   </div>
   <div class="nav-item" onclick="window.location.href='profile.html'">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.2">
       <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/>
       <circle cx="12" cy="7" r="4"/>
     </svg>
-    <span class="nav-label">Profile</span>
+    <span class="nav-label">PROFILE</span>
   </div>
 </nav>
 
