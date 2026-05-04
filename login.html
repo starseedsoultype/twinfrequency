@@ -18,6 +18,10 @@ fbq('track', 'PageView');
 src="https://www.facebook.com/tr?id=847407428375701&ev=PageView&noscript=1"
 /></noscript>
 <!-- End Meta Pixel Code -->
+<!-- Manychat Pixel Code -->
+<script src="//widget.manychat.com/3703484_8c327.js" defer="defer"></script>
+<script src="https://mccdn.me/assets/js/widget.js" defer="defer"></script>
+<!-- End Manychat Pixel Code -->
 
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -45,7 +49,6 @@ src="https://www.facebook.com/tr?id=847407428375701&ev=PageView&noscript=1"
     overflow: hidden;
   }
 
-  /* STAR FIELD */
   canvas#stars {
     position: fixed;
     inset: 0;
@@ -53,7 +56,6 @@ src="https://www.facebook.com/tr?id=847407428375701&ev=PageView&noscript=1"
     pointer-events: none;
   }
 
-  /* NEBULA GLOW */
   .nebula {
     position: fixed;
     border-radius: 50%;
@@ -77,7 +79,6 @@ src="https://www.facebook.com/tr?id=847407428375701&ev=PageView&noscript=1"
     background: radial-gradient(circle, rgba(120,80,40,0.1) 0%, transparent 70%);
   }
 
-  /* LAYOUT */
   .container {
     position: relative;
     z-index: 1;
@@ -89,7 +90,6 @@ src="https://www.facebook.com/tr?id=847407428375701&ev=PageView&noscript=1"
     padding: 40px 24px;
   }
 
-  /* SYMBOL */
   .symbol {
     width: 56px;
     height: 56px;
@@ -98,7 +98,6 @@ src="https://www.facebook.com/tr?id=847407428375701&ev=PageView&noscript=1"
     animation: fadeUp 1.2s ease forwards 0.3s;
   }
 
-  /* TITLE */
   .title {
     font-family: 'Cormorant Garamond', serif;
     font-size: clamp(36px, 8vw, 52px);
@@ -127,7 +126,6 @@ src="https://www.facebook.com/tr?id=847407428375701&ev=PageView&noscript=1"
     animation: fadeUp 1.2s ease forwards 0.7s;
   }
 
-  /* DIVIDER */
   .divider {
     width: 1px;
     height: 48px;
@@ -137,7 +135,6 @@ src="https://www.facebook.com/tr?id=847407428375701&ev=PageView&noscript=1"
     animation: fadeUp 1.2s ease forwards 0.9s;
   }
 
-  /* FORM */
   .form-wrap {
     width: 100%;
     max-width: 340px;
@@ -295,7 +292,6 @@ src="https://www.facebook.com/tr?id=847407428375701&ev=PageView&noscript=1"
 
   .message.error { color: #e07070; }
 
-  /* PANELS */
   .panel { display: none; }
   .panel.active { display: block; }
 
@@ -304,7 +300,6 @@ src="https://www.facebook.com/tr?id=847407428375701&ev=PageView&noscript=1"
     to { opacity: 1; transform: translateY(0); }
   }
 
-  /* LOADING SCREEN */
   .loading-screen {
     position: fixed;
     inset: 0;
@@ -348,7 +343,6 @@ src="https://www.facebook.com/tr?id=847407428375701&ev=PageView&noscript=1"
 
 <div class="container">
 
-  <!-- Symbol -->
   <svg class="symbol" viewBox="0 0 56 56" fill="none" xmlns="http://www.w3.org/2000/svg">
     <circle cx="28" cy="28" r="27" stroke="#c9a96e" stroke-width="0.5" opacity="0.4"/>
     <circle cx="28" cy="28" r="18" stroke="#c9a96e" stroke-width="0.5" opacity="0.3"/>
@@ -372,7 +366,6 @@ src="https://www.facebook.com/tr?id=847407428375701&ev=PageView&noscript=1"
       <button class="tab" onclick="switchTab('signup')">Join</button>
     </div>
 
-    <!-- SIGN IN -->
     <div class="panel active" id="panel-signin">
       <div class="input-group">
         <input type="email" id="signin-email" placeholder="Your email" autocomplete="email">
@@ -396,7 +389,6 @@ src="https://www.facebook.com/tr?id=847407428375701&ev=PageView&noscript=1"
       </button>
     </div>
 
-    <!-- SIGN UP -->
     <div class="panel" id="panel-signup">
       <div class="input-group">
         <input type="email" id="signup-email" placeholder="Your email" autocomplete="email">
@@ -424,10 +416,8 @@ src="https://www.facebook.com/tr?id=847407428375701&ev=PageView&noscript=1"
 </div>
 
 <script>
-  // ─── CONFIG ───────────────────────────────────────────────
   const SUPABASE_URL = 'https://pewgupxikbswhaqxjrwk.supabase.co'
   const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBld2d1cHhpa2Jzd2hhcXhqcndrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzUyNjY0MTEsImV4cCI6MjA5MDg0MjQxMX0.rQIz0R_4Oz6VqHgSvjx9YAtF8BojdcMU7RcqDiVP1NU'
-  // ──────────────────────────────────────────────────────────
 
   const { createClient } = supabase
   const sb = createClient(SUPABASE_URL, SUPABASE_ANON_KEY)
@@ -444,7 +434,6 @@ src="https://www.facebook.com/tr?id=847407428375701&ev=PageView&noscript=1"
     document.getElementById('loader').classList.add('hide')
   }, 3000)
 
-  // Stars canvas
   const canvas = document.getElementById('stars')
   const ctx = canvas.getContext('2d')
   let stars = []
@@ -477,15 +466,12 @@ src="https://www.facebook.com/tr?id=847407428375701&ev=PageView&noscript=1"
   resize()
   drawStars()
 
-  // Обработка URL-параметров: ?join=1&origin=Pleiadian (пришёл с квиза)
   const urlParams = new URLSearchParams(window.location.search)
   if (urlParams.get('join') === '1') {
     switchTab('signup')
-    // Сохраняем Origin в sessionStorage — после регистрации передадим в onboarding
     const originFromQuiz = urlParams.get('origin')
     if (originFromQuiz) {
       sessionStorage.setItem('quiz_origin', originFromQuiz)
-      // Показываем подсказку под формой
       const hint = document.createElement('div')
       hint.style.cssText = 'text-align:center;font-size:11px;color:#c9a96e;letter-spacing:2px;margin-top:12px;opacity:0.8;'
       hint.textContent = 'Your Origin: ' + originFromQuiz
@@ -493,7 +479,6 @@ src="https://www.facebook.com/tr?id=847407428375701&ev=PageView&noscript=1"
     }
   }
 
-  // Tab switching
   function switchTab(tab) {
     document.querySelectorAll('.tab').forEach((t, i) => {
       t.classList.toggle('active', (i === 0 && tab === 'signin') || (i === 1 && tab === 'signup'))
@@ -509,7 +494,6 @@ src="https://www.facebook.com/tr?id=847407428375701&ev=PageView&noscript=1"
     el.className = 'message' + (isError ? ' error' : '')
   }
 
-  // Sign In
   async function signIn() {
     const email = document.getElementById('signin-email').value.trim()
     const password = document.getElementById('signin-password').value
@@ -521,7 +505,6 @@ src="https://www.facebook.com/tr?id=847407428375701&ev=PageView&noscript=1"
     window.location.href = 'onboarding.html'
   }
 
-  // Forgot Password
   function showForgot() {
     const email = document.getElementById('signin-email').value.trim()
     if (!email) return setMsg('Enter your email above first', true)
@@ -537,7 +520,6 @@ src="https://www.facebook.com/tr?id=847407428375701&ev=PageView&noscript=1"
     setMsg('Reset link sent — check your email ✦')
   }
 
-  // Sign Up
   async function signUp() {
     const email = document.getElementById('signup-email').value.trim()
     const password = document.getElementById('signup-password').value
@@ -547,20 +529,16 @@ src="https://www.facebook.com/tr?id=847407428375701&ev=PageView&noscript=1"
     setMsg('Opening the portal...')
     const { error } = await sb.auth.signUp({ email, password })
     if (error) return setMsg(error.message, true)
-    // Если пришёл с квиза с известным Origin — передаём его в onboarding
     const savedOrigin = sessionStorage.getItem('quiz_origin')
     if (savedOrigin) {
       sessionStorage.removeItem('quiz_origin')
       setMsg('Check your email to confirm your frequency ✦')
-      // После подтверждения email Supabase редиректнет в onboarding сам
-      // Записываем в localStorage чтобы пережило перезагрузку
       localStorage.setItem('pending_origin', savedOrigin)
     } else {
       setMsg('Check your email to confirm your frequency ✦')
     }
   }
 
-  // Google
   async function signInGoogle() {
     const { error } = await sb.auth.signInWithOAuth({
       provider: 'google',
@@ -569,7 +547,6 @@ src="https://www.facebook.com/tr?id=847407428375701&ev=PageView&noscript=1"
     if (error) setMsg(error.message, true)
   }
 
-  // Enter key
   document.addEventListener('keydown', e => {
     if (e.key === 'Enter') {
       const active = document.querySelector('.panel.active').id
