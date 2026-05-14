@@ -68,9 +68,24 @@ src="https://www.facebook.com/tr?id=847407428375701&ev=PageView&noscript=1"
     font-weight: 300;
     letter-spacing: 0.15em;
     color: var(--gold-soft);
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 2px;
+    line-height: 1;
   }
 
   .nav-logo em { font-style: italic; color: var(--gold); }
+
+  .nav-logo-sub {
+    font-family: 'Jost', sans-serif;
+    font-size: 8px;
+    font-weight: 300;
+    letter-spacing: 0.4em;
+    text-transform: uppercase;
+    color: var(--muted);
+    opacity: 0.7;
+  }
 
   /* BOTTOM NAV */
   .bottom-nav {
@@ -539,6 +554,18 @@ src="https://www.facebook.com/tr?id=847407428375701&ev=PageView&noscript=1"
     text-transform: uppercase;
   }
 
+  .match-connection-desc {
+    font-size: 11px;
+    font-weight: 300;
+    letter-spacing: 0.05em;
+    color: rgba(232,224,213,0.5);
+    text-align: center;
+    max-width: 260px;
+    margin: 10px auto 0;
+    line-height: 1.7;
+    font-style: italic;
+  }
+
   /* Два портрета + пламя между ними */
   .match-portraits {
     display: flex;
@@ -654,7 +681,7 @@ src="https://www.facebook.com/tr?id=847407428375701&ev=PageView&noscript=1"
 
 <!-- TOP NAV -->
 <nav class="top-nav">
-  <div class="nav-logo">Twin<em>F</em></div>
+  <div class="nav-logo">Twin<em>F</em><span class="nav-logo-sub">by StarSeedSoul</span></div>
 </nav>
 
 
@@ -747,6 +774,7 @@ src="https://www.facebook.com/tr?id=847407428375701&ev=PageView&noscript=1"
       <div class="match-connection-dot" id="match-connection-dot"></div>
       <span class="match-connection-text" id="match-connection-text">—</span>
     </div>
+    <p class="match-connection-desc" id="match-connection-desc"></p>
 
     <!-- Два портрета с пламенем между ними -->
     <div class="match-portraits">
@@ -784,6 +812,19 @@ src="https://www.facebook.com/tr?id=847407428375701&ev=PageView&noscript=1"
   }
 
   const DEFAULT_PROFILE_IMAGE = '/images/twinf-placeholder.png'
+
+  const CONNECTION_DESCRIPTIONS = {
+    'Frequency Twins':    'Same frequency, same origin — a mirror that shows you yourself',
+    'Eternal Reflection': 'Same constellation, different star — recognition without effort',
+    'Twin Stars':         'Adjacent frequencies — warmth, pull, natural resonance',
+    'Cosmic Flow':        'Complementary currents — each makes the other more themselves',
+    'Star Alchemy':       'Different energies that transform on contact',
+    'Mirror Portals':     'What you most avoid, they embody — and vice versa',
+    'Celestial Mentor':   'One carries what the other is becoming',
+    'Karmic Bonds':       'Something between you was never completed',
+    'Shadow Contracts':   'Intensity and friction — growth through resistance',
+    'Black Holes':        'Maximum distance between frequencies — rare, unforgettable',
+  }
 
   // ═══════════════════════════════════════════════════════════
   // 10 типов связи — цвета, характер пламени, фоновые частицы
@@ -1343,6 +1384,7 @@ src="https://www.facebook.com/tr?id=847407428375701&ev=PageView&noscript=1"
     document.getElementById('match-connection-text').textContent = connectionType
     document.getElementById('match-connection-text').style.color = theme.badgeColor
     document.getElementById('match-connection-badge').style.borderColor = theme.badgeColor + '55'
+    document.getElementById('match-connection-desc').textContent = CONNECTION_DESCRIPTIONS[connectionType] || ''
 
     // Фото
     document.getElementById('match-photo-them').style.backgroundImage = `url('${profile.photo_url && profile.photo_url.trim() ? profile.photo_url : DEFAULT_PROFILE_IMAGE}')`
