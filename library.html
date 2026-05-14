@@ -74,8 +74,22 @@ html, body {
   font-weight: 300;
   letter-spacing: 0.15em;
   color: var(--gold-soft);
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 2px;
+  line-height: 1;
 }
 .nav-logo em { font-style: italic; color: var(--gold); }
+.nav-logo-sub {
+  font-family: 'Jost', sans-serif;
+  font-size: 8px;
+  font-weight: 300;
+  letter-spacing: 0.4em;
+  text-transform: uppercase;
+  color: var(--muted);
+  opacity: 0.7;
+}
 
 .back-btn {
   display: flex;
@@ -543,7 +557,7 @@ html, body {
     </svg>
     <span>BACK</span>
   </div>
-  <div class="nav-logo" id="nav-logo">Twin<em>F</em></div>
+  <div class="nav-logo" id="nav-logo">Twin<em>F</em><span class="nav-logo-sub">by StarSeedSoul</span></div>
   <div style="width:60px"></div>
 </nav>
 
