@@ -420,6 +420,24 @@ src="https://www.facebook.com/tr?id=847407428375701&ev=PageView&noscript=1"
     <div class="message" id="msg"></div>
   </div>
 
+  <!-- ── TELEGRAM LINK PANEL (shown after new Telegram account created) ── -->
+  <div id="tg-link-panel" style="display:none;position:fixed;inset:0;background:var(--deep);z-index:200;display:none;flex-direction:column;align-items:center;justify-content:center;padding:32px 24px;text-align:center;">
+    <p style="font-family:'Cormorant Garamond',serif;font-size:28px;font-weight:300;letter-spacing:0.1em;color:var(--gold);margin-bottom:8px">Welcome</p>
+    <p style="color:var(--text);font-size:14px;letter-spacing:0.05em;margin-bottom:32px;line-height:1.6">Already have a TwinFrequency account?<br>Link it to receive notifications in Telegram.</p>
+
+    <div style="width:100%;max-width:360px">
+      <div class="input-group" style="margin-bottom:12px">
+        <input type="email" id="link-email" placeholder="Your email" autocomplete="email">
+      </div>
+      <div class="input-group" style="margin-bottom:20px">
+        <input type="password" id="link-password" placeholder="Password" autocomplete="current-password">
+      </div>
+      <button class="btn-primary" onclick="linkExistingAccount()" style="margin-bottom:12px">Link my account</button>
+      <button onclick="skipLink()" style="width:100%;background:none;border:none;color:var(--muted);font-family:'Jost',sans-serif;font-size:12px;letter-spacing:0.1em;cursor:pointer;padding:8px;text-transform:uppercase">Skip — create new account</button>
+    </div>
+    <div id="link-msg" style="color:#e07070;font-size:12px;margin-top:12px;letter-spacing:0.05em"></div>
+  </div>
+
 </div>
 
 <script>
@@ -437,6 +455,8 @@ src="https://www.facebook.com/tr?id=847407428375701&ev=PageView&noscript=1"
     tg.expand()
   }
 
+  let tgSession = null // holds Telegram session while user decides whether to link
+
   if (tg?.initData) {
     // Mobile Telegram: initData is populated — auto-login
     ;(async () => {
@@ -446,10 +466,17 @@ src="https://www.facebook.com/tr?id=847407428375701&ev=PageView&noscript=1"
           headers: { 'Content-Type': 'application/json', 'apikey': SUPABASE_ANON_KEY },
           body: JSON.stringify({ initData: tg.initData })
         })
-        const { access_token, refresh_token, error } = await res.json()
-        if (error) throw new Error(error)
-        await sb.auth.setSession({ access_token, refresh_token })
-        window.location.href = 'onboarding.html'
+        const json = await res.json()
+        if (json.error) throw new Error(json.error)
+        await sb.auth.setSession({ access_token: json.access_token, refresh_token: json.refresh_token })
+        if (json.is_new_user) {
+          // New user — offer to link existing account
+          tgSession = json
+          document.getElementById('loader').classList.add('hide')
+          document.getElementById('tg-link-panel').style.display = 'flex'
+        } else {
+          window.location.href = 'onboarding.html'
+        }
       } catch (e) {
         document.getElementById('loader').classList.add('hide')
       }
@@ -463,6 +490,29 @@ src="https://www.facebook.com/tr?id=847407428375701&ev=PageView&noscript=1"
         document.getElementById('loader').classList.add('hide')
       }
     })
+  }
+
+  async function linkExistingAccount() {
+    const email = document.getElementById('link-email').value.trim()
+    const password = document.getElementById('link-password').value
+    const msg = document.getElementById('link-msg')
+    if (!email || !password) { msg.textContent = 'Enter your email and password'; return }
+
+    msg.textContent = ''
+    const { data, error } = await sb.auth.signInWithPassword({ email, password })
+    if (error || !data.session) { msg.textContent = 'Incorrect email or password'; return }
+
+    // Link telegram_id to this existing account
+    const tgUser = tg.initDataUnsafe?.user
+    if (tgUser?.id) {
+      await sb.from('profiles').update({ telegram_id: tgUser.id }).eq('id', data.session.user.id)
+    }
+    window.location.href = 'onboarding.html'
+  }
+
+  function skipLink() {
+    document.getElementById('tg-link-panel').style.display = 'none'
+    window.location.href = 'onboarding.html'
   }
 
   setTimeout(() => {
