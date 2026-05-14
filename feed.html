@@ -397,6 +397,67 @@ src="https://www.facebook.com/tr?id=847407428375701&ev=PageView&noscript=1"
 
   .stamp.show { opacity: 0.9; }
 
+  /* ONBOARDING */
+  .onboard-overlay {
+    position: fixed; inset: 0; z-index: 200;
+    background: var(--deep);
+    display: none; flex-direction: column;
+    align-items: center; justify-content: center;
+    padding: 40px 28px; text-align: center;
+  }
+  .onboard-overlay.show { display: flex; }
+  .onboard-screen {
+    display: none; flex-direction: column;
+    align-items: center; gap: 16px;
+    width: 100%; max-width: 340px;
+    animation: fadeInUp 0.45s ease;
+  }
+  .onboard-screen.active { display: flex; }
+  @keyframes fadeInUp {
+    from { opacity: 0; transform: translateY(18px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+  .onboard-symbol { font-size: 36px; color: var(--gold); margin-bottom: 8px; }
+  .onboard-eyebrow {
+    font-family: 'Jost', sans-serif; font-size: 10px;
+    letter-spacing: 0.28em; text-transform: uppercase;
+    color: var(--gold); opacity: 0.6;
+  }
+  .onboard-title {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 28px; font-weight: 300;
+    color: var(--gold-soft); line-height: 1.3; margin: 0;
+  }
+  .onboard-body {
+    font-size: 13px; color: var(--muted);
+    line-height: 1.75; max-width: 300px;
+  }
+  .onboard-btn {
+    margin-top: 8px; padding: 14px 28px;
+    border: 1px solid var(--gold); background: transparent;
+    color: var(--gold-soft); font-family: 'Jost', sans-serif;
+    font-size: 11px; letter-spacing: 0.2em; text-transform: uppercase;
+    cursor: pointer; text-decoration: none; display: inline-block;
+    transition: background 0.2s; width: 100%; max-width: 280px;
+    border-radius: 2px;
+  }
+  .onboard-btn:hover { background: rgba(201,169,110,0.1); }
+  .onboard-btn-ghost {
+    background: transparent; border: 1px solid rgba(255,255,255,0.1);
+    color: var(--muted); font-family: 'Jost', sans-serif;
+    font-size: 11px; letter-spacing: 0.15em; text-transform: uppercase;
+    cursor: pointer; padding: 12px 28px;
+    width: 100%; max-width: 280px; transition: border-color 0.2s;
+    border-radius: 2px;
+  }
+  .onboard-btn-ghost:hover { border-color: rgba(201,169,110,0.3); }
+  .onboard-dots { position: absolute; bottom: 36px; display: flex; gap: 8px; }
+  .onboard-dot {
+    width: 5px; height: 5px; border-radius: 50%;
+    background: rgba(201,169,110,0.25); transition: background 0.3s;
+  }
+  .onboard-dot.active { background: var(--gold); }
+
   /* EMPTY STATE */
   .empty-state {
     display: none;
@@ -816,6 +877,39 @@ src="https://www.facebook.com/tr?id=847407428375701&ev=PageView&noscript=1"
   </div>
 </nav>
 
+<!-- ONBOARDING -->
+<div class="onboard-overlay" id="onboard-overlay">
+  <div class="onboard-screen active" data-step="0">
+    <div class="onboard-symbol">✦</div>
+    <p class="onboard-eyebrow">Twin Frequency · by StarSeedSoul</p>
+    <h2 class="onboard-title">Your soul arrived carrying<br>a specific frequency</h2>
+    <p class="onboard-body">Twin Frequency connects people based on their StarSeedSoul Origin — the pattern you carry since before you had words for it.</p>
+    <button class="onboard-btn" onclick="nextOnboard()">Continue</button>
+  </div>
+  <div class="onboard-screen" data-step="1">
+    <div class="onboard-symbol">◈</div>
+    <p class="onboard-eyebrow">10 Connection Frequencies</p>
+    <h2 class="onboard-title">Every match has a frequency</h2>
+    <p class="onboard-body">When you match with someone, the system reveals the resonance between your Origins — from Frequency Twins to Mirror Portals to Shadow Contracts. Each type tells you something real.</p>
+    <button class="onboard-btn" onclick="nextOnboard()">Continue</button>
+  </div>
+  <div class="onboard-screen" data-step="2">
+    <div class="onboard-symbol">⟡</div>
+    <p class="onboard-eyebrow">Your Origin</p>
+    <h2 class="onboard-title">Discover your Origin first</h2>
+    <p class="onboard-body">For full compatibility, take the StarSeedSoul Origin quiz. It maps 24 soul types and reveals your Core Frequency — the basis of every connection here.</p>
+    <div style="display:flex;flex-direction:column;gap:10px;width:100%;max-width:280px;">
+      <a href="https://www.starseedsoultype.com/" target="_blank" class="onboard-btn">Discover your Origin</a>
+      <button class="onboard-btn-ghost" onclick="closeOnboard()">Skip, I know my Origin</button>
+    </div>
+  </div>
+  <div class="onboard-dots">
+    <div class="onboard-dot active" id="odot-0"></div>
+    <div class="onboard-dot" id="odot-1"></div>
+    <div class="onboard-dot" id="odot-2"></div>
+  </div>
+</div>
+
 <!-- EMPTY STATE -->
 <div class="empty-state" id="empty-state">
   <p style="font-size:32px;margin-bottom:20px">✦</p>
@@ -1210,6 +1304,7 @@ src="https://www.facebook.com/tr?id=847407428375701&ev=PageView&noscript=1"
     }
 
     renderCards()
+    initOnboard()
 
   })
 
@@ -1946,6 +2041,35 @@ src="https://www.facebook.com/tr?id=847407428375701&ev=PageView&noscript=1"
     if (e.key === 'ArrowLeft') swipe('pass')
     if (e.key === 'Escape') closeMatch(false)
   })
+
+  // ONBOARDING
+  let onboardStep = 0
+  const ONBOARD_KEY = 'twinf_onboard_v1'
+
+  function initOnboard() {
+    if (!localStorage.getItem(ONBOARD_KEY)) {
+      document.getElementById('onboard-overlay').classList.add('show')
+    }
+  }
+
+  function nextOnboard() {
+    const screens = document.querySelectorAll('.onboard-screen')
+    const dots    = document.querySelectorAll('.onboard-dot')
+    screens[onboardStep].classList.remove('active')
+    dots[onboardStep].classList.remove('active')
+    onboardStep++
+    if (onboardStep < screens.length) {
+      screens[onboardStep].classList.add('active')
+      dots[onboardStep].classList.add('active')
+    } else {
+      closeOnboard()
+    }
+  }
+
+  function closeOnboard() {
+    localStorage.setItem(ONBOARD_KEY, '1')
+    document.getElementById('onboard-overlay').classList.remove('show')
+  }
 </script>
 </body>
 </html>

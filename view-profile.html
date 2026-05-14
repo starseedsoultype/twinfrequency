@@ -202,10 +202,13 @@ src="https://www.facebook.com/tr?id=847407428375701&ev=PageView&noscript=1"
   .origin-card {
     background: rgba(201,169,110,0.05);
     border: 1px solid rgba(201,169,110,0.12);
-    border-radius: 12px;
+    border-radius: 4px;
     padding: 16px 18px;
     margin-top: 8px;
+    cursor: pointer;
+    transition: background 0.2s;
   }
+  .origin-card:hover { background: rgba(201,169,110,0.1); }
   .origin-name {
     font-family: 'Cormorant Garamond', serif;
     font-size: 20px; font-weight: 300;
@@ -310,7 +313,7 @@ src="https://www.facebook.com/tr?id=847407428375701&ev=PageView&noscript=1"
     <!-- Origin section -->
     <div id="origin-section">
       <div class="section-label">Stellar Origin</div>
-      <div class="origin-card">
+      <div class="origin-card" onclick="openOriginLibrary()">
         <div class="origin-name" id="origin-name">—</div>
         <div class="origin-desc" id="origin-desc">—</div>
       </div>
@@ -389,6 +392,13 @@ src="https://www.facebook.com/tr?id=847407428375701&ev=PageView&noscript=1"
     Procyonian: 'Joyful and playful beings who bring lightness to heavy energies.',
     'Zeta Reticulan': 'Analytical and curious beings focused on consciousness research.',
     'Epsilon Eridan': 'Deep-sea explorers of the emotional and psychic realms.',
+  }
+
+  function openOriginLibrary() {
+    const origin = document.getElementById('origin-name').textContent.trim()
+    if (origin && origin !== '—') {
+      window.location.href = 'library.html?origin=' + encodeURIComponent(origin)
+    }
   }
 
   function getConnectionType(o1, o2) {
