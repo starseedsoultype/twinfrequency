@@ -432,18 +432,15 @@ src="https://www.facebook.com/tr?id=847407428375701&ev=PageView&noscript=1"
   // Telegram Mini App auto-login
   const tg = window.Telegram?.WebApp
 
-  // DEBUG: show Telegram state on screen (remove after testing)
-  const dbg = document.createElement('div')
-  dbg.style.cssText = 'position:fixed;bottom:80px;left:10px;right:10px;background:rgba(0,0,0,0.8);color:#c9a96e;font-size:11px;padding:8px;border-radius:6px;z-index:9999;word-break:break-all'
-  dbg.textContent = `tg=${!!tg} | initData="${tg?.initData?.slice(0,40)||''}" | platform=${tg?.platform||'none'}`
-  document.body.appendChild(dbg)
-
-  if (tg?.initData) {
+  if (tg) {
     tg.ready()
     tg.expand()
+  }
+
+  if (tg?.initData) {
+    // Mobile Telegram: initData is populated — auto-login
     ;(async () => {
       try {
-        dbg.textContent += ' | calling auth...'
         const res = await fetch(`${SUPABASE_URL}/functions/v1/telegram-auth`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json', 'apikey': SUPABASE_ANON_KEY },
@@ -454,11 +451,11 @@ src="https://www.facebook.com/tr?id=847407428375701&ev=PageView&noscript=1"
         await sb.auth.setSession({ access_token, refresh_token })
         window.location.href = 'onboarding.html'
       } catch (e) {
-        dbg.textContent += ` | ERROR: ${e.message}`
         document.getElementById('loader').classList.add('hide')
       }
     })()
   } else {
+    // Desktop Telegram or browser: show normal login form
     sb.auth.onAuthStateChange((event, session) => {
       if (session) {
         window.location.href = 'onboarding.html'
