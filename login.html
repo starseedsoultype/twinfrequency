@@ -27,6 +27,7 @@ src="https://www.facebook.com/tr?id=847407428375701&ev=PageView&noscript=1"
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Twin Frequency</title>
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;1,300;1,400&family=Jost:wght@200;300;400&display=swap" rel="stylesheet">
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
   * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -428,13 +429,36 @@ src="https://www.facebook.com/tr?id=847407428375701&ev=PageView&noscript=1"
   const { createClient } = supabase
   const sb = createClient(SUPABASE_URL, SUPABASE_ANON_KEY)
 
- sb.auth.onAuthStateChange((event, session) => {
-    if (session) {
-      window.location.href = 'onboarding.html'
-    } else if (event === 'INITIAL_SESSION') {
-      document.getElementById('loader').classList.add('hide')
-    }
-   })
+  // Telegram Mini App auto-login
+  const tg = window.Telegram?.WebApp
+  if (tg?.initData) {
+    tg.ready()
+    tg.expand()
+    ;(async () => {
+      try {
+        const res = await fetch(`${SUPABASE_URL}/functions/v1/telegram-auth`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'apikey': SUPABASE_ANON_KEY },
+          body: JSON.stringify({ initData: tg.initData })
+        })
+        const { access_token, refresh_token, error } = await res.json()
+        if (error) throw new Error(error)
+        await sb.auth.setSession({ access_token, refresh_token })
+        window.location.href = 'onboarding.html'
+      } catch (e) {
+        console.error('Telegram auth failed:', e)
+        document.getElementById('loader').classList.add('hide')
+      }
+    })()
+  } else {
+    sb.auth.onAuthStateChange((event, session) => {
+      if (session) {
+        window.location.href = 'onboarding.html'
+      } else if (event === 'INITIAL_SESSION') {
+        document.getElementById('loader').classList.add('hide')
+      }
+    })
+  }
 
   setTimeout(() => {
     document.getElementById('loader').classList.add('hide')

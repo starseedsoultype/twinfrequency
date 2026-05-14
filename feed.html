@@ -23,6 +23,7 @@ src="https://www.facebook.com/tr?id=847407428375701&ev=PageView&noscript=1"
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
 <title>Twin Frequency — Feed</title>
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;1,300;1,400&family=Jost:wght@200;300;400&display=swap" rel="stylesheet">
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
   * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -775,6 +776,12 @@ src="https://www.facebook.com/tr?id=847407428375701&ev=PageView&noscript=1"
 
   const { createClient } = supabase
   const sb = createClient(SUPABASE_URL, SUPABASE_ANON_KEY)
+
+  // Telegram Mini App
+  if (window.Telegram?.WebApp) {
+    window.Telegram.WebApp.ready()
+    window.Telegram.WebApp.expand()
+  }
 
   const DEFAULT_PROFILE_IMAGE = '/images/twinf-placeholder.png'
 
