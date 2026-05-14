@@ -63,6 +63,56 @@ const CORS_HEADERS = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 }
 
+async function sendMatchNotifications(
+  supabase: ReturnType<typeof createClient>,
+  userId: string,
+  targetId: string,
+  connectionType: string,
+  matchId: string
+) {
+  const botToken = Deno.env.get("TELEGRAM_BOT_TOKEN")
+  if (!botToken) return
+
+  const { data: profiles } = await supabase
+    .from("profiles")
+    .select("id, name, telegram_id")
+    .in("id", [userId, targetId])
+
+  if (!profiles) return
+
+  const me = profiles.find(p => p.id === userId)
+  const them = profiles.find(p => p.id === targetId)
+  if (!me || !them) return
+
+  const sendMsg = async (chatId: number, partnerName: string) => {
+    const text =
+      `✨ A new frequency match\n\n` +
+      `You and ${partnerName || "someone"} are a *${connectionType}* connection.\n\n` +
+      `Open TwinFrequency to start the conversation.`
+
+    await fetch(`https://api.telegram.org/bot${botToken}/sendMessage`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        chat_id: chatId,
+        text,
+        parse_mode: "Markdown",
+        reply_markup: {
+          inline_keyboard: [[{
+            text: "Open TwinFrequency",
+            web_app: { url: `https://twinfrequency.io/chats.html` }
+          }]]
+        }
+      })
+    })
+  }
+
+  const tasks = []
+  if (me.telegram_id) tasks.push(sendMsg(me.telegram_id, them.name))
+  if (them.telegram_id) tasks.push(sendMsg(them.telegram_id, me.name))
+  await Promise.allSettled(tasks)
+}
+
 serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response("ok", { headers: CORS_HEADERS })
@@ -161,6 +211,7 @@ serve(async (req) => {
           .select("id")
           .single()
 
+        await sendMatchNotifications(supabase, user.id, target_id, connectionType, newMatch?.id ?? "")
         return new Response(
           JSON.stringify({ matched: true, match_id: newMatch?.id, connection_type: connectionType }),
           { headers: { "Content-Type": "application/json", ...CORS_HEADERS } }
@@ -173,12 +224,14 @@ serve(async (req) => {
         const { data: them } = await supabase.from("profiles").select("origin").eq("id", target_id).single()
         const connectionType = getConnectionType(me?.origin ?? "Unknown", them?.origin ?? "Unknown")
         await supabase.from("matches").update({ connection_type: connectionType }).eq("id", matchRetry.id)
+        await sendMatchNotifications(supabase, user.id, target_id, connectionType, matchRetry.id)
         return new Response(
           JSON.stringify({ matched: true, match_id: matchRetry.id, connection_type: connectionType }),
           { headers: { "Content-Type": "application/json", ...CORS_HEADERS } }
         )
       }
 
+      await sendMatchNotifications(supabase, user.id, target_id, matchRetry.connection_type, matchRetry.id)
       return new Response(
         JSON.stringify({ matched: true, match_id: matchRetry.id, connection_type: matchRetry.connection_type }),
         { headers: { "Content-Type": "application/json", ...CORS_HEADERS } }
@@ -194,6 +247,7 @@ serve(async (req) => {
       await supabase.from("matches").update({ connection_type: connectionType }).eq("id", match.id)
     }
 
+    await sendMatchNotifications(supabase, user.id, target_id, connectionType, match.id)
     return new Response(
       JSON.stringify({ matched: true, match_id: match.id, connection_type: connectionType }),
       { headers: { "Content-Type": "application/json", ...CORS_HEADERS } }
