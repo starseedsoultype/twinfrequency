@@ -1232,6 +1232,10 @@ src="https://www.facebook.com/tr?id=847407428375701&ev=PageView&noscript=1"
 
   // ─── Load ─────────────────────────────────────────────────
   window.addEventListener('load', async () => {
+    // Show onboarding immediately (before DB load) to avoid black screen flash
+    if (!localStorage.getItem(ONBOARD_KEY)) {
+      document.getElementById('onboard-overlay').classList.add('show')
+    }
     const { data: sessionData } = await sb.auth.getSession()
     if (!sessionData.session) {
       window.location.href = 'login.html'
@@ -2047,9 +2051,9 @@ src="https://www.facebook.com/tr?id=847407428375701&ev=PageView&noscript=1"
   const ONBOARD_KEY = 'twinf_onboard_v1'
 
   function initOnboard() {
-    if (myProfile?.origin && myProfile.origin !== 'Unknown') return
-    if (!localStorage.getItem(ONBOARD_KEY)) {
-      document.getElementById('onboard-overlay').classList.add('show')
+    if (myProfile?.origin && myProfile.origin !== 'Unknown') {
+      document.getElementById('onboard-overlay').classList.remove('show')
+      localStorage.setItem(ONBOARD_KEY, '1')
     }
   }
 
