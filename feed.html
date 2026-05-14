@@ -897,11 +897,49 @@ src="https://www.facebook.com/tr?id=847407428375701&ev=PageView&noscript=1"
   <div class="onboard-screen" data-step="2">
     <div class="onboard-symbol">⟡</div>
     <p class="onboard-eyebrow">Your Origin</p>
-    <h2 class="onboard-title">Discover your Origin first</h2>
-    <p class="onboard-body">For full compatibility, take the StarSeedSoul Origin quiz. It maps 24 soul types and reveals your Core Frequency — the basis of every connection here.</p>
-    <div style="display:flex;flex-direction:column;gap:10px;width:100%;max-width:280px;">
-      <a href="quiz.html?redirect=onboarding" class="onboard-btn" onclick="closeOnboard()">Discover your Origin</a>
-      <button class="onboard-btn-ghost" onclick="closeOnboard()">Skip, I know my Origin</button>
+    <h2 class="onboard-title">Do you know your<br>Soul Origin?</h2>
+    <p class="onboard-body">Your Origin is the basis of every connection here. You can find it now, enter it if you already know it, or explore the app first.</p>
+    <div style="display:flex;flex-direction:column;gap:10px;width:100%;max-width:300px;">
+      <a href="quiz.html?redirect=onboarding" class="onboard-btn" onclick="closeOnboard()">Take the quiz — find my Origin</a>
+      <div style="display:flex;flex-direction:column;gap:8px;">
+        <select id="onboard-origin-select" style="width:100%;background:rgba(10,9,20,0.95);border:1px solid rgba(201,169,110,0.25);border-radius:2px;padding:13px 16px;color:var(--text3);font-family:'Jost',sans-serif;font-size:12px;font-weight:300;letter-spacing:0.05em;outline:none;-webkit-appearance:none;appearance:none;cursor:pointer;" onchange="this.style.color='var(--text)'">
+          <option value="" style="background:#0a0914">I already know my Origin...</option>
+          <optgroup label="── Group I ──" style="background:#0a0914">
+            <option value="Siriusian" style="background:#0a0914">Siriusian</option>
+            <option value="Pleiadian" style="background:#0a0914">Pleiadian</option>
+            <option value="Lemurian" style="background:#0a0914">Lemurian</option>
+            <option value="Cassiopeian" style="background:#0a0914">Cassiopeian</option>
+            <option value="Procyonian" style="background:#0a0914">Procyonian</option>
+            <option value="Lyran" style="background:#0a0914">Lyran</option>
+          </optgroup>
+          <optgroup label="── Group II ──" style="background:#0a0914">
+            <option value="Arcturian" style="background:#0a0914">Arcturian</option>
+            <option value="Orion" style="background:#0a0914">Orion</option>
+            <option value="Vegan" style="background:#0a0914">Vegan</option>
+            <option value="Zeta Reticulan" style="background:#0a0914">Zeta Reticulan</option>
+            <option value="Epsilon Eridan" style="background:#0a0914">Epsilon Eridan</option>
+            <option value="Atlantean" style="background:#0a0914">Atlantean</option>
+          </optgroup>
+          <optgroup label="── Group III ──" style="background:#0a0914">
+            <option value="Andromedan" style="background:#0a0914">Andromedan</option>
+            <option value="Polarisian" style="background:#0a0914">Polarisian</option>
+            <option value="Nibiruan" style="background:#0a0914">Nibiruan</option>
+            <option value="Egyptian" style="background:#0a0914">Egyptian</option>
+            <option value="Titanian" style="background:#0a0914">Titanian</option>
+            <option value="Blue Avian" style="background:#0a0914">Blue Avian</option>
+          </optgroup>
+          <optgroup label="── Group IV ──" style="background:#0a0914">
+            <option value="Tau Cetian" style="background:#0a0914">Tau Cetian</option>
+            <option value="Aldebaran" style="background:#0a0914">Aldebaran</option>
+            <option value="Centaurian" style="background:#0a0914">Centaurian</option>
+            <option value="Herculean" style="background:#0a0914">Herculean</option>
+            <option value="Anunnaki" style="background:#0a0914">Anunnaki</option>
+            <option value="Hyperborean" style="background:#0a0914">Hyperborean</option>
+          </optgroup>
+        </select>
+        <button class="onboard-btn" onclick="saveOriginFromOnboard()" style="padding:12px">Save my Origin</button>
+      </div>
+      <button class="onboard-btn-ghost" onclick="closeOnboard()">Skip for now</button>
     </div>
   </div>
   <div class="onboard-dots">
@@ -2074,6 +2112,14 @@ src="https://www.facebook.com/tr?id=847407428375701&ev=PageView&noscript=1"
   function closeOnboard() {
     localStorage.setItem(ONBOARD_KEY, '1')
     document.getElementById('onboard-overlay').classList.remove('show')
+  }
+
+  async function saveOriginFromOnboard() {
+    const sel = document.getElementById('onboard-origin-select')
+    if (!sel.value) return
+    await sb.from('profiles').upsert({ id: myUser.id, origin: sel.value })
+    if (myProfile) myProfile.origin = sel.value
+    closeOnboard()
   }
 </script>
 </body>
