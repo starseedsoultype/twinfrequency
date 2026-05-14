@@ -136,7 +136,7 @@ src="https://www.facebook.com/tr?id=847407428375701&ev=PageView&noscript=1"
   .profile-card {
     position: relative; z-index: 10;
     background: var(--deep);
-    border-radius: 20px 20px 0 0;
+    border-radius: 4px 4px 0 0;
     padding: 28px 24px 160px;
     min-height: 60vh;
   }
@@ -144,7 +144,7 @@ src="https://www.facebook.com/tr?id=847407428375701&ev=PageView&noscript=1"
   /* ── CONNECTION BADGE ── */
   .conn-badge {
     display: inline-flex; align-items: center; gap: 6px;
-    padding: 5px 14px; border-radius: 20px;
+    padding: 5px 14px; border-radius: 4px;
     margin-bottom: 16px;
     font-size: 10px; letter-spacing: 0.25em; text-transform: uppercase;
     border: 1px solid rgba(201,169,110,0.3);
@@ -533,7 +533,7 @@ src="https://www.facebook.com/tr?id=847407428375701&ev=PageView&noscript=1"
   function showToast(text) {
     const t = document.createElement('div')
     t.style.cssText = `position:fixed;bottom:120px;left:50%;transform:translateX(-50%);
-      background:rgba(13,11,24,0.95);border:1px solid var(--border);border-radius:20px;
+      background:rgba(13,11,24,0.95);border:1px solid var(--border);border-radius:4px;
       padding:10px 20px;font-size:11px;letter-spacing:0.15em;color:var(--gold);
       z-index:500;animation:fadeUp 0.3s ease;pointer-events:none;`
     t.textContent = text
