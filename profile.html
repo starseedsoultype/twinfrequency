@@ -1014,6 +1014,51 @@ src="https://www.facebook.com/tr?id=847407428375701&ev=PageView&noscript=1"
 
   <div class="divider"></div>
 
+  <!-- ── TELEGRAM ── -->
+  <div class="section" id="tg-section">
+    <p class="section-title">Telegram</p>
+
+    <div id="tg-connected" style="display:none">
+      <div class="toggle-row" style="cursor:default">
+        <div class="toggle-left">
+          <div class="field-icon">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
+              <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 12a19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 3.6 1.2h3a2 2 0 0 1 2 1.72c.13.96.36 1.9.68 2.81a2 2 0 0 1-.45 2.11L7.91 8.76a16 16 0 0 0 6.13 6.13l1.62-1.62a2 2 0 0 1 2.11-.45c.91.32 1.85.55 2.81.68A2 2 0 0 1 22 16.92z" stroke="var(--gold)" stroke-width="1.2" stroke-linecap="round"/>
+            </svg>
+          </div>
+          <div class="toggle-info">
+            <p class="toggle-label">Telegram connected</p>
+            <p class="toggle-sub">You receive match notifications in Telegram</p>
+          </div>
+        </div>
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" style="flex-shrink:0">
+          <polyline points="20,6 9,17 4,12" stroke="#6bcf7f" stroke-width="2" stroke-linecap="round"/>
+        </svg>
+      </div>
+    </div>
+
+    <div id="tg-disconnected" style="display:none">
+      <div class="toggle-row" style="cursor:pointer" onclick="connectTelegram()">
+        <div class="toggle-left">
+          <div class="field-icon">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
+              <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 12a19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 3.6 1.2h3a2 2 0 0 1 2 1.72c.13.96.36 1.9.68 2.81a2 2 0 0 1-.45 2.11L7.91 8.76a16 16 0 0 0 6.13 6.13l1.62-1.62a2 2 0 0 1 2.11-.45c.91.32 1.85.55 2.81.68A2 2 0 0 1 22 16.92z" stroke="var(--gold)" stroke-width="1.2" stroke-linecap="round"/>
+            </svg>
+          </div>
+          <div class="toggle-info">
+            <p class="toggle-label">Connect Telegram</p>
+            <p class="toggle-sub">Get match notifications in Telegram</p>
+          </div>
+        </div>
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" style="flex-shrink:0">
+          <polyline points="9,18 15,12 9,6" stroke="var(--muted)" stroke-width="1.5" stroke-linecap="round"/>
+        </svg>
+      </div>
+    </div>
+  </div>
+
+  <div class="divider"></div>
+
   <!-- ── ACCOUNT ── -->
   <div class="section">
     <p class="section-title">Account</p>
@@ -1187,6 +1232,20 @@ src="https://www.facebook.com/tr?id=847407428375701&ev=PageView&noscript=1"
     if (p.notif_match !== undefined) document.getElementById('notif-match').checked = p.notif_match
     if (p.notif_messages !== undefined) document.getElementById('notif-messages').checked = p.notif_messages
     if (p.notif_library !== undefined) document.getElementById('notif-library').checked = p.notif_library
+
+    // Telegram connection status
+    if (p.telegram_id) {
+      document.getElementById('tg-connected').style.display = 'block'
+      document.getElementById('tg-disconnected').style.display = 'none'
+    } else {
+      document.getElementById('tg-connected').style.display = 'none'
+      document.getElementById('tg-disconnected').style.display = 'block'
+    }
+  }
+
+  function connectTelegram() {
+    window.open('https://t.me/SeedSoulTest_bot', '_blank')
+    showToast('Open the bot and tap "Open TwinFrequency" on your phone')
   }
 
   // ─── AGE RANGE ────────────────────────────────────────────
