@@ -245,6 +245,29 @@ src="https://www.facebook.com/tr?id=847407428375701&ev=PageView&noscript=1"
     margin-bottom: 8px;
   }
 
+  .soul-blueprint-card {
+    display: flex; align-items: center; gap: 14px;
+    margin: 16px 24px; padding: 16px 18px;
+    border: 1px solid rgba(201,169,110,0.3);
+    border-radius: 4px;
+    background: rgba(201,169,110,0.04);
+    text-decoration: none;
+    transition: background 0.2s;
+  }
+  .soul-blueprint-card:hover { background: rgba(201,169,110,0.09); }
+  .soul-blueprint-symbol { font-size: 18px; color: var(--gold); flex-shrink: 0; }
+  .soul-blueprint-body { flex: 1; }
+  .soul-blueprint-title {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 16px; font-weight: 300;
+    color: var(--gold-soft); margin-bottom: 3px;
+  }
+  .soul-blueprint-sub {
+    font-size: 10px; letter-spacing: 0.12em;
+    text-transform: uppercase; color: var(--muted);
+  }
+  .soul-blueprint-arrow { font-size: 16px; color: var(--gold); opacity: 0.6; flex-shrink: 0; }
+
   .section-title {
     font-size: 9px;
     letter-spacing: 0.5em;
@@ -1075,6 +1098,16 @@ src="https://www.facebook.com/tr?id=847407428375701&ev=PageView&noscript=1"
 
   <!-- ── ACCOUNT ── -->
   <div class="section">
+    <!-- Soul Blueprint CTA -->
+    <a href="https://www.starseedsoultype.com/" target="_blank" class="soul-blueprint-card">
+      <div class="soul-blueprint-symbol">✦</div>
+      <div class="soul-blueprint-body">
+        <div class="soul-blueprint-title">Get your full Soul Blueprint</div>
+        <div class="soul-blueprint-sub">24 Origins · Connection types · Audio activations</div>
+      </div>
+      <div class="soul-blueprint-arrow">→</div>
+    </a>
+
     <p class="section-title">Account</p>
 
     <div class="danger-row" onclick="handleLogout()">

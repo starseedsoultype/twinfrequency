@@ -379,6 +379,36 @@ html, body {
 .related-section {
   margin-bottom: 28px;
 }
+
+.soul-story-card {
+  display: block; margin: 8px 0 32px;
+  padding: 20px 22px;
+  border: 1px solid rgba(201,169,110,0.25);
+  border-radius: 4px;
+  background: rgba(201,169,110,0.04);
+  text-decoration: none;
+  transition: background 0.2s;
+}
+.soul-story-card:hover { background: rgba(201,169,110,0.09); }
+.soul-story-eyebrow {
+  font-family: 'Jost', sans-serif; font-size: 9px;
+  letter-spacing: 0.35em; text-transform: uppercase;
+  color: var(--gold); opacity: 0.7; margin-bottom: 8px;
+}
+.soul-story-title {
+  font-family: 'Cormorant Garamond', serif;
+  font-size: 18px; font-weight: 300;
+  color: var(--gold-soft); line-height: 1.3; margin-bottom: 6px;
+}
+.soul-story-sub {
+  font-size: 11px; color: var(--muted);
+  letter-spacing: 0.08em; margin-bottom: 14px;
+}
+.soul-story-cta {
+  font-family: 'Jost', sans-serif; font-size: 10px;
+  letter-spacing: 0.25em; text-transform: uppercase;
+  color: var(--gold);
+}
 .related-title {
   font-size: 10px;
   letter-spacing: 0.25em;
@@ -1345,6 +1375,13 @@ function buildOriginDetail(id, data) {
       <div class="related-title">Related Origins</div>
       <div class="related-chips">${relatedOriginsHtml}</div>
     </div>
+
+    <a href="https://www.starseedsoultype.com/" target="_blank" class="soul-story-card">
+      <div class="soul-story-eyebrow">StarSeedSoul</div>
+      <div class="soul-story-title">Reconnect with your ${data.name} frequency</div>
+      <div class="soul-story-sub">Soul Story Activation · Audio · $11.11</div>
+      <div class="soul-story-cta">Open StarSeedSoul →</div>
+    </a>
   `
 }
 
