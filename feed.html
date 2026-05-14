@@ -406,9 +406,10 @@ src="https://www.facebook.com/tr?id=847407428375701&ev=PageView&noscript=1"
     background: var(--deep);
     flex-direction: column;
     align-items: center;
-    justify-content: center;
+    justify-content: flex-start;
     text-align: center;
-    padding: 40px;
+    padding: 40px 20px 60px;
+    overflow-y: auto;
   }
 
   .empty-state.show { display: flex; }
@@ -426,6 +427,73 @@ src="https://www.facebook.com/tr?id=847407428375701&ev=PageView&noscript=1"
     color: var(--muted);
     line-height: 1.7;
     margin-bottom: 32px;
+  }
+
+  .empty-connections-section {
+    margin-top: 36px;
+    width: 100%;
+    max-width: 420px;
+    border-top: 1px solid rgba(201,169,110,0.15);
+    padding-top: 28px;
+  }
+
+  .empty-connections-label {
+    font-family: 'Jost', sans-serif;
+    font-size: 10px;
+    letter-spacing: 0.25em;
+    text-transform: uppercase;
+    color: var(--gold);
+    opacity: 0.6;
+    text-align: center;
+    margin-bottom: 20px;
+  }
+
+  .empty-connections-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    width: 100%;
+    margin-bottom: 24px;
+  }
+
+  .conn-row {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 12px 14px;
+    border: 1px solid rgba(255,255,255,0.06);
+    border-radius: 10px;
+    background: rgba(255,255,255,0.02);
+    cursor: pointer;
+    transition: background 0.2s;
+    text-align: left;
+  }
+
+  .conn-row:hover { background: rgba(201,169,110,0.07); }
+
+  .conn-dot-small {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    flex-shrink: 0;
+    margin-top: 5px;
+  }
+
+  .conn-row-info { flex: 1; }
+
+  .conn-row-name {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 15px;
+    font-weight: 400;
+    color: var(--gold-soft);
+    margin-bottom: 2px;
+  }
+
+  .conn-row-desc {
+    font-size: 11px;
+    color: var(--muted);
+    line-height: 1.5;
+    letter-spacing: 0.02em;
   }
 
   .btn-circle {
@@ -752,8 +820,16 @@ src="https://www.facebook.com/tr?id=847407428375701&ev=PageView&noscript=1"
 <div class="empty-state" id="empty-state">
   <p style="font-size:32px;margin-bottom:20px">✦</p>
   <h2 class="empty-title">You've seen everyone</h2>
-  <p class="empty-sub">Come back tomorrow — or join<br>your circle while you wait.</p>
+  <p class="empty-sub">Come back tomorrow — or explore<br>your connection frequencies while you wait.</p>
   <button class="btn-circle" onclick="window.location.href='chats.html?tab=circle'">Go to my circle</button>
+
+  <div class="empty-connections-section">
+    <p class="empty-connections-label">✦ &nbsp; 10 Connection Frequencies</p>
+    <div class="empty-connections-grid" id="empty-connections-grid"></div>
+    <button class="btn-circle" onclick="window.location.href='library.html'" style="font-size:10px;padding:12px 24px;">
+      Explore Full Library
+    </button>
+  </div>
 </div>
 
 <!-- ═══════════════════════════════════════════
@@ -1129,7 +1205,7 @@ src="https://www.facebook.com/tr?id=847407428375701&ev=PageView&noscript=1"
     }
 
     if (profiles.length === 0) {
-      document.getElementById('empty-state').classList.add('show')
+      document.getElementById('empty-state').classList.add('show'); renderEmptyConnections()
       return
     }
 
@@ -1289,7 +1365,7 @@ src="https://www.facebook.com/tr?id=847407428375701&ev=PageView&noscript=1"
         if (feedHasMore && !feedLoading) {
           loadNextFeedPage()
         } else {
-          document.getElementById('empty-state').classList.add('show')
+          document.getElementById('empty-state').classList.add('show'); renderEmptyConnections()
         }
       } else {
         showCard(currentIndex)
@@ -1351,15 +1427,15 @@ src="https://www.facebook.com/tr?id=847407428375701&ev=PageView&noscript=1"
           showCard(currentIndex)
         } else {
           feedHasMore = false
-          document.getElementById('empty-state').classList.add('show')
+          document.getElementById('empty-state').classList.add('show'); renderEmptyConnections()
         }
       } else {
         feedHasMore = false
-        document.getElementById('empty-state').classList.add('show')
+        document.getElementById('empty-state').classList.add('show'); renderEmptyConnections()
       }
     } catch (e) {
       console.warn('Failed to load next page:', e)
-      document.getElementById('empty-state').classList.add('show')
+      document.getElementById('empty-state').classList.add('show'); renderEmptyConnections()
     } finally {
       feedLoading = false
     }
@@ -1422,6 +1498,24 @@ src="https://www.facebook.com/tr?id=847407428375701&ev=PageView&noscript=1"
 
   function openLibrary(connectionType) {
     window.location.href = 'library.html?connection=' + encodeURIComponent(connectionType)
+  }
+
+  function renderEmptyConnections() {
+    const grid = document.getElementById('empty-connections-grid')
+    if (!grid || grid.childElementCount > 0) return
+    Object.entries(MATCH_THEMES).forEach(([name, theme]) => {
+      if (name === 'Unknown') return
+      const row = document.createElement('div')
+      row.className = 'conn-row'
+      row.onclick = () => openLibrary(name)
+      row.innerHTML = `
+        <div class="conn-dot-small" style="background:${theme.badgeColor}"></div>
+        <div class="conn-row-info">
+          <div class="conn-row-name">${name}</div>
+          <div class="conn-row-desc">${CONNECTION_DESCRIPTIONS[name] || ''}</div>
+        </div>`
+      grid.appendChild(row)
+    })
   }
 
   // ─────────────────────────────────────────────────────────
