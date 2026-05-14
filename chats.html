@@ -314,7 +314,7 @@ src="https://www.facebook.com/tr?id=847407428375701&ev=PageView&noscript=1"
     flex-shrink: 0;
     display: flex; align-items: center; gap: 5px;
     padding: 5px 10px;
-    border: 1px solid var(--border); border-radius: 20px;
+    border: 1px solid var(--border); border-radius: 4px;
   }
   .conn-type-dot { width: 5px; height: 5px; border-radius: 50%; }
   .conn-type-name { font-size: 9px; letter-spacing: 0.2em; text-transform: uppercase; }
@@ -334,6 +334,23 @@ src="https://www.facebook.com/tr?id=847407428375701&ev=PageView&noscript=1"
     text-align: center; padding: 8px 20px;
     font-size: 10px; letter-spacing: 0.15em; color: var(--muted);
     font-style: italic;
+  }
+  .chat-conn-hint {
+    margin: 24px auto 8px;
+    max-width: 280px; text-align: center;
+    padding: 16px 20px;
+    border: 1px solid rgba(201,169,110,0.12);
+    border-radius: 4px;
+    background: rgba(201,169,110,0.03);
+  }
+  .chat-conn-hint-name {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 16px; font-weight: 300;
+    color: var(--gold-soft); margin-bottom: 6px;
+  }
+  .chat-conn-hint-desc {
+    font-size: 11px; color: var(--muted);
+    line-height: 1.6; letter-spacing: 0.03em; font-style: italic;
   }
 
   /* Сообщение */
@@ -654,6 +671,19 @@ src="https://www.facebook.com/tr?id=847407428375701&ev=PageView&noscript=1"
   }
 
   const DEFAULT_PROFILE_IMAGE = '/images/twinf-placeholder.png'
+
+  const CONNECTION_DESCRIPTIONS = {
+    'Frequency Twins':    'Same frequency, same origin — a mirror that shows you yourself',
+    'Eternal Reflection': 'Same constellation, different star — recognition without effort',
+    'Twin Stars':         'Adjacent frequencies — warmth, pull, natural resonance',
+    'Cosmic Flow':        'Complementary currents — each makes the other more themselves',
+    'Star Alchemy':       'Different energies that transform on contact',
+    'Mirror Portals':     'What you most avoid, they embody — and vice versa',
+    'Celestial Mentor':   'One carries what the other is becoming',
+    'Karmic Bonds':       'Something between you was never completed',
+    'Shadow Contracts':   'Intensity and friction — growth through resistance',
+    'Black Holes':        'Maximum distance between frequencies — rare, unforgettable',
+  }
 
   // ─── Connection type colors ───────────────────────────────
   const CONNECTION_COLORS = {
@@ -1038,6 +1068,19 @@ src="https://www.facebook.com/tr?id=847407428375701&ev=PageView&noscript=1"
         ? 'The circle is open. Be the first to speak.'
         : 'A new frequency has aligned. Begin the conversation.'
       area.appendChild(systemMsg)
+
+      if (!isGroup) {
+        const connType = document.getElementById('conn-type-name')?.textContent?.trim()
+        const desc = CONNECTION_DESCRIPTIONS[connType]
+        if (connType && connType !== '—' && desc) {
+          const hint = document.createElement('div')
+          hint.className = 'chat-conn-hint'
+          hint.innerHTML = `
+            <div class="chat-conn-hint-name">${connType}</div>
+            <div class="chat-conn-hint-desc">${desc}</div>`
+          area.appendChild(hint)
+        }
+      }
     }
 
     let lastDate = null
