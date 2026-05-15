@@ -65,9 +65,54 @@ serve(async (req) => {
   }
 
   try {
-    const { initData } = await req.json()
+    const body = await req.json()
+    const { initData, action, email, password, tg_user_id } = body
+
+    // ── MERGE ACTION: link existing email account to Telegram ──
+    if (action === "merge") {
+      if (!email || !password || !tg_user_id) {
+        return new Response(JSON.stringify({ error: "email, password, tg_user_id required" }), {
+          status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" }
+        })
+      }
+
+      const supabase = createClient(
+        Deno.env.get("SUPABASE_URL")!,
+        Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!,
+        { auth: { autoRefreshToken: false, persistSession: false } }
+      )
+
+      // Verify old account credentials
+      const { data: signIn, error: signInError } = await supabase.auth.signInWithPassword({ email, password })
+      if (signInError || !signIn?.session) {
+        return new Response(JSON.stringify({ error: "Invalid email or password" }), {
+          status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" }
+        })
+      }
+
+      const oldUserId = signIn.session.user.id
+
+      // Find and delete the temporary TG-only account
+      const botToken = Deno.env.get("TELEGRAM_BOT_TOKEN")!
+      const tgEmail = `tg_${tg_user_id}@twinfrequency.io`
+      const { data: tgUserList } = await supabase.auth.admin.listUsers()
+      const tgAuthUser = tgUserList?.users?.find(u => u.email === tgEmail)
+      if (tgAuthUser) {
+        await supabase.auth.admin.deleteUser(tgAuthUser.id)
+      }
+
+      // Write telegram_id to old profile
+      await supabase.from("profiles").update({ telegram_id: parseInt(tg_user_id) }).eq("id", oldUserId)
+
+      return new Response(JSON.stringify({
+        access_token: signIn.session.access_token,
+        refresh_token: signIn.session.refresh_token,
+        merged: true,
+      }), { headers: { ...corsHeaders, "Content-Type": "application/json" } })
+    }
+
     if (!initData) {
-      return new Response(JSON.stringify({ error: "initData required" }), {
+      return new Response(JSON.stringify({ error: "initData or action required" }), {
         status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" }
       })
     }
