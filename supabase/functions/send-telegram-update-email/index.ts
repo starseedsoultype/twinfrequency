@@ -7,6 +7,9 @@ import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2"
 
 const BROADCAST_KEY = "telegram_mini_app_update_2026_05"
+const BROADCAST_KEY_LOOSE = "telegram_mini_app_update_all_2026_05"
+const BROADCAST_KEY_ORIGIN_LEADS = "origin_leads_2026_05"
+const BROADCAST_KEY_CONNECTION_LEADS = "connection_leads_2026_05"
 const FROM_EMAIL = "StarSeedSoul <hello@twinfrequency.io>"
 const SUBJECT = "TwinF is now inside Telegram"
 const TELEGRAM_BOT_URL = "https://t.me/SeedSoulTest_bot"
@@ -32,7 +35,9 @@ function buildHtml(): string {
       TwinF by StarSeedSoul
     </div>
 
-    <div style="width:1px;height:48px;background:linear-gradient(to bottom,transparent,#C9A96E,transparent);margin:0 auto 48px;"></div>
+    <div style="text-align:center;margin-bottom:48px;">
+      <span style="font-family:'Cormorant Garamond',Georgia,serif;font-size:28px;color:#C9A96E;opacity:0.6;letter-spacing:12px;">✦ ✦ ✦</span>
+    </div>
 
     <div style="font-size:14px;line-height:1.9;color:#C9C1B8;font-weight:300;letter-spacing:0.3px;">
 
@@ -60,7 +65,9 @@ function buildHtml(): string {
       </a>
     </div>
 
-    <div style="width:1px;height:48px;background:linear-gradient(to bottom,transparent,#C9A96E,transparent);margin:0 auto 40px;"></div>
+    <div style="text-align:center;margin-bottom:40px;">
+      <span style="font-family:'Cormorant Garamond',Georgia,serif;font-size:28px;color:#C9A96E;opacity:0.6;letter-spacing:12px;">✦ ✦ ✦</span>
+    </div>
 
     <div style="font-size:13px;color:#7A7672;line-height:1.8;font-weight:300;">
       <p style="margin:0 0 4px;">Welcome to the new TwinF experience.</p>
@@ -110,14 +117,28 @@ serve(async (req) => {
     const limit: number = body.limit ?? 10
     const customHtml: string | undefined = body.custom_html
     const customSubject: string | undefined = body.custom_subject
+    const audience: "full" | "loose" | "origin_leads" | "connection_leads" =
+      ["loose", "origin_leads", "connection_leads"].includes(body.audience) ? body.audience : "full"
+
+    const broadcastKey =
+      audience === "loose" ? BROADCAST_KEY_LOOSE :
+      audience === "origin_leads" ? BROADCAST_KEY_ORIGIN_LEADS :
+      audience === "connection_leads" ? BROADCAST_KEY_CONNECTION_LEADS :
+      BROADCAST_KEY
+
+    const rpcName =
+      audience === "loose" ? "get_broadcast_audience_loose" :
+      audience === "origin_leads" ? "get_broadcast_audience_origin_leads" :
+      audience === "connection_leads" ? "get_broadcast_audience_connection_leads" :
+      "get_broadcast_audience"
 
     if (!["dry_run", "test", "send"].includes(mode)) {
       return new Response(JSON.stringify({ error: "Invalid mode. Use: dry_run, test, send" }), { status: 400, headers: corsHeaders })
     }
 
     // Build eligible audience query
-    const { data: eligible, error: queryError } = await supabase.rpc("get_broadcast_audience", {
-      p_broadcast_key: BROADCAST_KEY,
+    const { data: eligible, error: queryError } = await supabase.rpc(rpcName, {
+      p_broadcast_key: broadcastKey,
     })
 
     if (queryError) {
@@ -129,13 +150,14 @@ serve(async (req) => {
       const { count: alreadySent } = await supabase
         .from("email_broadcast_log")
         .select("*", { count: "exact", head: true })
-        .eq("broadcast_key", BROADCAST_KEY)
+        .eq("broadcast_key", broadcastKey)
         .eq("status", "sent")
 
       return new Response(JSON.stringify({
         eligible: eligible.length,
         already_sent: alreadySent ?? 0,
         remaining: eligible.length,
+        audience,
       }), { headers: { ...corsHeaders, "Content-Type": "application/json" } })
     }
 
@@ -179,7 +201,7 @@ serve(async (req) => {
     for (const row of batch) {
       // Insert pending log entry (ignore if already exists)
       await supabase.from("email_broadcast_log").upsert({
-        broadcast_key: BROADCAST_KEY,
+        broadcast_key: broadcastKey,
         user_id: row.user_id,
         email: row.email,
         status: "pending",
@@ -204,13 +226,13 @@ serve(async (req) => {
       if (res.ok && result.id) {
         await supabase.from("email_broadcast_log")
           .update({ status: "sent", resend_id: result.id, sent_at: new Date().toISOString() })
-          .eq("broadcast_key", BROADCAST_KEY)
+          .eq("broadcast_key", broadcastKey)
           .eq("email", row.email)
         results.sent++
       } else {
         await supabase.from("email_broadcast_log")
           .update({ status: "error", error: JSON.stringify(result) })
-          .eq("broadcast_key", BROADCAST_KEY)
+          .eq("broadcast_key", broadcastKey)
           .eq("email", row.email)
         results.failed++
         results.errors.push(`${row.email}: ${JSON.stringify(result)}`)
