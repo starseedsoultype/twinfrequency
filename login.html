@@ -499,14 +499,18 @@ src="https://www.facebook.com/tr?id=847407428375701&ev=PageView&noscript=1"
     if (!email || !password) { msg.textContent = 'Enter your email and password'; return }
 
     msg.textContent = ''
-    const { data, error } = await sb.auth.signInWithPassword({ email, password })
-    if (error || !data.session) { msg.textContent = 'Incorrect email or password'; return }
+    const tgUserId = String(tg?.initDataUnsafe?.user?.id || '')
+    if (!tgUserId) { msg.textContent = 'Telegram session lost — reopen the app'; return }
 
-    // Link telegram_id to this existing account
-    const tgUser = tg.initDataUnsafe?.user
-    if (tgUser?.id) {
-      await sb.from('profiles').update({ telegram_id: tgUser.id }).eq('id', data.session.user.id)
-    }
+    const res = await fetch(`${SUPABASE_URL}/functions/v1/telegram-auth`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'apikey': SUPABASE_ANON_KEY },
+      body: JSON.stringify({ action: 'merge', email, password, tg_user_id: tgUserId })
+    })
+    const json = await res.json()
+    if (json.error) { msg.textContent = json.error === 'Invalid email or password' ? 'Incorrect email or password' : json.error; return }
+
+    await sb.auth.setSession({ access_token: json.access_token, refresh_token: json.refresh_token })
     window.location.href = 'onboarding.html'
   }
 
