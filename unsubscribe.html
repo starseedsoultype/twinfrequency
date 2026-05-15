@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Unsubscribe — TwinF</title>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400&family=Inter:wght@200;300&display=swap" rel="stylesheet">
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background: #0A0A0A;
+      color: #C9C1B8;
+      font-family: 'Inter', -apple-system, sans-serif;
+      font-weight: 300;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 40px 24px;
+    }
+    .container {
+      max-width: 480px;
+      width: 100%;
+      text-align: center;
+    }
+    .brand {
+      font-family: 'Cormorant Garamond', Georgia, serif;
+      font-size: 12px;
+      letter-spacing: 5px;
+      color: #5F5A55;
+      text-transform: uppercase;
+      margin-bottom: 56px;
+    }
+    .divider {
+      font-family: 'Cormorant Garamond', Georgia, serif;
+      font-size: 24px;
+      color: #C9A96E;
+      opacity: 0.5;
+      letter-spacing: 12px;
+      margin-bottom: 48px;
+    }
+    .title {
+      font-family: 'Cormorant Garamond', Georgia, serif;
+      font-size: 22px;
+      font-weight: 300;
+      color: #C9C1B8;
+      margin-bottom: 20px;
+      letter-spacing: 0.5px;
+    }
+    .body-text {
+      font-size: 13px;
+      line-height: 1.9;
+      color: #7A7672;
+      margin-bottom: 32px;
+    }
+    .email-display {
+      font-size: 13px;
+      color: #C9A96E;
+      letter-spacing: 0.3px;
+      margin-bottom: 40px;
+    }
+    .btn {
+      display: inline-block;
+      padding: 14px 44px;
+      border: 1px solid rgba(201, 169, 110, 0.3);
+      background: transparent;
+      color: #C9A96E;
+      font-family: 'Inter', -apple-system, sans-serif;
+      font-weight: 300;
+      font-size: 10px;
+      letter-spacing: 4px;
+      text-transform: uppercase;
+      cursor: pointer;
+      transition: border-color 0.2s, color 0.2s;
+    }
+    .btn:hover {
+      border-color: rgba(201, 169, 110, 0.6);
+      color: #D4B87A;
+    }
+    .btn:disabled {
+      opacity: 0.4;
+      cursor: default;
+    }
+    .message {
+      margin-top: 32px;
+      font-size: 13px;
+      line-height: 1.9;
+      color: #7A7672;
+      min-height: 24px;
+    }
+    .message.error { color: #B06060; }
+    .message.success { color: #7A9672; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="brand">TwinF by StarSeedSoul</div>
+    <div class="divider">✦ ✦ ✦</div>
+
+    <div id="view-confirm">
+      <p class="title">Unsubscribe from emails</p>
+      <p class="body-text">You will no longer receive emails from TwinF.</p>
+      <p class="email-display" id="email-display"></p>
+      <button class="btn" id="btn-unsub" onclick="doUnsubscribe()">Confirm unsubscribe</button>
+      <div class="message" id="msg"></div>
+    </div>
+
+    <div id="view-done" style="display:none;">
+      <p class="title">You've been unsubscribed</p>
+      <p class="body-text" style="margin-bottom:0;">You will not receive any further emails from TwinF.</p>
+    </div>
+  </div>
+
+  <script>
+    const SUPABASE_URL = 'https://pewgupxikbswhaqxjrwk.supabase.co'
+    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBld2d1cHhpa2Jzd2hhcXhqcndrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzUyNjY0MTEsImV4cCI6MjA5MDg0MjQxMX0.rQIz0R_4Oz6VqHgSvjx9YAtF8BojdcMU7RcqDiVP1NU'
+
+    const params = new URLSearchParams(window.location.search)
+    const email = params.get('email') || ''
+
+    if (email) {
+      document.getElementById('email-display').textContent = email
+    } else {
+      document.getElementById('btn-unsub').disabled = true
+      document.getElementById('msg').textContent = 'No email address provided.'
+      document.getElementById('msg').className = 'message error'
+    }
+
+    async function doUnsubscribe() {
+      const btn = document.getElementById('btn-unsub')
+      const msg = document.getElementById('msg')
+
+      if (!email) return
+
+      btn.disabled = true
+      msg.textContent = ''
+      msg.className = 'message'
+
+      try {
+        const res = await fetch(SUPABASE_URL + '/rest/v1/email_unsubscribes', {
+          method: 'POST',
+          headers: {
+            'apikey': SUPABASE_ANON_KEY,
+            'Authorization': 'Bearer ' + SUPABASE_ANON_KEY,
+            'Content-Type': 'application/json',
+            'Prefer': 'return=minimal',
+          },
+          body: JSON.stringify({ email }),
+        })
+
+        if (res.ok || res.status === 409) {
+          document.getElementById('view-confirm').style.display = 'none'
+          document.getElementById('view-done').style.display = 'block'
+        } else {
+          const err = await res.json().catch(() => ({}))
+          msg.textContent = 'Something went wrong. Please try again.'
+          msg.className = 'message error'
+          btn.disabled = false
+          console.error(err)
+        }
+      } catch (e) {
+        msg.textContent = 'Something went wrong. Please try again.'
+        msg.className = 'message error'
+        btn.disabled = false
+      }
+    }
+  </script>
+</body>
+</html>
