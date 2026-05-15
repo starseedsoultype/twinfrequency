@@ -1316,8 +1316,9 @@ src="https://www.facebook.com/tr?id=847407428375701&ev=PageView&noscript=1"
       document.getElementById('tg-disconnected').style.display = 'none'
       // Show merge row only for TG-only accounts (email = tg_*@twinfrequency.io)
       const userEmail = user?.email || ''
-      if (userEmail.startsWith('tg_') && userEmail.endsWith('@twinfrequency.io')) {
-        document.getElementById('merge-row').style.display = 'block'
+      const mergeRow = document.getElementById('merge-row')
+      if (mergeRow && userEmail.startsWith('tg_') && userEmail.endsWith('@twinfrequency.io')) {
+        mergeRow.style.display = 'block'
       }
     } else {
       document.getElementById('tg-connected').style.display = 'none'
