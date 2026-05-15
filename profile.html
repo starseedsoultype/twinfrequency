@@ -1094,6 +1094,16 @@ src="https://www.facebook.com/tr?id=847407428375701&ev=PageView&noscript=1"
     </div>
   </div>
 
+  <!-- ── CONNECT EXISTING ACCOUNT (TG-only users) ── -->
+  <div id="connect-account-block" style="display:none;margin:0 24px 0;padding:20px;border:1px solid rgba(201,169,110,0.25);border-radius:8px;background:rgba(201,169,110,0.04)">
+    <p style="font-family:'Cormorant Garamond',serif;font-size:18px;font-weight:300;color:#e8d5b0;margin-bottom:6px">Already have a TwinF account?</p>
+    <p style="font-size:12px;color:#6b6478;line-height:1.6;margin-bottom:16px">Connect your existing account to keep your profile, matches, messages, and StarSeedSoul Origin inside Telegram.</p>
+    <input id="ca-email" type="email" placeholder="Email" autocomplete="email" style="width:100%;background:#111111;border:1px solid rgba(201,169,110,0.2);border-radius:6px;color:#e8e4df;padding:10px 12px;font-size:14px;margin-bottom:8px;box-sizing:border-box;outline:none;font-family:'Inter',sans-serif">
+    <input id="ca-password" type="password" placeholder="Password" style="width:100%;background:#111111;border:1px solid rgba(201,169,110,0.2);border-radius:6px;color:#e8e4df;padding:10px 12px;font-size:14px;margin-bottom:8px;box-sizing:border-box;outline:none;font-family:'Inter',sans-serif">
+    <p id="ca-msg" style="font-size:12px;color:#e07070;min-height:16px;margin:0 0 10px"></p>
+    <button id="ca-btn" onclick="connectExistingAccount()" style="width:100%;padding:11px;background:#c9a96e;color:#0a0a0a;border:none;border-radius:6px;font-size:12px;letter-spacing:0.12em;text-transform:uppercase;cursor:pointer;font-family:'Inter',sans-serif">Connect existing account</button>
+  </div>
+
   <div class="divider"></div>
 
   <!-- ── ACCOUNT ── -->
@@ -1237,6 +1247,15 @@ src="https://www.facebook.com/tr?id=847407428375701&ev=PageView&noscript=1"
     buildOriginFilterChips()
     initStars()
 
+    // Show "connect existing account" block only for TG-only accounts inside Telegram Mini App
+    try {
+      const isTelegram = !!(window.Telegram && window.Telegram.WebApp && window.Telegram.WebApp.initData)
+      const isTgOnly = user && user.email && user.email.startsWith('tg_') && user.email.endsWith('@twinfrequency.io')
+      if (isTelegram && isTgOnly) {
+        document.getElementById('connect-account-block').style.display = 'block'
+      }
+    } catch (e) {}
+
     document.getElementById('loader').classList.add('hide')
   })
 
@@ -1293,6 +1312,40 @@ src="https://www.facebook.com/tr?id=847407428375701&ev=PageView&noscript=1"
   function connectTelegram() {
     window.open('https://t.me/SeedSoulTest_bot', '_blank')
     showToast('Open the bot and tap "Open TwinFrequency" on your phone')
+  }
+
+  async function connectExistingAccount() {
+    const email = document.getElementById('ca-email').value.trim()
+    const password = document.getElementById('ca-password').value
+    const msg = document.getElementById('ca-msg')
+    const btn = document.getElementById('ca-btn')
+    if (!email || !password) { msg.textContent = 'Enter your email and password'; return }
+    msg.textContent = ''
+    const tgUserId = String(window.Telegram?.WebApp?.initDataUnsafe?.user?.id || '')
+    if (!tgUserId) { msg.textContent = 'Telegram session not found — reopen the app'; return }
+    btn.disabled = true
+    btn.textContent = 'Connecting...'
+    try {
+      const res = await fetch(`${SUPABASE_URL}/functions/v1/telegram-auth`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'apikey': SUPABASE_ANON_KEY },
+        body: JSON.stringify({ action: 'merge', email, password, tg_user_id: tgUserId })
+      })
+      const json = await res.json()
+      if (json.error) {
+        msg.textContent = json.error === 'Invalid email or password' ? 'Incorrect email or password' : json.error
+        btn.disabled = false
+        btn.textContent = 'Connect existing account'
+        return
+      }
+      await sb.auth.setSession({ access_token: json.access_token, refresh_token: json.refresh_token })
+      document.getElementById('connect-account-block').innerHTML = '<p style="font-size:13px;color:#6bcf7f;text-align:center;padding:8px 0">Connected. Your TwinF account is now linked to Telegram.</p>'
+      setTimeout(() => window.location.reload(), 1500)
+    } catch (e) {
+      msg.textContent = 'Something went wrong, try again'
+      btn.disabled = false
+      btn.textContent = 'Connect existing account'
+    }
   }
 
   // ─── AGE RANGE ────────────────────────────────────────────
