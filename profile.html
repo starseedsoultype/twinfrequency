@@ -1072,6 +1072,36 @@ src="https://www.facebook.com/tr?id=847407428375701&ev=PageView&noscript=1"
           <polyline points="20,6 9,17 4,12" stroke="#6bcf7f" stroke-width="2" stroke-linecap="round"/>
         </svg>
       </div>
+
+      <!-- Link existing email account (shown only for TG-only accounts) -->
+      <div id="merge-row" style="display:none">
+        <div class="toggle-row" style="cursor:pointer;margin-top:4px" onclick="toggleMergeForm()">
+          <div class="toggle-left">
+            <div class="field-icon">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none">
+                <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71" stroke="var(--gold)" stroke-width="1.2" stroke-linecap="round"/>
+                <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71" stroke="var(--gold)" stroke-width="1.2" stroke-linecap="round"/>
+              </svg>
+            </div>
+            <div class="toggle-info">
+              <p class="toggle-label">Link existing account</p>
+              <p class="toggle-sub">Connect your email account to keep your data</p>
+            </div>
+          </div>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" style="flex-shrink:0" id="merge-chevron">
+            <polyline points="9,18 15,12 9,6" stroke="var(--muted)" stroke-width="1.5" stroke-linecap="round"/>
+          </svg>
+        </div>
+
+        <div id="merge-form" style="display:none;padding:12px 0 4px">
+          <input id="merge-email" type="email" placeholder="Email" autocomplete="email"
+            style="width:100%;background:#1a1428;border:1px solid #3a3050;border-radius:8px;color:#e8e0f0;padding:10px 12px;font-size:14px;margin-bottom:8px;box-sizing:border-box;outline:none">
+          <input id="merge-password" type="password" placeholder="Password" autocomplete="current-password"
+            style="width:100%;background:#1a1428;border:1px solid #3a3050;border-radius:8px;color:#e8e0f0;padding:10px 12px;font-size:14px;margin-bottom:8px;box-sizing:border-box;outline:none">
+          <p id="merge-msg" style="color:#e07070;font-size:12px;min-height:16px;margin:0 0 8px"></p>
+          <button onclick="mergeAccount()" style="width:100%;padding:10px;background:var(--gold);color:#0a0a0a;border:none;border-radius:8px;font-size:13px;letter-spacing:0.08em;cursor:pointer">Link account</button>
+        </div>
+      </div>
     </div>
 
     <div id="tg-disconnected" style="display:none">
@@ -1284,6 +1314,12 @@ src="https://www.facebook.com/tr?id=847407428375701&ev=PageView&noscript=1"
     if (p.telegram_id) {
       document.getElementById('tg-connected').style.display = 'block'
       document.getElementById('tg-disconnected').style.display = 'none'
+      // Show merge row only for TG-only accounts (email = tg_*@twinfrequency.io)
+      const { data: { session } } = await sb.auth.getSession()
+      const userEmail = session?.user?.email || ''
+      if (userEmail.startsWith('tg_') && userEmail.endsWith('@twinfrequency.io')) {
+        document.getElementById('merge-row').style.display = 'block'
+      }
     } else {
       document.getElementById('tg-connected').style.display = 'none'
       document.getElementById('tg-disconnected').style.display = 'block'
@@ -1293,6 +1329,52 @@ src="https://www.facebook.com/tr?id=847407428375701&ev=PageView&noscript=1"
   function connectTelegram() {
     window.open('https://t.me/SeedSoulTest_bot', '_blank')
     showToast('Open the bot and tap "Open TwinFrequency" on your phone')
+  }
+
+  function toggleMergeForm() {
+    const form = document.getElementById('merge-form')
+    const chevron = document.getElementById('merge-chevron')
+    const open = form.style.display === 'block'
+    form.style.display = open ? 'none' : 'block'
+    chevron.style.transform = open ? '' : 'rotate(90deg)'
+  }
+
+  async function mergeAccount() {
+    const email = document.getElementById('merge-email').value.trim()
+    const password = document.getElementById('merge-password').value
+    const msg = document.getElementById('merge-msg')
+    if (!email || !password) { msg.textContent = 'Enter your email and password'; return }
+
+    msg.textContent = ''
+    const tg = window.Telegram?.WebApp
+    const tgUserId = String(tg?.initDataUnsafe?.user?.id || '')
+    if (!tgUserId) { msg.textContent = 'Telegram session not found — reopen the app'; return }
+
+    const btn = document.querySelector('#merge-form button')
+    btn.disabled = true
+    btn.textContent = 'Linking...'
+
+    try {
+      const res = await fetch(`${SUPABASE_URL}/functions/v1/telegram-auth`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'apikey': SUPABASE_ANON_KEY },
+        body: JSON.stringify({ action: 'merge', email, password, tg_user_id: tgUserId })
+      })
+      const json = await res.json()
+      if (json.error) {
+        msg.textContent = json.error === 'Invalid email or password' ? 'Incorrect email or password' : json.error
+        btn.disabled = false
+        btn.textContent = 'Link account'
+        return
+      }
+      await sb.auth.setSession({ access_token: json.access_token, refresh_token: json.refresh_token })
+      showToast('Accounts linked successfully')
+      setTimeout(() => window.location.reload(), 1000)
+    } catch (e) {
+      msg.textContent = 'Something went wrong, try again'
+      btn.disabled = false
+      btn.textContent = 'Link account'
+    }
   }
 
   // ─── AGE RANGE ────────────────────────────────────────────
