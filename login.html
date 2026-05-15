@@ -450,6 +450,12 @@ src="https://www.facebook.com/tr?id=847407428375701&ev=PageView&noscript=1"
   // Telegram Mini App auto-login
   const tg = window.Telegram?.WebApp
 
+  // DEBUG overlay
+  const dbg = document.createElement('div')
+  dbg.style.cssText = 'position:fixed;bottom:80px;left:10px;right:10px;background:rgba(0,0,0,0.85);color:#c9a96e;font-size:11px;padding:8px;border-radius:6px;z-index:9999;word-break:break-all'
+  dbg.textContent = `tg=${!!tg} | initData="${tg?.initData?.slice(0,60)||'EMPTY'}"`
+  document.body.appendChild(dbg)
+
   if (tg) {
     tg.ready()
     tg.expand()
