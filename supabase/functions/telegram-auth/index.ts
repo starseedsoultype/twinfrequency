@@ -93,7 +93,6 @@ serve(async (req) => {
       const oldUserId = signIn.session.user.id
 
       // Find and delete the temporary TG-only account
-      const botToken = Deno.env.get("TELEGRAM_BOT_TOKEN")!
       const tgEmail = `tg_${tg_user_id}@twinfrequency.io`
       const { data: tgUserList } = await supabase.auth.admin.listUsers()
       const tgAuthUser = tgUserList?.users?.find(u => u.email === tgEmail)
@@ -145,11 +144,11 @@ serve(async (req) => {
       { auth: { autoRefreshToken: false, persistSession: false } }
     )
 
-    const email = `tg_${telegramId}@twinfrequency.io`
-    const password = await derivePassword(telegramId, botToken)
+    const tgEmail = `tg_${telegramId}@twinfrequency.io`
+    const tgPassword = await derivePassword(telegramId, botToken)
 
     // Try sign in first (user exists)
-    const { data: signInData, error: signInError } = await supabase.auth.signInWithPassword({ email, password })
+    const { data: signInData, error: signInError } = await supabase.auth.signInWithPassword({ email: tgEmail, password: tgPassword })
 
     if (signInData?.session) {
       return new Response(JSON.stringify({
@@ -159,10 +158,27 @@ serve(async (req) => {
       }), { headers: { ...corsHeaders, "Content-Type": "application/json" } })
     }
 
+    // Check if profile with this telegram_id already exists (old email format migration)
+    const { data: existingProfile } = await supabase
+      .from('profiles').select('id')
+      .eq('telegram_id', parseInt(telegramId)).maybeSingle()
+
+    if (existingProfile) {
+      await supabase.auth.admin.updateUserById(existingProfile.id, { email: tgEmail, password: tgPassword })
+      const { data: sd } = await supabase.auth.signInWithPassword({ email: tgEmail, password: tgPassword })
+      if (sd?.session) {
+        return new Response(JSON.stringify({
+          access_token: sd.session.access_token,
+          refresh_token: sd.session.refresh_token,
+          is_new_user: false,
+        }), { headers: { ...corsHeaders, 'Content-Type': 'application/json' } })
+      }
+    }
+
     // User doesn't exist — create auth user
     const { data: newUser, error: createError } = await supabase.auth.admin.createUser({
-      email,
-      password,
+      email: tgEmail,
+      password: tgPassword,
       email_confirm: true,
     })
 
@@ -177,11 +193,11 @@ serve(async (req) => {
       id: newUser.user.id,
       telegram_id: parseInt(telegramId),
       name: [tgUser.first_name, tgUser.last_name].filter(Boolean).join(" ") || tgUser.username || null,
-      photo_url: null, // Telegram photo_url requires extra API call, skip for now
+      photo_url: null,
     }, { onConflict: "id" })
 
     // Sign in the new user
-    const { data: newSession, error: newSignInError } = await supabase.auth.signInWithPassword({ email, password })
+    const { data: newSession, error: newSignInError } = await supabase.auth.signInWithPassword({ email: tgEmail, password: tgPassword })
 
     if (!newSession?.session) {
       return new Response(JSON.stringify({ error: newSignInError?.message || "Sign in failed" }), {
