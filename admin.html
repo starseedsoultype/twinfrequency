@@ -239,6 +239,18 @@ Welcome to the new TwinF experience.</textarea>
         <input id="bc-btn-text" value="Open TwinF in Telegram" style="width:100%;background:var(--surface);border:1px solid var(--border);border-radius:4px;padding:10px 12px;color:var(--text);font-family:'Jost',sans-serif;font-size:13px;outline:none">
       </div>
 
+      <div style="margin-bottom:20px">
+        <div style="font-size:9px;letter-spacing:0.25em;text-transform:uppercase;color:var(--muted);margin-bottom:10px">Audience</div>
+        <div style="display:flex;gap:8px">
+          <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:12px;color:var(--text);background:var(--surface);border:1px solid var(--border);border-radius:4px;padding:8px 14px">
+            <input type="radio" name="bc-audience" value="full" checked style="accent-color:#C9A96E"> Complete profiles (~42)
+          </label>
+          <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:12px;color:var(--text);background:var(--surface);border:1px solid var(--border);border-radius:4px;padding:8px 14px">
+            <input type="radio" name="bc-audience" value="loose" style="accent-color:#C9A96E"> All real users
+          </label>
+        </div>
+      </div>
+
       <div style="display:flex;flex-direction:column;gap:12px">
 
         <button class="action-btn btn-review" onclick="broadcastDryRun()" style="padding:10px 20px;font-size:10px">
@@ -554,12 +566,16 @@ Welcome to the new TwinF experience.</textarea>
 </div></body></html>`
   }
 
+  function getAudience() {
+    return document.querySelector('input[name="bc-audience"]:checked')?.value ?? 'full'
+  }
+
   async function broadcastDryRun() {
     const token = await getToken()
     const res = await fetch(FUNC_URL, {
       method: 'POST',
       headers: { 'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json' },
-      body: JSON.stringify({ mode: 'dry_run' })
+      body: JSON.stringify({ mode: 'dry_run', audience: getAudience() })
     })
     const data = await res.json()
     document.getElementById('bc-eligible').textContent = data.eligible ?? '—'
@@ -580,7 +596,7 @@ Welcome to the new TwinF experience.</textarea>
     const res = await fetch(FUNC_URL, {
       method: 'POST',
       headers: { 'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json' },
-      body: JSON.stringify({ mode: 'test', test_email: testEmail, custom_html: html, custom_subject: subject })
+      body: JSON.stringify({ mode: 'test', test_email: testEmail, custom_html: html, custom_subject: subject, audience: getAudience() })
     })
     const data = await res.json()
     document.getElementById('bc-result').textContent = res.ok ? '✓ Test sent to ' + testEmail : '✗ Error: ' + JSON.stringify(data)
@@ -588,7 +604,8 @@ Welcome to the new TwinF experience.</textarea>
 
   async function broadcastSend() {
     const limit = parseInt(document.getElementById('bc-limit').value) || 20
-    if (!confirm(`Send to ${limit} users?`)) return
+    const audience = getAudience()
+    if (!confirm(`Send to ${limit} users? Audience: ${audience}`)) return
     const token = await getToken()
     const html = buildEmailHtml(
       document.getElementById('bc-body').value,
@@ -599,7 +616,7 @@ Welcome to the new TwinF experience.</textarea>
     const res = await fetch(FUNC_URL, {
       method: 'POST',
       headers: { 'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json' },
-      body: JSON.stringify({ mode: 'send', limit, custom_html: html, custom_subject: subject })
+      body: JSON.stringify({ mode: 'send', limit, custom_html: html, custom_subject: subject, audience })
     })
     const data = await res.json()
     if (res.ok) {
