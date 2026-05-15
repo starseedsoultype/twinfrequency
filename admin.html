@@ -185,6 +185,7 @@ src="https://www.facebook.com/tr?id=847407428375701&ev=PageView&noscript=1"
   <div class="tabs">
     <button class="tab active" onclick="switchTab('reports')">Reports</button>
     <button class="tab" onclick="switchTab('users')">Users</button>
+    <button class="tab" onclick="switchTab('broadcast')">Broadcast</button>
   </div>
 
   <!-- Reports Tab -->
@@ -195,6 +196,74 @@ src="https://www.facebook.com/tr?id=847407428375701&ev=PageView&noscript=1"
   <!-- Users Tab -->
   <div class="tab-panel" id="tab-users">
     <div id="users-container"></div>
+  </div>
+
+  <!-- Broadcast Tab -->
+  <div class="tab-panel" id="tab-broadcast">
+    <div style="max-width:620px">
+
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:28px" id="bc-stats">
+        <div class="stat-card"><div class="stat-value" id="bc-eligible">—</div><div class="stat-label">Eligible</div></div>
+        <div class="stat-card"><div class="stat-value" id="bc-sent">—</div><div class="stat-label">Sent</div></div>
+        <div class="stat-card"><div class="stat-value" id="bc-remaining">—</div><div class="stat-label">Remaining</div></div>
+      </div>
+
+      <div style="margin-bottom:16px">
+        <div style="font-size:9px;letter-spacing:0.25em;text-transform:uppercase;color:var(--muted);margin-bottom:6px">Subject</div>
+        <input id="bc-subject" value="TwinF is now inside Telegram" style="width:100%;background:var(--surface);border:1px solid var(--border);border-radius:4px;padding:10px 12px;color:var(--text);font-family:'Jost',sans-serif;font-size:13px;outline:none">
+      </div>
+
+      <div style="margin-bottom:16px">
+        <div style="font-size:9px;letter-spacing:0.25em;text-transform:uppercase;color:var(--muted);margin-bottom:6px">Email body</div>
+        <textarea id="bc-body" rows="10" style="width:100%;background:var(--surface);border:1px solid var(--border);border-radius:4px;padding:10px 12px;color:var(--text);font-family:'Jost',sans-serif;font-size:13px;line-height:1.7;outline:none;resize:vertical">Hi,
+
+TwinF has a new update.
+
+You can now open TwinF directly inside Telegram as a Mini App.
+
+This makes the experience much easier:
+you can open your profile faster,
+return to your matches more smoothly,
+continue conversations with less friction,
+and receive Telegram notifications when someone writes to you.
+
+Your existing TwinF account can be connected to Telegram, so your profile, matches, messages, and StarSeedSoul Origin stay with you.
+
+Open the TwinF bot in Telegram and connect your existing account from your profile.
+
+Welcome to the new TwinF experience.</textarea>
+      </div>
+
+      <div style="margin-bottom:28px">
+        <div style="font-size:9px;letter-spacing:0.25em;text-transform:uppercase;color:var(--muted);margin-bottom:6px">Button text</div>
+        <input id="bc-btn-text" value="Open TwinF in Telegram" style="width:100%;background:var(--surface);border:1px solid var(--border);border-radius:4px;padding:10px 12px;color:var(--text);font-family:'Jost',sans-serif;font-size:13px;outline:none">
+      </div>
+
+      <div style="display:flex;flex-direction:column;gap:12px">
+
+        <button class="action-btn btn-review" onclick="broadcastDryRun()" style="padding:10px 20px;font-size:10px">
+          Check audience count
+        </button>
+
+        <div style="display:flex;gap:10px;align-items:center">
+          <input id="bc-test-email" placeholder="test@email.com" style="flex:1;background:var(--surface);border:1px solid var(--border);border-radius:4px;padding:10px 12px;color:var(--text);font-family:'Jost',sans-serif;font-size:13px;outline:none">
+          <button class="action-btn btn-review" onclick="broadcastTest()" style="padding:10px 20px;font-size:10px;white-space:nowrap">
+            Send test
+          </button>
+        </div>
+
+        <div style="display:flex;gap:10px;align-items:center">
+          <div style="font-size:11px;color:var(--muted);white-space:nowrap">Batch size:</div>
+          <input id="bc-limit" type="number" value="20" min="1" max="100" style="width:80px;background:var(--surface);border:1px solid var(--border);border-radius:4px;padding:10px 12px;color:var(--text);font-family:'Jost',sans-serif;font-size:13px;outline:none;text-align:center">
+          <button class="action-btn btn-ban" onclick="broadcastSend()" style="padding:10px 20px;font-size:10px;white-space:nowrap">
+            Send batch
+          </button>
+        </div>
+
+      </div>
+
+      <div id="bc-result" style="margin-top:20px;font-size:12px;color:var(--gold);line-height:1.7"></div>
+    </div>
   </div>
 
 </div>
@@ -441,13 +510,104 @@ src="https://www.facebook.com/tr?id=847407428375701&ev=PageView&noscript=1"
   // ─── Tabs ──────────────────────────────────────────────────
   function switchTab(tab) {
     currentTab = tab
+    const tabNames = ['reports','users','broadcast']
     document.querySelectorAll('.tab').forEach((t, i) => {
-      t.classList.toggle('active', ['reports','users'][i] === tab)
+      t.classList.toggle('active', tabNames[i] === tab)
     })
     document.querySelectorAll('.tab-panel').forEach((p, i) => {
-      p.classList.toggle('active', ['reports','users'][i] === tab)
+      p.classList.toggle('active', tabNames[i] === tab)
     })
     if (tab === 'users' && !document.getElementById('users-tbody')) loadUsers()
+    if (tab === 'broadcast') broadcastDryRun()
+  }
+
+  // ─── Broadcast ─────────────────────────────────────────────
+  const FUNC_URL = 'https://pewgupxikbswhaqxjrwk.supabase.co/functions/v1/send-telegram-update-email'
+
+  async function getToken() {
+    const { data: { session } } = await sb.auth.getSession()
+    return session?.access_token
+  }
+
+  function buildEmailHtml(bodyText, btnText) {
+    const lines = bodyText.split('\n')
+    let html = ''
+    for (const line of lines) {
+      if (line.trim() === '') {
+        html += '<p style="margin:0 0 20px;"></p>'
+      } else {
+        html += `<p style="margin:0 0 6px;">${escHtml(line)}</p>`
+      }
+    }
+    return `<!DOCTYPE html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400&family=Inter:wght@200;300&display=swap" rel="stylesheet">
+</head><body style="margin:0;padding:0;background:#0A0A0A;font-family:'Inter',-apple-system,sans-serif;">
+<div style="max-width:520px;margin:0 auto;padding:48px 24px;">
+<div style="font-family:'Cormorant Garamond',Georgia,serif;font-size:13px;letter-spacing:5px;color:#5F5A55;text-transform:uppercase;margin-bottom:48px;text-align:center;">TwinF by StarSeedSoul</div>
+<div style="width:1px;height:48px;background:linear-gradient(to bottom,transparent,#C9A96E,transparent);margin:0 auto 48px;"></div>
+<div style="font-size:14px;line-height:1.9;color:#C9C1B8;font-weight:300;">${html}</div>
+<div style="text-align:center;margin:40px 0 48px;">
+<a href="https://t.me/SeedSoulTest_bot" style="display:inline-block;padding:15px 48px;border:1px solid rgba(201,169,110,0.35);background:transparent;color:#C9A96E;font-family:'Inter',-apple-system,sans-serif;font-weight:300;font-size:11px;letter-spacing:4px;text-transform:uppercase;text-decoration:none;">${escHtml(btnText)}</a>
+</div>
+<div style="width:1px;height:48px;background:linear-gradient(to bottom,transparent,#C9A96E,transparent);margin:0 auto 40px;"></div>
+<div style="font-size:13px;color:#5F5A55;">TwinF by StarSeedSoul</div>
+</div></body></html>`
+  }
+
+  async function broadcastDryRun() {
+    const token = await getToken()
+    const res = await fetch(FUNC_URL, {
+      method: 'POST',
+      headers: { 'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ mode: 'dry_run' })
+    })
+    const data = await res.json()
+    document.getElementById('bc-eligible').textContent = data.eligible ?? '—'
+    document.getElementById('bc-sent').textContent = data.already_sent ?? '—'
+    document.getElementById('bc-remaining').textContent = data.remaining ?? '—'
+  }
+
+  async function broadcastTest() {
+    const testEmail = document.getElementById('bc-test-email').value.trim()
+    if (!testEmail) { showToast('Enter test email'); return }
+    const token = await getToken()
+    const html = buildEmailHtml(
+      document.getElementById('bc-body').value,
+      document.getElementById('bc-btn-text').value
+    )
+    const subject = document.getElementById('bc-subject').value
+    document.getElementById('bc-result').textContent = 'Sending test...'
+    const res = await fetch(FUNC_URL, {
+      method: 'POST',
+      headers: { 'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ mode: 'test', test_email: testEmail, custom_html: html, custom_subject: subject })
+    })
+    const data = await res.json()
+    document.getElementById('bc-result').textContent = res.ok ? '✓ Test sent to ' + testEmail : '✗ Error: ' + JSON.stringify(data)
+  }
+
+  async function broadcastSend() {
+    const limit = parseInt(document.getElementById('bc-limit').value) || 20
+    if (!confirm(`Send to ${limit} users?`)) return
+    const token = await getToken()
+    const html = buildEmailHtml(
+      document.getElementById('bc-body').value,
+      document.getElementById('bc-btn-text').value
+    )
+    const subject = document.getElementById('bc-subject').value
+    document.getElementById('bc-result').textContent = 'Sending...'
+    const res = await fetch(FUNC_URL, {
+      method: 'POST',
+      headers: { 'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ mode: 'send', limit, custom_html: html, custom_subject: subject })
+    })
+    const data = await res.json()
+    if (res.ok) {
+      document.getElementById('bc-result').textContent = `✓ Sent: ${data.sent} · Failed: ${data.failed} · Remaining: ${data.remaining}`
+      await broadcastDryRun()
+    } else {
+      document.getElementById('bc-result').textContent = '✗ Error: ' + JSON.stringify(data)
+    }
   }
 
   // ─── Modal ─────────────────────────────────────────────────
