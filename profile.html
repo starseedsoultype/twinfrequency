@@ -1315,8 +1315,7 @@ src="https://www.facebook.com/tr?id=847407428375701&ev=PageView&noscript=1"
       document.getElementById('tg-connected').style.display = 'block'
       document.getElementById('tg-disconnected').style.display = 'none'
       // Show merge row only for TG-only accounts (email = tg_*@twinfrequency.io)
-      const { data: { session } } = await sb.auth.getSession()
-      const userEmail = session?.user?.email || ''
+      const userEmail = user?.email || ''
       if (userEmail.startsWith('tg_') && userEmail.endsWith('@twinfrequency.io')) {
         document.getElementById('merge-row').style.display = 'block'
       }
