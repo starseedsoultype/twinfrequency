@@ -127,15 +127,17 @@ serve(async (req) => {
     const limit: number = body.limit ?? 10
     const customHtml: string | undefined = body.custom_html
     const customSubject: string | undefined = body.custom_subject
+    const campaignId: string | undefined = body.campaign_id
     const audience: "full" | "loose" | "origin_leads" | "connection_leads" | "instagram_leads" =
       ["loose", "origin_leads", "connection_leads", "instagram_leads"].includes(body.audience) ? body.audience : "full"
 
-    const broadcastKey =
+    const broadcastKey = campaignId ?? (
       audience === "loose" ? BROADCAST_KEY_LOOSE :
       audience === "origin_leads" ? BROADCAST_KEY_ORIGIN_LEADS :
       audience === "connection_leads" ? BROADCAST_KEY_CONNECTION_LEADS :
       audience === "instagram_leads" ? BROADCAST_KEY_INSTAGRAM_LEADS :
       BROADCAST_KEY
+    )
 
     const rpcName =
       audience === "loose" ? "get_broadcast_audience_loose" :
