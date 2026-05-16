@@ -10,6 +10,7 @@ const BROADCAST_KEY = "telegram_mini_app_update_2026_05"
 const BROADCAST_KEY_LOOSE = "telegram_mini_app_update_all_2026_05"
 const BROADCAST_KEY_ORIGIN_LEADS = "origin_leads_2026_05"
 const BROADCAST_KEY_CONNECTION_LEADS = "connection_leads_2026_05"
+const BROADCAST_KEY_INSTAGRAM_LEADS = "instagram_leads_2026_05"
 const FROM_EMAIL = "StarSeedSoul <hello@twinfrequency.io>"
 const SUBJECT = "TwinF is now inside Telegram"
 const TELEGRAM_BOT_URL = "https://t.me/SeedSoulTest_bot"
@@ -19,7 +20,12 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 }
 
-function buildHtml(): string {
+const UNSUBSCRIBE_BASE_URL = "https://twinfrequency.io/unsubscribe.html"
+
+function buildHtml(recipientEmail = ""): string {
+  const unsubUrl = recipientEmail
+    ? `${UNSUBSCRIBE_BASE_URL}?email=${encodeURIComponent(recipientEmail)}`
+    : UNSUBSCRIBE_BASE_URL
   return `<!DOCTYPE html>
 <html>
 <head>
@@ -74,6 +80,10 @@ function buildHtml(): string {
       <p style="margin:0;color:#5F5A55;">TwinF by StarSeedSoul</p>
     </div>
 
+    <div style="margin-top:48px;text-align:center;">
+      <a href="${unsubUrl}" style="font-size:12px;color:#C9C1B8;text-decoration:underline;letter-spacing:1px;font-weight:300;">unsubscribe</a>
+    </div>
+
   </div>
 </body>
 </html>`
@@ -117,19 +127,21 @@ serve(async (req) => {
     const limit: number = body.limit ?? 10
     const customHtml: string | undefined = body.custom_html
     const customSubject: string | undefined = body.custom_subject
-    const audience: "full" | "loose" | "origin_leads" | "connection_leads" =
-      ["loose", "origin_leads", "connection_leads"].includes(body.audience) ? body.audience : "full"
+    const audience: "full" | "loose" | "origin_leads" | "connection_leads" | "instagram_leads" =
+      ["loose", "origin_leads", "connection_leads", "instagram_leads"].includes(body.audience) ? body.audience : "full"
 
     const broadcastKey =
       audience === "loose" ? BROADCAST_KEY_LOOSE :
       audience === "origin_leads" ? BROADCAST_KEY_ORIGIN_LEADS :
       audience === "connection_leads" ? BROADCAST_KEY_CONNECTION_LEADS :
+      audience === "instagram_leads" ? BROADCAST_KEY_INSTAGRAM_LEADS :
       BROADCAST_KEY
 
     const rpcName =
       audience === "loose" ? "get_broadcast_audience_loose" :
       audience === "origin_leads" ? "get_broadcast_audience_origin_leads" :
       audience === "connection_leads" ? "get_broadcast_audience_connection_leads" :
+      audience === "instagram_leads" ? "get_broadcast_audience_instagram_leads" :
       "get_broadcast_audience"
 
     if (!["dry_run", "test", "send"].includes(mode)) {
@@ -183,7 +195,9 @@ serve(async (req) => {
           from: FROM_EMAIL,
           to: testEmail,
           subject: `[TEST] ${customSubject ?? SUBJECT}`,
-          html: customHtml ?? buildHtml(),
+          html: customHtml
+            ? customHtml.replace("%%UNSUB_URL%%", `${UNSUBSCRIBE_BASE_URL}?email=${encodeURIComponent(testEmail)}`)
+            : buildHtml(testEmail),
         }),
       })
 
@@ -217,7 +231,9 @@ serve(async (req) => {
           from: FROM_EMAIL,
           to: row.email,
           subject: customSubject ?? SUBJECT,
-          html: customHtml ?? buildHtml(),
+          html: customHtml
+            ? customHtml.replace("%%UNSUB_URL%%", `${UNSUBSCRIBE_BASE_URL}?email=${encodeURIComponent(row.email)}`)
+            : buildHtml(row.email),
         }),
       })
 
