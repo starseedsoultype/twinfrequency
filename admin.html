@@ -260,6 +260,12 @@ Welcome to the new TwinF experience.</textarea>
         </div>
       </div>
 
+      <div style="margin-bottom:20px">
+        <div style="font-size:9px;letter-spacing:0.25em;text-transform:uppercase;color:var(--muted);margin-bottom:6px">Campaign ID</div>
+        <input id="bc-campaign" placeholder="e.g. telegram_update_2026_06" style="width:100%;background:var(--surface);border:1px solid var(--border);border-radius:4px;padding:10px 12px;color:var(--text);font-family:'Jost',sans-serif;font-size:13px;outline:none">
+        <div style="font-size:10px;color:var(--muted);margin-top:5px">New name = new campaign. Same name = continue existing. Leave empty to use system default.</div>
+      </div>
+
       <div style="display:flex;flex-direction:column;gap:12px">
 
         <button class="action-btn btn-review" onclick="broadcastDryRun()" style="padding:10px 20px;font-size:10px">
@@ -580,12 +586,18 @@ Welcome to the new TwinF experience.</textarea>
     return document.querySelector('input[name="bc-audience"]:checked')?.value ?? 'full'
   }
 
+  function getCampaignId() {
+    const v = document.getElementById('bc-campaign')?.value.trim()
+    return v || undefined
+  }
+
   async function broadcastDryRun() {
     const token = await getToken()
+    const campaignId = getCampaignId()
     const res = await fetch(FUNC_URL, {
       method: 'POST',
       headers: { 'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json' },
-      body: JSON.stringify({ mode: 'dry_run', audience: getAudience() })
+      body: JSON.stringify({ mode: 'dry_run', audience: getAudience(), ...(campaignId && { campaign_id: campaignId }) })
     })
     const data = await res.json()
     document.getElementById('bc-eligible').textContent = data.eligible ?? '—'
@@ -606,7 +618,7 @@ Welcome to the new TwinF experience.</textarea>
     const res = await fetch(FUNC_URL, {
       method: 'POST',
       headers: { 'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json' },
-      body: JSON.stringify({ mode: 'test', test_email: testEmail, custom_html: html, custom_subject: subject, audience: getAudience() })
+      body: JSON.stringify({ mode: 'test', test_email: testEmail, custom_html: html, custom_subject: subject, audience: getAudience(), ...(getCampaignId() && { campaign_id: getCampaignId() }) })
     })
     const data = await res.json()
     document.getElementById('bc-result').textContent = res.ok ? '✓ Test sent to ' + testEmail : '✗ Error: ' + JSON.stringify(data)
@@ -626,7 +638,7 @@ Welcome to the new TwinF experience.</textarea>
     const res = await fetch(FUNC_URL, {
       method: 'POST',
       headers: { 'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json' },
-      body: JSON.stringify({ mode: 'send', limit, custom_html: html, custom_subject: subject, audience })
+      body: JSON.stringify({ mode: 'send', limit, custom_html: html, custom_subject: subject, audience, ...(getCampaignId() && { campaign_id: getCampaignId() }) })
     })
     const data = await res.json()
     if (res.ok) {
