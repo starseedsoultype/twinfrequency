@@ -1,0 +1,9 @@
+User-agent: *
+Allow: /
+Disallow: /feed.html
+Disallow: /chats.html
+Disallow: /profile.html
+Disallow: /bond.html
+Disallow: /admin.html
+
+Sitemap: https://twinfrequency.io/sitemap.xml

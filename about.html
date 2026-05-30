@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<!-- Meta Pixel Code -->
+<script>
+!function(f,b,e,v,n,t,s)
+{if(f.fbq)return;n=f.fbq=function(){n.callMethod?
+n.callMethod.apply(n,arguments):n.queue.push(arguments)};
+if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';
+n.queue=[];t=b.createElement(e);t.async=!0;
+t.src=v;s=b.getElementsByTagName(e)[0];
+s.parentNode.insertBefore(t,s)}(window, document,'script',
+'https://connect.facebook.net/en_US/fbevents.js');
+fbq('init', '847407428375701');
+fbq('track', 'PageView');
+</script>
+<noscript><img height="1" width="1" style="display:none"
+src="https://www.facebook.com/tr?id=847407428375701&ev=PageView&noscript=1"
+/></noscript>
+<!-- End Meta Pixel Code -->
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TwinFrequency — Soul Connection App</title>
+<meta name="description" content="TwinFrequency is an app built on the StarSeedSoul typology to map the structural dynamics of human relationships. Discover the mechanics behind the connections in your life.">
+<link rel="canonical" href="https://twinfrequency.io/about.html">
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "WebApplication",
+  "name": "TwinFrequency",
+  "description": "Soul connection app based on the StarSeedSoul typology. 10 connection types, 24 soul origins.",
+  "url": "https://twinfrequency.io",
+  "author": {
+    "@type": "Person",
+    "name": "Olesya Popova"
+  },
+  "applicationCategory": "LifestyleApplication"
+}
+</script>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;1,300;1,400&family=Jost:wght@200;300;400&display=swap" rel="stylesheet">
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  :root {
+    --gold: #c9a96e;
+    --gold-soft: #e8d5b0;
+    --deep: #04030a;
+    --mid: #0d0b18;
+    --text: #e8e0d5;
+    --muted: #6b6478;
+  }
+  html, body {
+    background: var(--deep);
+    color: var(--text);
+    font-family: 'Jost', sans-serif;
+    font-weight: 200;
+    -webkit-font-smoothing: antialiased;
+  }
+  /* NEBULA GLOW */
+  .nebula {
+    position: fixed;
+    border-radius: 50%;
+    filter: blur(80px);
+    pointer-events: none;
+    z-index: 0;
+  }
+  .nebula-1 {
+    width: 500px; height: 500px;
+    top: -100px; left: -100px;
+    background: radial-gradient(circle, rgba(80,40,120,0.15) 0%, transparent 70%);
+  }
+  .nebula-2 {
+    width: 400px; height: 400px;
+    bottom: -50px; right: -50px;
+    background: radial-gradient(circle, rgba(40,60,120,0.1) 0%, transparent 70%);
+  }
+
+  .nav {
+    position: fixed;
+    top: 0; left: 0; right: 0;
+    padding: 24px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    z-index: 100;
+    background: rgba(4,3,10,0.8);
+    backdrop-filter: blur(10px);
+    border-bottom: 1px solid rgba(201,169,110,0.1);
+  }
+  .nav-logo {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 20px;
+    color: var(--gold);
+    text-decoration: none;
+    letter-spacing: 2px;
+  }
+  .nav-links a {
+    color: var(--text);
+    text-decoration: none;
+    font-size: 14px;
+    margin-left: 24px;
+    letter-spacing: 1px;
+    transition: color 0.3s;
+  }
+  .nav-links a:hover {
+    color: var(--gold);
+  }
+
+  .content {
+    position: relative;
+    z-index: 1;
+    max-width: 800px;
+    margin: 120px auto 80px;
+    padding: 0 24px;
+  }
+  h1 {
+    font-family: 'Cormorant Garamond', serif;
+    font-weight: 300;
+    font-size: 42px;
+    color: var(--gold);
+    margin-bottom: 40px;
+    letter-spacing: 1px;
+  }
+  h2 {
+    font-family: 'Cormorant Garamond', serif;
+    font-weight: 300;
+    font-size: 28px;
+    color: var(--gold-soft);
+    margin: 48px 0 20px;
+    border-bottom: 1px solid rgba(201,169,110,0.2);
+    padding-bottom: 12px;
+  }
+  p {
+    font-size: 16px;
+    line-height: 1.8;
+    color: #d1cbc0;
+    margin-bottom: 24px;
+  }
+  a.link {
+    color: var(--gold);
+    text-decoration: none;
+    border-bottom: 1px solid rgba(201,169,110,0.4);
+  }
+  a.link:hover {
+    border-bottom-color: var(--gold);
+  }
+
+  .type-list {
+    margin-top: 24px;
+  }
+  .type-item {
+    margin-bottom: 24px;
+  }
+  .type-name {
+    font-family: 'Cormorant Garamond', serif;
+    font-size: 20px;
+    color: var(--gold);
+    margin-bottom: 8px;
+  }
+
+  .cta-section {
+    margin-top: 64px;
+    padding: 48px;
+    background: rgba(13,11,24,0.6);
+    border: 1px solid rgba(201,169,110,0.2);
+    text-align: center;
+    border-radius: 8px;
+  }
+  .btn {
+    display: inline-block;
+    padding: 16px 32px;
+    background: transparent;
+    color: var(--gold);
+    border: 1px solid var(--gold);
+    text-decoration: none;
+    font-size: 14px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    transition: all 0.3s;
+    margin-top: 24px;
+  }
+  .btn:hover {
+    background: var(--gold);
+    color: var(--deep);
+  }
+
+  footer {
+    border-top: 1px solid rgba(201,169,110,0.1);
+    padding: 40px 24px;
+    text-align: center;
+    position: relative;
+    z-index: 1;
+  }
+  .footer-links a {
+    color: var(--muted);
+    text-decoration: none;
+    font-size: 12px;
+    margin: 0 12px;
+    letter-spacing: 1px;
+  }
+  .footer-links a:hover {
+    color: var(--gold);
+  }
+</style>
+</head>
+<body>
+  <div class="nebula nebula-1"></div>
+  <div class="nebula nebula-2"></div>
+
+  <nav class="nav">
+    <a href="index.html" class="nav-logo">TwinFrequency</a>
+    <div class="nav-links">
+      <a href="login.html">Login</a>
+    </div>
+  </nav>
+
+  <div class="content">
+    <h1>TwinFrequency — Soul Connection App</h1>
+
+    <h2>What It Is</h2>
+    <p>TwinFrequency is an application designed to map the structural dynamics of human relationships. It is built upon the <a href="https://www.starseedsoultype.com" target="_blank" class="link">StarSeedSoul typology</a>, a system that identifies 24 distinct psychological architectures, known as Soul Origins. The app allows users to calculate the exact nature of the friction or flow between any two individuals by analyzing how their core mechanics interact.</p>
+
+    <h2>How It Works</h2>
+    <p>Users enter the app by completing an initial assessment to determine their own Soul Origin. Once established, they can calculate their bond with others by inviting them to connect or by analyzing existing profiles. The system compares the internal structures of both individuals and identifies which of the 10 Connection Types governs their dynamic. It provides a detailed breakdown of where they align, where they clash, and the inherent purpose of their interaction.</p>
+
+    <h2>The 10 Connection Types</h2>
+    <div class="type-list">
+      <div class="type-item">
+        <div class="type-name">Frequency Twins</div>
+        <p>Complete structural reflection. Every layer perfectly complements the other, creating the most frictionless dynamic in the system.</p>
+      </div>
+      <div class="type-item">
+        <div class="type-name">Twin Stars</div>
+        <p>Deep complementarity and shared resonance. A dynamic that provides both completion and familiar reflection.</p>
+      </div>
+      <div class="type-item">
+        <div class="type-name">Cosmic Flow</div>
+        <p>The natural rhythm. These individuals generate energy for each other without conscious effort, creating a comfortable and supportive bond.</p>
+      </div>
+      <div class="type-item">
+        <div class="type-name">Mirror Portals</div>
+        <p>Inspiration with an edge. A connection combining strong pull and genuine recognition with a persistent, fundamental gap.</p>
+      </div>
+      <div class="type-item">
+        <div class="type-name">Celestial Mentor</div>
+        <p>The teaching dynamic. One individual holds natural authority in areas where the other is still learning, offering profound growth alongside palpable friction.</p>
+      </div>
+      <div class="type-item">
+        <div class="type-name">Karmic Bonds</div>
+        <p>The magnetic return. A dynamic that continually draws individuals together but remains consistently unresolved, demanding conscious attention to close old loops.</p>
+      </div>
+      <div class="type-item">
+        <div class="type-name">Shadow Contracts</div>
+        <p>The activating mirror. The dominant pattern is misalignment, leading to an intensely activating experience that surfaces hidden or unhealed material.</p>
+      </div>
+      <div class="type-item">
+        <div class="type-name">Black Holes</div>
+        <p>The intense depletion. Structural misalignments dominate, creating a cycle where core needs are strongly activated but fundamentally unmet.</p>
+      </div>
+      <div class="type-item">
+        <div class="type-name">Star Alchemy</div>
+        <p>The crucible of transformation. Maximum structural opposition acts as a catalyst, demanding rapid evolution through constant friction.</p>
+      </div>
+      <div class="type-item">
+        <div class="type-name">Eternal Reflection</div>
+        <p>The perfect mirror. The same Soul Origin meets itself, offering total recognition and zero friction, but lacking evolutionary momentum.</p>
+      </div>
+    </div>
+
+    <h2>Who It's For</h2>
+    <p>TwinFrequency is for individuals seeking precise, structural insight into their relationships. It moves beyond generalized advice to offer clear explanations for why certain connections feel effortless and why others involve recurring conflict. It is a tool for navigating both personal and professional dynamics with objective clarity.</p>
+
+    <div class="cta-section">
+      <h3 style="font-family:'Cormorant Garamond',serif; font-size:24px; color:var(--gold); font-weight:300; margin-bottom:16px;">Map Your Connections</h3>
+      <p style="margin-bottom:0;">Create your profile to discover your Soul Origin and calculate your bonds.</p>
+      <a href="login.html" class="btn">Enter TwinFrequency</a>
+    </div>
+  </div>
+
+  <footer>
+    <div class="footer-links">
+      <a href="about.html">About</a>
+      <a href="legal.html">Terms & Privacy</a>
+      <a href="mailto:timsocion@gmail.com">Contact</a>
+    </div>
+  </footer>
+</body>
+</html>
