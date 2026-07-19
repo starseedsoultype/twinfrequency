@@ -498,32 +498,6 @@ body {
 
 <script>
 // ── TYPES ──────────────────────────────────────────────────────────────────
-const TYPES = [
-  { name:"Siriusian",       funcs:["R","E","M","L"], group:"I" },
-  { name:"Pleiadian",       funcs:["R","M","L","E"], group:"I" },
-  { name:"Lemurian",        funcs:["R","E","L","M"], group:"I" },
-  { name:"Cassiopeian",     funcs:["R","L","M","E"], group:"I" },
-  { name:"Procyonian",      funcs:["R","M","E","L"], group:"I" },
-  { name:"Lyran",           funcs:["R","L","E","M"], group:"I" },
-  { name:"Arcturian",       funcs:["L","E","M","R"], group:"II" },
-  { name:"Orion",           funcs:["L","M","R","E"], group:"II" },
-  { name:"Vegan",           funcs:["L","E","R","M"], group:"II" },
-  { name:"Zeta Reticulan",  funcs:["L","R","E","M"], group:"II" },
-  { name:"Epsilon Eridan",  funcs:["L","M","E","R"], group:"II" },
-  { name:"Atlantean",       funcs:["L","R","M","E"], group:"II" },
-  { name:"Andromedan",      funcs:["E","R","L","M"], group:"III" },
-  { name:"Polarisian",      funcs:["E","L","M","R"], group:"III" },
-  { name:"Nibiruan",        funcs:["E","M","R","L"], group:"III" },
-  { name:"Egyptian",        funcs:["E","L","R","M"], group:"III" },
-  { name:"Titanian",           funcs:["E","M","L","R"], group:"III" },
-  { name:"Blue Avian",      funcs:["E","R","M","L"], group:"III" },
-  { name:"Tau Cetian",      funcs:["M","R","E","L"], group:"IV" },
-  { name:"Aldebaran",       funcs:["M","L","R","E"], group:"IV" },
-  { name:"Centaurian",      funcs:["M","L","E","R"], group:"IV" },
-  { name:"Herculean",       funcs:["M","E","R","L"], group:"IV" },
-  { name:"Anunnaki",        funcs:["M","E","L","R"], group:"IV" },
-  { name:"Hyperborean",     funcs:["M","R","L","E"], group:"IV" },
-];
 
 const FC = {
   R:{ hex:"#28b450", name:"Relationships", sym:"🜄" },
@@ -1045,28 +1019,20 @@ function calculateResult() {
     }
   }
 
-  showEmailCapture();
-}
-
-function getType() {
-  const sorted = Object.entries(scores).sort((a,b) => b[1]-a[1]);
-  const order = sorted.map(s => s[0]);
-  const match = TYPES.find(t => t.funcs.join("") === order.join(""));
-  if (!match) {
-    // Fallback: find closest type by matching as many positions as possible
-    let best = TYPES[0];
-    let bestScore = -1;
-    TYPES.forEach(t => {
-      let s = 0;
-      t.funcs.forEach((f, i) => { if (f === order[i]) s++; });
-      if (s > bestScore) { bestScore = s; best = t; }
-    });
-    return best;
-  }
-  return match;
+  resolveTypeServer({scores:scores}).then(function(t){resolvedType=t;showEmailCapture();}).catch(function(){alert('The portal flickered. Please check your connection and try again.');});
 }
 
 // ── QUIZ ENGINE ────────────────────────────────────────────────────────────
+// ── TYPE RESOLUTION — server-side only (stacks are not shipped to the client) ──
+const _RESOLVE_URL = 'https://pewgupxikbswhaqxjrwk.supabase.co/functions/v1/resolve-type';
+let resolvedType = null;
+async function resolveTypeServer(payload){
+  const r = await fetch(_RESOLVE_URL, {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(payload)});
+  if(!r.ok) throw new Error('resolve failed');
+  return await r.json();
+}
+function getType(){ return resolvedType; }
+
 function startQuiz() {
   document.getElementById('intro').style.display = 'none';
   document.getElementById('quiz').style.display = 'block';
