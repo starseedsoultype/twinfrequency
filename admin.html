@@ -186,6 +186,7 @@ src="https://www.facebook.com/tr?id=847407428375701&ev=PageView&noscript=1"
     <button class="tab active" onclick="switchTab('reports')">Reports</button>
     <button class="tab" onclick="switchTab('users')">Users</button>
     <button class="tab" onclick="switchTab('broadcast')">Broadcast</button>
+    <button class="tab" onclick="switchTab('telegram')">Telegram</button>
   </div>
 
   <!-- Reports Tab -->
@@ -290,6 +291,87 @@ Welcome to the new TwinF experience.</textarea>
       </div>
 
       <div id="bc-result" style="margin-top:20px;font-size:12px;color:var(--gold);line-height:1.7"></div>
+    </div>
+  </div>
+
+  <!-- Telegram Tab -->
+  <div class="tab-panel" id="tab-telegram">
+    <div style="max-width:620px">
+
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:28px">
+        <div class="stat-card"><div class="stat-value" id="tg-eligible">—</div><div class="stat-label">Eligible</div></div>
+        <div class="stat-card"><div class="stat-value" id="tg-sent">—</div><div class="stat-label">Sent</div></div>
+        <div class="stat-card"><div class="stat-value" id="tg-remaining">—</div><div class="stat-label">Remaining</div></div>
+      </div>
+
+      <div style="margin-bottom:16px">
+        <div style="font-size:9px;letter-spacing:0.25em;text-transform:uppercase;color:var(--muted);margin-bottom:6px">Message</div>
+        <textarea id="tg-text" rows="9" placeholder="Write your message here." style="width:100%;background:var(--surface);border:1px solid var(--border);border-radius:4px;padding:10px 12px;color:var(--text);font-family:'Jost',sans-serif;font-size:13px;line-height:1.7;outline:none;resize:vertical"></textarea>
+        <div style="font-size:10px;color:var(--muted);margin-top:5px">Plain text. Telegram shows it exactly as written.</div>
+      </div>
+
+      <div style="display:flex;gap:10px;margin-bottom:16px">
+        <div style="flex:1">
+          <div style="font-size:9px;letter-spacing:0.25em;text-transform:uppercase;color:var(--muted);margin-bottom:6px">Button text</div>
+          <input id="tg-btn-text" placeholder="Find your Origin" style="width:100%;background:var(--surface);border:1px solid var(--border);border-radius:4px;padding:10px 12px;color:var(--text);font-family:'Jost',sans-serif;font-size:13px;outline:none">
+        </div>
+        <div style="flex:1">
+          <div style="font-size:9px;letter-spacing:0.25em;text-transform:uppercase;color:var(--muted);margin-bottom:6px">Button link</div>
+          <input id="tg-btn-url" placeholder="https://..." style="width:100%;background:var(--surface);border:1px solid var(--border);border-radius:4px;padding:10px 12px;color:var(--text);font-family:'Jost',sans-serif;font-size:13px;outline:none">
+        </div>
+      </div>
+
+      <div style="margin-bottom:20px">
+        <label style="display:flex;align-items:center;gap:10px;cursor:pointer;font-size:12px;color:var(--text);background:var(--surface);border:1px solid var(--border);border-radius:4px;padding:10px 14px">
+          <input type="checkbox" id="tg-attach-guide" style="accent-color:#C9A96E"> Attach the free relationships guide (PDF)
+        </label>
+      </div>
+
+      <div style="margin-bottom:20px">
+        <div style="font-size:9px;letter-spacing:0.25em;text-transform:uppercase;color:var(--muted);margin-bottom:10px">Audience</div>
+        <div style="display:flex;flex-wrap:wrap;gap:8px">
+          <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:12px;color:var(--text);background:var(--surface);border:1px solid var(--border);border-radius:4px;padding:8px 14px">
+            <input type="radio" name="tg-audience" value="subscribers" checked style="accent-color:#C9A96E"> Bot subscribers
+          </label>
+          <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:12px;color:var(--text);background:var(--surface);border:1px solid var(--border);border-radius:4px;padding:8px 14px">
+            <input type="radio" name="tg-audience" value="twinf" style="accent-color:#C9A96E"> TwinF Telegram users
+          </label>
+          <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-size:12px;color:var(--text);background:var(--surface);border:1px solid var(--border);border-radius:4px;padding:8px 14px">
+            <input type="radio" name="tg-audience" value="all" style="accent-color:#C9A96E"> Everyone
+          </label>
+        </div>
+      </div>
+
+      <div style="margin-bottom:20px">
+        <div style="font-size:9px;letter-spacing:0.25em;text-transform:uppercase;color:var(--muted);margin-bottom:6px">Campaign ID</div>
+        <input id="tg-campaign" placeholder="e.g. tg_launch_2026_08" style="width:100%;background:var(--surface);border:1px solid var(--border);border-radius:4px;padding:10px 12px;color:var(--text);font-family:'Jost',sans-serif;font-size:13px;outline:none">
+        <div style="font-size:10px;color:var(--muted);margin-top:5px">New name = new campaign. Same name = continue existing. Leave empty to use system default.</div>
+      </div>
+
+      <div style="display:flex;flex-direction:column;gap:12px">
+
+        <button class="action-btn btn-review" onclick="tgDryRun()" style="padding:10px 20px;font-size:10px">
+          Check audience count
+        </button>
+
+        <div style="display:flex;gap:10px;align-items:center">
+          <input id="tg-test-id" placeholder="Your Telegram ID" style="flex:1;background:var(--surface);border:1px solid var(--border);border-radius:4px;padding:10px 12px;color:var(--text);font-family:'Jost',sans-serif;font-size:13px;outline:none">
+          <button class="action-btn btn-review" onclick="tgTest()" style="padding:10px 20px;font-size:10px;white-space:nowrap">
+            Send test
+          </button>
+        </div>
+
+        <div style="display:flex;gap:10px;align-items:center">
+          <div style="font-size:11px;color:var(--muted);white-space:nowrap">Batch size:</div>
+          <input id="tg-limit" type="number" value="25" min="1" max="200" style="width:80px;background:var(--surface);border:1px solid var(--border);border-radius:4px;padding:10px 12px;color:var(--text);font-family:'Jost',sans-serif;font-size:13px;outline:none;text-align:center">
+          <button class="action-btn btn-ban" onclick="tgSend()" style="padding:10px 20px;font-size:10px;white-space:nowrap">
+            Send batch
+          </button>
+        </div>
+
+      </div>
+
+      <div id="tg-result" style="margin-top:20px;font-size:12px;color:var(--gold);line-height:1.7"></div>
     </div>
   </div>
 
@@ -537,7 +619,7 @@ Welcome to the new TwinF experience.</textarea>
   // ─── Tabs ──────────────────────────────────────────────────
   function switchTab(tab) {
     currentTab = tab
-    const tabNames = ['reports','users','broadcast']
+    const tabNames = ['reports','users','broadcast','telegram']
     document.querySelectorAll('.tab').forEach((t, i) => {
       t.classList.toggle('active', tabNames[i] === tab)
     })
@@ -546,6 +628,67 @@ Welcome to the new TwinF experience.</textarea>
     })
     if (tab === 'users' && !document.getElementById('users-tbody')) loadUsers()
     if (tab === 'broadcast') broadcastDryRun()
+    if (tab === 'telegram') tgDryRun()
+  }
+
+  // ─── Telegram broadcast ────────────────────────────────────
+  const TG_FUNC_URL = 'https://pewgupxikbswhaqxjrwk.supabase.co/functions/v1/telegram-broadcast'
+
+  function tgPayload(extra) {
+    const campaign = document.getElementById('tg-campaign').value.trim()
+    const btnText = document.getElementById('tg-btn-text').value.trim()
+    const btnUrl = document.getElementById('tg-btn-url').value.trim()
+    return {
+      audience: document.querySelector('input[name="tg-audience"]:checked')?.value ?? 'subscribers',
+      text: document.getElementById('tg-text').value,
+      attach_guide: document.getElementById('tg-attach-guide').checked,
+      ...(campaign && { campaign_id: campaign }),
+      ...(btnText && btnUrl && { button_text: btnText, button_url: btnUrl }),
+      ...extra
+    }
+  }
+
+  async function tgCall(extra) {
+    const token = await getToken()
+    const res = await fetch(TG_FUNC_URL, {
+      method: 'POST',
+      headers: { 'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json' },
+      body: JSON.stringify(tgPayload(extra))
+    })
+    return { res, data: await res.json() }
+  }
+
+  async function tgDryRun() {
+    const { data } = await tgCall({ mode: 'dry_run' })
+    document.getElementById('tg-eligible').textContent = data.eligible ?? '—'
+    document.getElementById('tg-sent').textContent = data.already_sent ?? '—'
+    document.getElementById('tg-remaining').textContent = data.remaining ?? '—'
+  }
+
+  async function tgTest() {
+    const testId = document.getElementById('tg-test-id').value.trim()
+    if (!testId) { showToast('Enter your Telegram ID'); return }
+    document.getElementById('tg-result').textContent = 'Sending test...'
+    const { res, data } = await tgCall({ mode: 'test', test_chat_id: testId })
+    document.getElementById('tg-result').textContent = res.ok
+      ? '✓ Test sent to ' + testId
+      : '✗ Error: ' + (data.error || JSON.stringify(data))
+  }
+
+  async function tgSend() {
+    const limit = parseInt(document.getElementById('tg-limit').value) || 25
+    const audience = document.querySelector('input[name="tg-audience"]:checked')?.value
+    if (!confirm(`Send to ${limit} people in Telegram? Audience: ${audience}`)) return
+    document.getElementById('tg-result').textContent = 'Sending...'
+    const { res, data } = await tgCall({ mode: 'send', limit })
+    if (res.ok) {
+      document.getElementById('tg-result').textContent =
+        `✓ Sent: ${data.sent} · Failed: ${data.failed} · Remaining: ${data.remaining}` +
+        (data.errors?.length ? `\n${data.errors.join('\n')}` : '')
+      await tgDryRun()
+    } else {
+      document.getElementById('tg-result').textContent = '✗ Error: ' + (data.error || JSON.stringify(data))
+    }
   }
 
   // ─── Broadcast ─────────────────────────────────────────────
