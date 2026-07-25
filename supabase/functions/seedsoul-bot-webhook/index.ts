@@ -10,7 +10,9 @@ const BOT_TOKEN = Deno.env.get("TELEGRAM_BOT_TOKEN")!;
 const SUPABASE_URL = Deno.env.get("SUPABASE_URL")!;
 const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 // Shared secret set on the Telegram webhook so only Telegram can call this.
-const WEBHOOK_SECRET = Deno.env.get("TELEGRAM_WEBHOOK_SECRET") ?? "";
+// Read from bot_config so it needs no dashboard step; the env var wins if set.
+const ENV_SECRET = Deno.env.get("TELEGRAM_WEBHOOK_SECRET") ?? "";
+let cachedSecret: string | null = null;
 
 const TG = `https://api.telegram.org/bot${BOT_TOKEN}`;
 const DB = `${SUPABASE_URL}/rest/v1`;
@@ -119,9 +121,20 @@ async function sendGuide(chatId: number) {
 Deno.serve(async (req: Request) => {
   if (req.method !== "POST") return new Response("ok");
 
-  if (WEBHOOK_SECRET) {
+  if (cachedSecret === null) {
+    if (ENV_SECRET) {
+      cachedSecret = ENV_SECRET;
+    } else {
+      const [row] = await dbGet<{ value: string }>(
+        "/bot_config?key=eq.webhook_secret&select=value&limit=1",
+      );
+      cachedSecret = row?.value ?? "";
+    }
+  }
+
+  if (cachedSecret) {
     const got = req.headers.get("X-Telegram-Bot-Api-Secret-Token");
-    if (got !== WEBHOOK_SECRET) return new Response("forbidden", { status: 403 });
+    if (got !== cachedSecret) return new Response("forbidden", { status: 403 });
   }
 
   let update: Record<string, any>;
