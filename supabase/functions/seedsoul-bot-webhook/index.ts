@@ -1,8 +1,8 @@
-// seedsoul-bot-webhook v1 — @SeedSoulTest_bot
+// seedsoul-bot-webhook v2 — @SeedSoulTest_bot
 //
 // Replaces the ManyChat webhook. Two jobs:
 //   1. Record everyone who opens the bot into telegram_subscribers
-//   2. Deliver the free relationships guide on /start
+//   2. Deliver the welcome photo and the free relationships guide on /start
 //
 // Native fetch only, no imports, so it deploys through the Management API.
 
@@ -23,6 +23,7 @@ const DB_H = {
 };
 
 const GUIDE_KEY = "relationships_guide";
+const PHOTO_KEY = "welcome_photo";
 const ORIGIN_URL = "https://www.starseedsoultype.com/quiz.html";
 
 async function dbGet<T>(path: string): Promise<T[]> {
@@ -69,53 +70,54 @@ const FALLBACK = `Your guide is above 💌
 
 Your own Origin is where all of this starts. Seven questions, two minutes.`;
 
-// ── Guide delivery, with cached file_id ───────────────────────
-async function sendGuide(chatId: number) {
-  const [asset] = await dbGet<{ key: string; file_id: string | null; source_url: string }>(
-    `/bot_assets?key=eq.${GUIDE_KEY}&select=key,file_id,source_url&limit=1`,
+const KEYBOARD = {
+  inline_keyboard: [[{ text: "Find your Origin", url: ORIGIN_URL }]],
+};
+
+// ── Asset delivery, with cached file_id ───────────────────────
+// First send goes by public URL, Telegram returns a file_id, and every
+// later send reuses that id and is instant.
+async function sendAsset(
+  chatId: number,
+  key: string,
+  method: "sendPhoto" | "sendDocument",
+  field: "photo" | "document",
+  extra: Record<string, unknown> = {},
+) {
+  const [asset] = await dbGet<{ file_id: string | null; source_url: string }>(
+    `/bot_assets?key=eq.${key}&select=file_id,source_url&limit=1`,
   );
   if (!asset) {
-    console.error("bot_assets row missing");
-    return;
+    console.error("bot_assets row missing:", key);
+    return { ok: false };
   }
 
-  const keyboard = {
-    inline_keyboard: [[{ text: "Find your Origin", url: ORIGIN_URL }]],
-  };
-
-  // Reuse the cached file_id when we have one, otherwise let Telegram
-  // fetch the PDF from its public URL and cache the id it returns.
-  const document = asset.file_id ?? asset.source_url;
-
-  const data = await tg("sendDocument", {
+  let data = await tg(method, {
     chat_id: chatId,
-    document,
-    caption: GUIDE_CAPTION,
-    reply_markup: keyboard,
+    [field]: asset.file_id ?? asset.source_url,
+    ...extra,
   });
 
   if (data.ok && !asset.file_id) {
-    const fileId = data.result?.document?.file_id;
+    const result = data.result ?? {};
+    const fileId = field === "photo"
+      ? result.photo?.[result.photo.length - 1]?.file_id
+      : result.document?.file_id;
     if (fileId) {
       await dbUpsert(
         "bot_assets",
-        { key: GUIDE_KEY, file_id: fileId, source_url: asset.source_url, updated_at: new Date().toISOString() },
+        { key, file_id: fileId, source_url: asset.source_url, updated_at: new Date().toISOString() },
         "key",
       );
-      console.log("cached guide file_id");
+      console.log("cached file_id for", key);
     }
+  } else if (!data.ok && asset.file_id) {
+    // Cached id went stale, fall back to the URL once
+    console.warn("cached file_id failed for", key, "retrying by URL");
+    data = await tg(method, { chat_id: chatId, [field]: asset.source_url, ...extra });
   }
 
-  // If the cached id ever goes stale, fall back to the URL once.
-  if (!data.ok && asset.file_id) {
-    console.warn("cached file_id failed, retrying by URL");
-    await tg("sendDocument", {
-      chat_id: chatId,
-      document: asset.source_url,
-      caption: GUIDE_CAPTION,
-      reply_markup: keyboard,
-    });
-  }
+  return data;
 }
 
 Deno.serve(async (req: Request) => {
@@ -193,8 +195,12 @@ Deno.serve(async (req: Request) => {
     );
 
     if (isStart) {
-      await tg("sendMessage", { chat_id: chatId, text: GREETING });
-      await sendGuide(chatId);
+      // Photo carries the greeting, the guide follows with its own caption
+      await sendAsset(chatId, PHOTO_KEY, "sendPhoto", "photo", { caption: GREETING });
+      await sendAsset(chatId, GUIDE_KEY, "sendDocument", "document", {
+        caption: GUIDE_CAPTION,
+        reply_markup: KEYBOARD,
+      });
       return new Response("ok");
     }
 
@@ -202,7 +208,7 @@ Deno.serve(async (req: Request) => {
     await tg("sendMessage", {
       chat_id: chatId,
       text: FALLBACK,
-      reply_markup: { inline_keyboard: [[{ text: "Find your Origin", url: ORIGIN_URL }]] },
+      reply_markup: KEYBOARD,
     });
 
     return new Response("ok");
