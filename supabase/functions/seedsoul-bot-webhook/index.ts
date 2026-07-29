@@ -1,4 +1,4 @@
-// seedsoul-bot-webhook v3 — @SeedSoulTest_bot
+// seedsoul-bot-webhook v4 — @SeedSoulTest_bot
 //
 // Replaces the ManyChat webhook. Jobs:
 //   1. Record everyone who opens the bot into telegram_subscribers
@@ -49,6 +49,19 @@ async function dbUpsert(table: string, body: unknown, onConflict: string) {
     body: JSON.stringify(body),
   });
   if (!res.ok) console.error("dbUpsert", table, res.status, await res.text());
+}
+
+const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
+
+// Let the paced flow finish after the webhook has already answered Telegram.
+// Holding the request open instead would make Telegram retry the update.
+function background(p: Promise<unknown>): Promise<unknown> | undefined {
+  const rt = (globalThis as any).EdgeRuntime;
+  if (rt && typeof rt.waitUntil === "function") {
+    rt.waitUntil(p);
+    return undefined;
+  }
+  return p;
 }
 
 async function tg(method: string, payload: unknown) {
@@ -211,6 +224,10 @@ async function handleStage(cbId: string, chatId: number, messageId: number, user
   // Take the buttons away so the question reads as answered
   await tg("editMessageReplyMarkup", { chat_id: chatId, message_id: messageId, reply_markup: { inline_keyboard: [] } });
 
+  // A beat of typing, so the answer lands like a person wrote it
+  await tg("sendChatAction", { chat_id: chatId, action: "typing" });
+  await sleep(2500);
+
   await tg("sendMessage", { chat_id: chatId, text: reply, reply_markup: ORIGIN_KEYBOARD });
 
   if (ACUTE_STAGES.includes(stage)) await queueFollowups(userId);
@@ -251,7 +268,8 @@ Deno.serve(async (req: Request) => {
       const messageId = cb.message?.message_id;
       const userId = cb.from?.id;
       if (chatId && messageId && userId && data.startsWith("stage:")) {
-        await handleStage(cb.id, chatId, messageId, userId, data.slice(6));
+        const run = background(handleStage(cb.id, chatId, messageId, userId, data.slice(6)));
+        if (run) await run;
       } else {
         await tg("answerCallbackQuery", { callback_query_id: cb.id });
       }
@@ -306,13 +324,27 @@ Deno.serve(async (req: Request) => {
     );
 
     if (isStart) {
-      await sendAsset(chatId, PHOTO_KEY, "sendPhoto", "photo", { caption: WELCOME });
-      await sendAsset(chatId, GUIDE_KEY, "sendDocument", "document", { caption: GUIDE_CAPTION });
-      await tg("sendMessage", {
-        chat_id: chatId,
-        text: STAGE_QUESTION,
-        reply_markup: STAGE_KEYBOARD,
-      });
+      // Paced so it reads like someone writing, not a script firing at once.
+      // The long pause before the question gives the guide a moment to land.
+      const flow = (async () => {
+        await sendAsset(chatId, PHOTO_KEY, "sendPhoto", "photo", { caption: WELCOME });
+
+        await sleep(4000);
+        await tg("sendChatAction", { chat_id: chatId, action: "upload_document" });
+        await sendAsset(chatId, GUIDE_KEY, "sendDocument", "document", { caption: GUIDE_CAPTION });
+
+        await sleep(32000);
+        await tg("sendChatAction", { chat_id: chatId, action: "typing" });
+        await sleep(3000);
+        await tg("sendMessage", {
+          chat_id: chatId,
+          text: STAGE_QUESTION,
+          reply_markup: STAGE_KEYBOARD,
+        });
+      })();
+
+      const run = background(flow);
+      if (run) await run;
       return new Response("ok");
     }
 
