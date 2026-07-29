@@ -1,4 +1,4 @@
-// seedsoul-bot-webhook v4 — @SeedSoulTest_bot
+// seedsoul-bot-webhook v5 — @SeedSoulTest_bot
 //
 // Replaces the ManyChat webhook. Jobs:
 //   1. Record everyone who opens the bot into telegram_subscribers
@@ -108,9 +108,23 @@ const STAGE_KEYBOARD = {
   ],
 };
 
-const ORIGIN_KEYBOARD = {
-  inline_keyboard: [[{ text: "Find my Origin", url: ORIGIN_URL }]],
-};
+// The Origin Scan link is personal. The token lets the quiz hand the result
+// back to this exact subscriber, and it keeps the raw telegram_id out of the URL.
+async function originKeyboard(telegramId: number) {
+  const [row] = await dbGet<{ quiz_token: string | null }>(
+    `/telegram_subscribers?telegram_id=eq.${telegramId}&select=quiz_token&limit=1`,
+  );
+
+  let token = row?.quiz_token ?? null;
+  if (!token) {
+    token = crypto.randomUUID().replace(/-/g, "");
+    await dbUpsert("telegram_subscribers", { telegram_id: telegramId, quiz_token: token }, "telegram_id");
+  }
+
+  return {
+    inline_keyboard: [[{ text: "Find my Origin", url: `${ORIGIN_URL}?tg=${token}` }]],
+  };
+}
 
 const STAGE_REPLIES: Record<string, string> = {
   together: `Good. This is the part most people spend years trying to reach.
@@ -228,7 +242,7 @@ async function handleStage(cbId: string, chatId: number, messageId: number, user
   await tg("sendChatAction", { chat_id: chatId, action: "typing" });
   await sleep(2500);
 
-  await tg("sendMessage", { chat_id: chatId, text: reply, reply_markup: ORIGIN_KEYBOARD });
+  await tg("sendMessage", { chat_id: chatId, text: reply, reply_markup: await originKeyboard(userId) });
 
   if (ACUTE_STAGES.includes(stage)) await queueFollowups(userId);
 }
@@ -352,7 +366,7 @@ Deno.serve(async (req: Request) => {
     await tg("sendMessage", {
       chat_id: chatId,
       text: FALLBACK,
-      reply_markup: ORIGIN_KEYBOARD,
+      reply_markup: await originKeyboard(user.id),
     });
 
     return new Response("ok");
