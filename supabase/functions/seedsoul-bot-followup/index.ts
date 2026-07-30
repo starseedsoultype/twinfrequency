@@ -1,12 +1,17 @@
-// seedsoul-bot-followup v1
+// seedsoul-bot-followup v2
 //
 // Drains the bot_followups queue. Called by pg_cron every ten minutes, so
 // the whole delayed-message system lives inside Supabase with no external
 // scheduler.
 //
-// Two kinds, queued only for the acute stages (pulled away / no contact):
-//   evening — a few hours after the stage answer, soft, no offer
-//   session — the next day, adapted to whether the Origin is known yet
+// Kinds:
+//   evening       +5h after an acute stage answer, soft, no offer
+//   session       +28h after an acute stage answer, adapts to whether the
+//                 Origin is known yet
+//   origin_offer  +24h after the quiz, the person's own reading
+//   origin_offer2 +72h after the quiz, only for people who never opened it
+//   cart          +24h after opening the price without buying
+//   pair_turn     +7d after the quiz, turns towards the other person
 //
 // Native fetch only, no imports.
 
@@ -23,8 +28,7 @@ const DB_H = {
 };
 
 const ORIGIN_URL = "https://www.starseedsoultype.com/quiz.html";
-const SESSION_URL =
-  "https://calendly.com/readingstarseedsoul/fifteen-minute-starseed-soul-origin-reading-ses-clone";
+const GO_URL = `${SUPABASE_URL}/functions/v1/bot-go`;
 
 const BATCH = 40;
 
@@ -84,21 +88,53 @@ Whenever you want the two of you read together after that, I am here.
 
 Alexandra`;
 
-// Personal quiz link, same token scheme the webhook uses.
-async function originLink(telegramId: number) {
-  const [row] = await dbGet<{ quiz_token: string | null }>(
-    `/telegram_subscribers?telegram_id=eq.${telegramId}&select=quiz_token&limit=1`,
+const OFFER2 = `A word on what is actually inside, since a reading is easy to leave for later.
+
+It describes the structure underneath your personality rather than the personality itself. What you reach for first, what you protect without noticing, and why certain people land in you the way they do.
+
+Most people read theirs twice. Once for the recognition, once for what to do with it.
+
+Alexandra`;
+
+const CART = `You opened your reading and stepped away.
+
+That is usually one of two things. Either the moment passed, or something in the description sat a little too close.
+
+It stays where you left it.
+
+Alexandra`;
+
+const PAIR_TURN = `You have had your own Origin for a week.
+
+The question that tends to arrive next is theirs, because two Origins together are what turn a feeling into a reading of the two of you.
+
+That part I do with you directly. One connection, whatever shape it is in.
+
+Alexandra`;
+
+function goLink(token: string, kind: string) {
+  return `${GO_URL}?t=${token}&k=${kind}`;
+}
+
+// Personal token, same scheme the webhook uses.
+async function ensureToken(telegramId: number, existing: string | null) {
+  if (existing) return existing;
+  const token = crypto.randomUUID().replace(/-/g, "");
+  await fetch(`${DB}/telegram_subscribers?on_conflict=telegram_id`, {
+    method: "POST",
+    headers: { ...DB_H, Prefer: "resolution=merge-duplicates,return=minimal" },
+    body: JSON.stringify({ telegram_id: telegramId, quiz_token: token }),
+  });
+  return token;
+}
+
+// The uncomfortably accurate line, straight from the canon record.
+async function shadowLine(origin: string) {
+  const [row] = await dbGet<{ shadow: string | null }>(
+    `/api_origins?origin_name=eq.${encodeURIComponent(origin)}&language=eq.en` +
+      `&select=shadow&limit=1`,
   );
-  let token = row?.quiz_token ?? null;
-  if (!token) {
-    token = crypto.randomUUID().replace(/-/g, "");
-    await fetch(`${DB}/telegram_subscribers?on_conflict=telegram_id`, {
-      method: "POST",
-      headers: { ...DB_H, Prefer: "resolution=merge-duplicates,return=minimal" },
-      body: JSON.stringify({ telegram_id: telegramId, quiz_token: token }),
-    });
-  }
-  return `${ORIGIN_URL}?tg=${token}`;
+  return row?.shadow?.trim() ?? "";
 }
 
 Deno.serve(async (req) => {
@@ -123,13 +159,18 @@ Deno.serve(async (req) => {
   let failed = 0;
 
   for (const row of due) {
-    const [sub] = await dbGet<{ is_blocked: boolean; origin: string | null }>(
-      `/telegram_subscribers?telegram_id=eq.${row.telegram_id}&select=is_blocked,origin&limit=1`,
+    const [sub] = await dbGet<{ is_blocked: boolean; origin: string | null; quiz_token: string | null }>(
+      `/telegram_subscribers?telegram_id=eq.${row.telegram_id}` +
+        `&select=is_blocked,origin,quiz_token&limit=1`,
     );
 
-    if (!sub || sub.is_blocked) {
+    const skip = async () => {
       skipped++;
       await dbPatch(`/bot_followups?id=eq.${row.id}`, { status: "skipped" });
+    };
+
+    if (!sub || sub.is_blocked) {
+      await skip();
       continue;
     }
 
@@ -139,16 +180,46 @@ Deno.serve(async (req) => {
     if (row.kind === "evening") {
       text = EVENING;
     } else if (row.kind === "session") {
+      const token = await ensureToken(row.telegram_id, sub.quiz_token);
       if (sub.origin) {
         text = SESSION_WITH_ORIGIN;
-        markup = { inline_keyboard: [[{ text: "Book a reading", url: SESSION_URL }]] };
+        markup = { inline_keyboard: [[{ text: "Book a reading", url: goLink(token, "session") }]] };
       } else {
         text = SESSION_NO_ORIGIN;
-        markup = { inline_keyboard: [[{ text: "Find my Origin", url: await originLink(row.telegram_id) }]] };
+        markup = { inline_keyboard: [[{ text: "Find my Origin", url: `${ORIGIN_URL}?tg=${token}` }]] };
       }
+    } else if (row.kind === "origin_offer") {
+      if (!sub.origin) { await skip(); continue; }
+      const token = await ensureToken(row.telegram_id, sub.quiz_token);
+      const shadow = await shadowLine(sub.origin);
+      text = `One thing about ${sub.origin} that people recognise last and feel first.
+
+${shadow}
+
+Your full reading follows that thread all the way down. Where it starts, how it shows up in love, and what settles it.
+
+Alexandra`;
+      markup = { inline_keyboard: [[{ text: "Read my Origin", url: goLink(token, "origin") }]] };
+    } else if (row.kind === "origin_offer2") {
+      if (!sub.origin) { await skip(); continue; }
+      // Anyone who already reached the price is handled by the cart message
+      const clicks = await dbGet<{ id: string }>(
+        `/bot_clicks?telegram_id=eq.${row.telegram_id}&kind=eq.origin&select=id&limit=1`,
+      );
+      if (clicks.length) { await skip(); continue; }
+      const token = await ensureToken(row.telegram_id, sub.quiz_token);
+      text = OFFER2;
+      markup = { inline_keyboard: [[{ text: "Read my Origin", url: goLink(token, "origin") }]] };
+    } else if (row.kind === "cart") {
+      const token = await ensureToken(row.telegram_id, sub.quiz_token);
+      text = CART;
+      markup = { inline_keyboard: [[{ text: "Open it again", url: goLink(token, "origin") }]] };
+    } else if (row.kind === "pair_turn") {
+      const token = await ensureToken(row.telegram_id, sub.quiz_token);
+      text = PAIR_TURN;
+      markup = { inline_keyboard: [[{ text: "Read it with me", url: goLink(token, "session") }]] };
     } else {
-      skipped++;
-      await dbPatch(`/bot_followups?id=eq.${row.id}`, { status: "skipped" });
+      await skip();
       continue;
     }
 

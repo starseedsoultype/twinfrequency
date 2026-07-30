@@ -68,6 +68,19 @@ Deno.serve(async (req) => {
   // Continue the conversation once. Retaking the quiz updates the record
   // quietly instead of sending the same message again.
   if (!alreadyKnown) {
+    // The sequence that follows recognition: the offer, a second pass for
+    // anyone who left it alone, then the turn towards the other person.
+    const now = Date.now();
+    await fetch(`${DB}/bot_followups?on_conflict=telegram_id,kind`, {
+      method: "POST",
+      headers: { ...DB_H, Prefer: "resolution=ignore-duplicates,return=minimal" },
+      body: JSON.stringify([
+        { telegram_id: subscriber.telegram_id, kind: "origin_offer", due_at: new Date(now + 24 * 3600_000).toISOString() },
+        { telegram_id: subscriber.telegram_id, kind: "origin_offer2", due_at: new Date(now + 72 * 3600_000).toISOString() },
+        { telegram_id: subscriber.telegram_id, kind: "pair_turn", due_at: new Date(now + 7 * 24 * 3600_000).toISOString() },
+      ]),
+    }).catch(() => {});
+
     const text = `Your Origin is ${origin} 💌
 
 That is the frequency you carry into every connection, and it is one half of why your bond behaves the way it does.
