@@ -1,4 +1,4 @@
-// seedsoul-bot-webhook v5 — @SeedSoulTest_bot
+// seedsoul-bot-webhook v6 — @SeedSoulTest_bot
 //
 // Replaces the ManyChat webhook. Jobs:
 //   1. Record everyone who opens the bot into telegram_subscribers
@@ -30,8 +30,9 @@ const GUIDE_KEY = "relationships_guide";
 const PHOTO_KEY = "welcome_photo";
 const ORIGIN_URL = "https://www.starseedsoultype.com/quiz.html";
 
-// Stages where the pain is active. These get timed follow-ups in step 3.
-const ACUTE_STAGES = ["pulled", "nocontact"];
+// Stages where the pain is active. On and off is the runner-chaser phase,
+// which belongs here as much as the other two.
+const ACUTE_STAGES = ["pulled", "nocontact", "onoff"];
 
 async function dbGet<T>(path: string): Promise<T[]> {
   const res = await fetch(`${DB}${path}`, { headers: { ...DB_H, Accept: "application/json" } });
