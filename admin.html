@@ -235,9 +235,15 @@ Open the TwinF bot in Telegram and connect your existing account from your profi
 Welcome to the new TwinF experience.</textarea>
       </div>
 
-      <div style="margin-bottom:28px">
-        <div style="font-size:9px;letter-spacing:0.25em;text-transform:uppercase;color:var(--muted);margin-bottom:6px">Button text</div>
-        <input id="bc-btn-text" value="Open TwinF in Telegram" style="width:100%;background:var(--surface);border:1px solid var(--border);border-radius:4px;padding:10px 12px;color:var(--text);font-family:'Jost',sans-serif;font-size:13px;outline:none">
+      <div style="display:flex;gap:10px;margin-bottom:28px">
+        <div style="flex:1">
+          <div style="font-size:9px;letter-spacing:0.25em;text-transform:uppercase;color:var(--muted);margin-bottom:6px">Button text</div>
+          <input id="bc-btn-text" value="Open TwinF in Telegram" style="width:100%;background:var(--surface);border:1px solid var(--border);border-radius:4px;padding:10px 12px;color:var(--text);font-family:'Jost',sans-serif;font-size:13px;outline:none">
+        </div>
+        <div style="flex:1">
+          <div style="font-size:9px;letter-spacing:0.25em;text-transform:uppercase;color:var(--muted);margin-bottom:6px">Button link</div>
+          <input id="bc-btn-url" placeholder="https://..." style="width:100%;background:var(--surface);border:1px solid var(--border);border-radius:4px;padding:10px 12px;color:var(--text);font-family:'Jost',sans-serif;font-size:13px;outline:none">
+        </div>
       </div>
 
       <div style="margin-bottom:20px">
@@ -699,7 +705,7 @@ Welcome to the new TwinF experience.</textarea>
     return session?.access_token
   }
 
-  function buildEmailHtml(bodyText, btnText) {
+  function buildEmailHtml(bodyText, btnText, btnUrl) {
     const lines = bodyText.split('\n')
     let html = ''
     for (const line of lines) {
@@ -709,6 +715,11 @@ Welcome to the new TwinF experience.</textarea>
         html += `<p style="margin:0 0 6px;">${escHtml(line)}</p>`
       }
     }
+    const buttonBlock = (btnText && btnUrl)
+      ? `<div style="text-align:center;margin:40px 0 48px;">
+<a href="${escHtml(btnUrl)}" style="display:inline-block;padding:15px 48px;border:1px solid rgba(201,169,110,0.35);background:transparent;color:#C9A96E;font-family:'Inter',-apple-system,sans-serif;font-weight:300;font-size:11px;letter-spacing:4px;text-transform:uppercase;text-decoration:none;">${escHtml(btnText)}</a>
+</div>`
+      : ''
     return `<!DOCTYPE html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400&family=Inter:wght@200;300&display=swap" rel="stylesheet">
 </head><body style="margin:0;padding:0;background:#0A0A0A;font-family:'Inter',-apple-system,sans-serif;">
@@ -716,9 +727,7 @@ Welcome to the new TwinF experience.</textarea>
 <div style="font-family:'Cormorant Garamond',Georgia,serif;font-size:13px;letter-spacing:5px;color:#5F5A55;text-transform:uppercase;margin-bottom:48px;text-align:center;">TwinF by StarSeedSoul</div>
 <div style="text-align:center;margin-bottom:48px;"><span style="font-family:'Cormorant Garamond',Georgia,serif;font-size:28px;color:#C9A96E;opacity:0.6;letter-spacing:12px;">✦ ✦ ✦</span></div>
 <div style="font-size:14px;line-height:1.9;color:#C9C1B8;font-weight:300;">${html}</div>
-<div style="text-align:center;margin:40px 0 48px;">
-<a href="https://t.me/SeedSoulTest_bot" style="display:inline-block;padding:15px 48px;border:1px solid rgba(201,169,110,0.35);background:transparent;color:#C9A96E;font-family:'Inter',-apple-system,sans-serif;font-weight:300;font-size:11px;letter-spacing:4px;text-transform:uppercase;text-decoration:none;">${escHtml(btnText)}</a>
-</div>
+${buttonBlock}
 <div style="text-align:center;margin-bottom:40px;"><span style="font-family:'Cormorant Garamond',Georgia,serif;font-size:28px;color:#C9A96E;opacity:0.6;letter-spacing:12px;">✦ ✦ ✦</span></div>
 <div style="font-size:13px;color:#5F5A55;">TwinF by StarSeedSoul</div>
 <div style="margin-top:48px;text-align:center;"><a href="%%UNSUB_URL%%" style="font-size:12px;color:#C9C1B8;text-decoration:underline;letter-spacing:1px;font-weight:300;">unsubscribe</a></div>
@@ -754,7 +763,8 @@ Welcome to the new TwinF experience.</textarea>
     const token = await getToken()
     const html = buildEmailHtml(
       document.getElementById('bc-body').value,
-      document.getElementById('bc-btn-text').value
+      document.getElementById('bc-btn-text').value.trim(),
+      document.getElementById('bc-btn-url').value.trim()
     )
     const subject = document.getElementById('bc-subject').value
     document.getElementById('bc-result').textContent = 'Sending test...'
@@ -774,7 +784,8 @@ Welcome to the new TwinF experience.</textarea>
     const token = await getToken()
     const html = buildEmailHtml(
       document.getElementById('bc-body').value,
-      document.getElementById('bc-btn-text').value
+      document.getElementById('bc-btn-text').value.trim(),
+      document.getElementById('bc-btn-url').value.trim()
     )
     const subject = document.getElementById('bc-subject').value
     document.getElementById('bc-result').textContent = 'Sending...'
