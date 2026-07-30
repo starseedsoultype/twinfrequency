@@ -12,6 +12,7 @@ const BROADCAST_KEY_ORIGIN_LEADS = "origin_leads_2026_05"
 const BROADCAST_KEY_CONNECTION_LEADS = "connection_leads_2026_05"
 const BROADCAST_KEY_INSTAGRAM_LEADS = "instagram_leads_2026_05"
 const FROM_EMAIL = "StarSeedSoul <hello@twinfrequency.io>"
+const DEFAULT_REPLY_TO = "hello@twinfrequency.io"
 const SUBJECT = "TwinF is now inside Telegram"
 const TELEGRAM_BOT_URL = "https://t.me/SeedSoulTest_bot"
 
@@ -128,6 +129,13 @@ serve(async (req) => {
     const customHtml: string | undefined = body.custom_html
     const customSubject: string | undefined = body.custom_subject
     const campaignId: string | undefined = body.campaign_id
+    // Replies land in a mailbox someone actually reads.
+    // Body wins, then the REPLY_TO_EMAIL secret, then the brand address.
+    const replyTo: string =
+      (typeof body.reply_to === "string" && body.reply_to.trim()) ||
+      Deno.env.get("REPLY_TO_EMAIL") ||
+      DEFAULT_REPLY_TO
+
     const audience: "full" | "loose" | "origin_leads" | "connection_leads" | "instagram_leads" =
       ["loose", "origin_leads", "connection_leads", "instagram_leads"].includes(body.audience) ? body.audience : "full"
 
@@ -195,6 +203,7 @@ serve(async (req) => {
         },
         body: JSON.stringify({
           from: FROM_EMAIL,
+          reply_to: replyTo,
           to: testEmail,
           subject: `[TEST] ${customSubject ?? SUBJECT}`,
           html: customHtml
@@ -231,6 +240,7 @@ serve(async (req) => {
         },
         body: JSON.stringify({
           from: FROM_EMAIL,
+          reply_to: replyTo,
           to: row.email,
           subject: customSubject ?? SUBJECT,
           html: customHtml
