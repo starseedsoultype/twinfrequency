@@ -52,32 +52,45 @@ function classifyConnection(a: string, b: string): string | null {
   return "Celestial Mentor";
 }
 
+const CHANNEL_FRICTION: Record<string, number> = {
+  // 0 = no friction, 100 = maximum. Order follows what the canon says each channel does.
+  "nourish": 0, "gift": 5, "mirror2": 10, "tandem": 15, "mirror1": 20,
+  "mirror4": 30, "drift": 65, "mirror3": 70, "trap": 70, "clash": 100,
+};
+function channelOf(x: number, y: number): string {
+  if (x === y) return "mirror" + x;
+  const lo = Math.min(x, y), hi = Math.max(x, y);
+  if (lo === 1 && hi === 4) return "gift";
+  if (lo === 2 && hi === 3) return "nourish";
+  if (lo === 1 && hi === 2) return "tandem";
+  if (lo === 3 && hi === 4) return "trap";
+  if (lo === 2 && hi === 4) return "drift";
+  return "clash";
+}
+// Mean friction across the pair's four channels. Same rule the published matrix uses.
+function pairTension(a: string, b: string): number | null {
+  const A = STACKS[a], B = STACKS[b];
+  if (!A || !B) return null;
+  let sum = 0;
+  for (let i = 0; i < 4; i++) sum += CHANNEL_FRICTION[channelOf(i + 1, B.indexOf(A[i]) + 1)];
+  return Math.round(sum / 4);
+}
+
 function getConnectionType(origin1: string, origin2: string): string {
   if (!origin1 || !origin2) return "Unknown"
   return classifyConnection(origin1, origin2) ?? "Unknown"
 }
 
 // ═══════════════════════════════════════════════════════════
-// COMPATIBILITY SCORE (0–100)
-// Higher = more compatible = shown first in feed
+// FEED ORDER (0–100)
+// Higher = shown earlier. Derived from the pair's tension so this can never
+// disagree with the published figure: the most complementary rise to the top,
+// everyone else follows. This orders the feed, it never removes anyone from it.
+// Not exposed to users.
 // ═══════════════════════════════════════════════════════════
 function getCompatibilityScore(myOrigin: string, theirOrigin: string): number {
-  const type = getConnectionType(myOrigin, theirOrigin)
-  // Score is used for feed ranking only — not exposed to users
-  const scores: Record<string, number> = {
-    "Eternal Reflection": 95,
-    "Frequency Twins": 90,
-    "Twin Stars": 85,
-    "Star Alchemy": 80,
-    "Cosmic Flow": 75,
-    "Mirror Portals": 65,
-    "Celestial Mentor": 60,
-    "Karmic Bonds": 50,
-    "Shadow Contracts": 35,
-    "Black Holes": 20,
-    "Unknown": 40,
-  }
-  return scores[type] ?? 50
+  const t = pairTension(myOrigin, theirOrigin)
+  return t === null ? 40 : 100 - t
 }
 
 // ═══════════════════════════════════════════════════════════
