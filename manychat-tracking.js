@@ -3,9 +3,6 @@
     if (window.fbq) {
       window.fbq('trackCustom', eventName, { page: window.location.pathname });
     }
-    if (window.MC_PIXEL && typeof window.MC_PIXEL.fireLogConversionEvent === 'function') {
-      window.MC_PIXEL.fireLogConversionEvent(eventName);
-    }
   }
 
   document.addEventListener('DOMContentLoaded', function () {
@@ -22,7 +19,6 @@
       [/\/bond\.html$/,          'tf_app_bond_opened'],
       [/\/library\.html$/,       'tf_app_library_opened'],
       [/\/crystal\.html$/,       'tf_app_crystal_opened'],
-      [/\/flipbook\.html$/,      'tf_app_flipbook_opened'],
       [/\/congratulations\.html$/, 'tf_app_result_viewed'],
     ];
     for (var i = 0; i < pages.length; i++) {
