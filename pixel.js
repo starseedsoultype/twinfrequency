@@ -1,6 +1,6 @@
 /* Meta Pixel with consent for European visitors.
    Everyone else: loads exactly as before.
-   Visitors whose browser time zone is in Europe: the pixel loads only after they press Accept.
+   Visitors whose browser time zone is in the EU, EEA, UK or Switzerland: the pixel loads only after they press Accept.
    Calls to fbq() made before that are queued and sent after Accept, or dropped on Decline. */
 (function () {
   var PIXEL_ID = '847407428375701';
@@ -29,7 +29,9 @@
   function isEurope() {
     try {
       var tz = Intl.DateTimeFormat().resolvedOptions().timeZone || '';
-      return /^Europe\//.test(tz) || /^Atlantic\/(Canary|Madeira|Azores|Reykjavik|Faroe)$/.test(tz);
+      // EU, EEA, UK and Switzerland only (GDPR). Russia, Belarus, Turkey and others load as usual.
+      return /^Europe\/(Amsterdam|Athens|Belfast|Berlin|Bratislava|Brussels|Bucharest|Budapest|Busingen|Copenhagen|Dublin|Gibraltar|Guernsey|Helsinki|Isle_of_Man|Jersey|Lisbon|Ljubljana|London|Luxembourg|Madrid|Malta|Mariehamn|Nicosia|Oslo|Paris|Prague|Riga|Rome|Sofia|Stockholm|Tallinn|Vaduz|Vienna|Vilnius|Warsaw|Zagreb|Zurich)$/.test(tz) ||
+        /^(Atlantic\/(Canary|Madeira|Azores|Reykjavik|Faroe)|Asia\/(Nicosia|Famagusta)|Arctic\/Longyearbyen)$/.test(tz);
     } catch (e) { return false; }
   }
 
