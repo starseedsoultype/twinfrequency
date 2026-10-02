@@ -23,7 +23,7 @@ const DB_H = {
 };
 
 const SESSION_URL =
-  "https://calendly.com/readingstarseedsoul/fifteen-minute-starseed-soul-origin-reading-ses-clone";
+  "https://cal.com/starseedsoul-typology-nctndd/starseed";
 const FALLBACK_URL = "https://www.starseedsoultype.com/";
 
 // Wait a day before nudging someone who stopped at the price.
