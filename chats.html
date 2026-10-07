@@ -837,23 +837,27 @@ function getConnectionType(origin1, origin2) {
       return
     }
 
-    container.innerHTML = ''
-    for (const match of matches) {
-      const other = match.user1 === myUser.id ? match.profile2 : match.profile1
-      if (!other) continue
-
-      const connType = match.connection_type || getConnectionType(myProfile?.origin, other.origin)
-      const color = CONNECTION_COLORS[connType] || CONNECTION_COLORS['Cosmic Flow']
-
-      // Загружаем последнее сообщение
+    // Newest conversation first: load each chat's last message, then sort by it.
+    const withLast = await Promise.all(matches.map(async (match) => {
       const { data: lastMsgs } = await sb
         .from('messages')
         .select('content, created_at, sender_id')
         .eq('match_id', match.id)
         .order('created_at', { ascending: false })
         .limit(1)
+      return { match, lastMsg: lastMsgs?.[0] }
+    }))
+    withLast.sort((a, b) =>
+      new Date(b.lastMsg?.created_at ?? b.match.created_at) - new Date(a.lastMsg?.created_at ?? a.match.created_at))
 
-      const lastMsg = lastMsgs?.[0]
+    container.innerHTML = ''
+    for (const { match, lastMsg } of withLast) {
+      const other = match.user1 === myUser.id ? match.profile2 : match.profile1
+      if (!other) continue
+
+      const connType = match.connection_type || getConnectionType(myProfile?.origin, other.origin)
+      const color = CONNECTION_COLORS[connType] || CONNECTION_COLORS['Cosmic Flow']
+
       const preview = lastMsg
         ? (lastMsg.sender_id === myUser.id ? 'You: ' : '') + lastMsg.content
         : 'A new frequency has aligned ✦'
