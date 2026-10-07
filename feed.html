@@ -1264,6 +1264,11 @@ function getConnectionType(origin1, origin2) {
       window.location.href = 'banned.html'
       return
     }
+    // ── 18+: без подтверждённого возраста — на онбординг
+    if (!me || !me.age || me.age < 18) {
+      window.location.href = 'onboarding.html'
+      return
+    }
     document.getElementById('loader').classList.add('hide')
     // ── Загрузка ленты через Edge Function (алгоритм совместимости на сервере)е)
     let feedLoaded = false

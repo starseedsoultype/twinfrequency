@@ -536,8 +536,8 @@
     currentUser = data.session.user
 
     // Check if already onboarded
-    const { data: profile } = await sb.from('profiles').select('origin').eq('id', currentUser.id).single()
-    if (profile?.origin) {
+    const { data: profile } = await sb.from('profiles').select('origin, age').eq('id', currentUser.id).single()
+    if (profile?.origin && profile?.age >= 18) {
       window.location.href = 'feed.html'
       return
     }
