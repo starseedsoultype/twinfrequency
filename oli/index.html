@@ -6,12 +6,17 @@
 <title>Oli</title>
 <meta name="description" content="Oli, a quiet companion for the relationship on your mind. Built on Alexandra's system.">
 <meta name="theme-color" content="#0a0a0a">
-<link rel="icon" href="/favicon.ico" sizes="any">
-<link rel="icon" href="/favicon.svg" type="image/svg+xml">
-<link rel="apple-touch-icon" href="/apple-touch-icon.png">
+<!-- App shell: installable as a PWA now, wrapped by Capacitor later. Paths stay relative. -->
+<link rel="manifest" href="manifest.webmanifest">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Oli">
+<link rel="icon" href="icons/icon-192.png" type="image/png">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;1,300;1,400&family=Inter:wght@200;300;400&display=swap" rel="stylesheet">
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="vendor/supabase-2.45.4.js"></script>
 <style>
   :root {
     --deep: #0a0a0a;
@@ -176,6 +181,29 @@
     background: none; border: none; color: var(--text); font-family: inherit; font-size: 12px; letter-spacing: 0.08em;
   }
   .menu button:hover { background: rgba(201,169,110,0.06); }
+
+  /* Voice: the slot is here, switched on when voice is ready */
+  .mic-btn {
+    flex-shrink: 0; width: 36px; height: 36px; border-radius: 50%; cursor: pointer;
+    background: none; border: 1px solid var(--border); color: var(--gold-soft);
+    display: flex; align-items: center; justify-content: center;
+  }
+
+  /* ── AI CONSENT ── */
+  .sheet-wrap {
+    position: fixed; inset: 0; z-index: 20; background: rgba(0,0,0,0.7);
+    display: flex; align-items: flex-end; justify-content: center;
+  }
+  .sheet {
+    width: 100%; max-width: 480px; background: var(--card);
+    border: 1px solid var(--border); border-bottom: none; border-radius: 16px 16px 0 0;
+    padding: 28px 24px calc(24px + env(safe-area-inset-bottom));
+  }
+  .sheet h2 { font-family: 'Cormorant Garamond', serif; font-weight: 300; font-size: 24px; color: var(--champagne); margin-bottom: 14px; }
+  .sheet p { font-size: 13px; line-height: 1.7; color: var(--text); opacity: 0.85; margin-bottom: 12px; }
+  .sheet p.small { font-size: 11px; color: var(--muted); opacity: 1; }
+  .sheet p a { color: var(--gold-soft); }
+  .sheet .btn { margin-top: 10px; }
 </style>
 </head>
 <body>
@@ -229,6 +257,9 @@
   <div class="input-area">
     <div class="input-wrap">
       <textarea id="msg-input" rows="1" data-ph="write" oninput="autoResize(this)" onkeydown="handleKey(event)"></textarea>
+      <button class="mic-btn hidden" id="mic-btn" aria-label="Voice">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="9" y="3" width="6" height="12" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3"/></svg>
+      </button>
       <button class="send-btn" id="send-btn" onclick="sendMessage()" aria-label="Send">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 19V5M5 12l7-7 7 7"/></svg>
       </button>
@@ -236,6 +267,16 @@
     <p class="ai-note" data-t="ainote"></p>
   </div>
 </section>
+
+<!-- Asked once per account before anything goes to the AI; stored in the account, so it holds on every device. -->
+<div class="sheet-wrap hidden" id="consent">
+  <div class="sheet">
+    <h2 data-t="cTitle"></h2>
+    <p data-t="cBody"></p>
+    <p class="small" data-t-html="cSmall"></p>
+    <button class="btn btn-gold" onclick="giveConsent()" data-t="cAgree"></button>
+  </div>
+</div>
 
 <div class="menu hidden" id="menu">
   <button onclick="signOut()" data-t="signout"></button>
@@ -245,7 +286,11 @@
   const SUPABASE_URL = 'https://pewgupxikbswhaqxjrwk.supabase.co'
   const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBld2d1cHhpa2Jzd2hhcXhqcndrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzUyNjY0MTEsImV4cCI6MjA5MDg0MjQxMX0.rQIz0R_4Oz6VqHgSvjx9YAtF8BojdcMU7RcqDiVP1NU'
   const OLI_ID = '29ccb8b2-586a-464f-8635-f1c98bc3172a'
-  const HOME = 'https://twinfrequency.io/oli/'
+  const SITE = 'https://twinfrequency.io'
+  // Where Google and the email link bring people back. In the browser that is this page;
+  // inside the future iOS app it becomes the app's deep link.
+  const HOME = location.protocol.startsWith('http') ? location.origin + location.pathname : SITE + '/oli/'
+  const VOICE_ENABLED = false
 
   const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY)
 
@@ -259,8 +304,12 @@
     signout: 'Выйти', sent: (e) => `Мы отправили письмо на ${e}. Введи код из письма или просто открой ссылку в нём.`,
     badEmail: 'Проверь email', badCode: 'Код не подошёл. Попробуй ещё раз или открой ссылку из письма.',
     error: 'Что-то пошло не так. Попробуй ещё раз.', wait: 'Oli открывает разговор…',
-    note: 'Входя, ты соглашаешься с <a href="/terms.html">условиями</a> и <a href="/privacy.html">политикой конфиденциальности</a>.',
+    note: `Входя, ты соглашаешься с <a href="${SITE}/terms.html">условиями</a> и <a href="${SITE}/privacy.html">политикой конфиденциальности</a>.`,
     offer: 'Попросить Alexandra прочитать нас',
+    cTitle: 'Прежде чем начать',
+    cBody: 'Oli это AI. Чтобы ответить тебе, Oli отправляет твои сообщения в OpenAI, сервис, на котором она работает. OpenAI не использует их для обучения своих моделей. Твой разговор хранится в твоём аккаунте, и ты можешь удалить его вместе с аккаунтом.',
+    cSmall: `Oli не заменяет психолога или врача. Подробнее в <a href="${SITE}/privacy.html">политике конфиденциальности</a>.`,
+    cAgree: 'Хорошо, начать',
   } : {
     sub: 'Talk about the person who stays on your mind. Oli listens and helps you see what is really happening between you.',
     google: 'Continue with Google', or: 'or', email: 'Your email', send: 'Send me a code',
@@ -269,8 +318,12 @@
     signout: 'Sign out', sent: (e) => `We sent an email to ${e}. Enter the code from it, or simply open the link inside.`,
     badEmail: 'Please check your email', badCode: 'That code did not work. Try again or open the link from the email.',
     error: 'Something went wrong. Please try again.', wait: 'Oli is opening the conversation…',
-    note: 'By continuing you agree to the <a href="/terms.html">terms</a> and <a href="/privacy.html">privacy policy</a>.',
+    note: `By continuing you agree to the <a href="${SITE}/terms.html">terms</a> and <a href="${SITE}/privacy.html">privacy policy</a>.`,
     offer: 'Ask Alexandra to read us',
+    cTitle: 'Before we begin',
+    cBody: 'Oli is an AI. To reply to you, Oli sends your messages to OpenAI, the service she runs on. OpenAI does not use them to train its models. Your conversation is kept in your account, and you can delete it together with your account.',
+    cSmall: `Oli is not a replacement for a therapist or a doctor. More in the <a href="${SITE}/privacy.html">privacy policy</a>.`,
+    cAgree: 'I agree, start',
   }
   document.documentElement.lang = RU ? 'ru' : 'en'
   document.querySelectorAll('[data-t]').forEach(el => { el.textContent = T[el.dataset.t] })
@@ -384,8 +437,21 @@
       return setLoginMsg(T.error, true)
     }
     show('chat')
+    document.getElementById('mic-btn').classList.toggle('hidden', !VOICE_ENABLED)
+    if (!hasConsent()) document.getElementById('consent').classList.remove('hidden')
     await loadMessages()
     subscribe()
+  }
+
+  // ─── Consent to the AI ────────────────────────────────────
+  function hasConsent() { return !!me?.user_metadata?.ai_consent_at }
+
+  async function giveConsent() {
+    const at = new Date().toISOString()
+    const { data } = await sb.auth.updateUser({ data: { ai_consent_at: at } })
+    me = data?.user ?? { ...me, user_metadata: { ...(me.user_metadata || {}), ai_consent_at: at } }
+    document.getElementById('consent').classList.add('hidden')
+    document.getElementById('msg-input').focus()
   }
 
   // ─── Messages ─────────────────────────────────────────────
@@ -446,6 +512,7 @@
   }
 
   async function acceptOffer(offer, btn) {
+    if (!hasConsent()) return document.getElementById('consent').classList.remove('hidden')
     btn.disabled = true
     acceptedOffers.add(offer.id)
     const { error } = await sb.from('messages').insert({
@@ -460,6 +527,7 @@
     const input = document.getElementById('msg-input')
     const content = input.value.trim()
     if (!content || !matchId) return
+    if (!hasConsent()) return document.getElementById('consent').classList.remove('hidden')
     input.value = ''
     autoResize(input)
     const btn = document.getElementById('send-btn')
@@ -515,6 +583,10 @@
   }
 
   // ─── Start ────────────────────────────────────────────────
+  if ('serviceWorker' in navigator && location.protocol === 'https:') {
+    navigator.serviceWorker.register('sw.js').catch(() => {})
+  }
+
   sb.auth.onAuthStateChange((event, session) => {
     if (session?.user && !me) setTimeout(() => enter(session.user), 0)
   })
