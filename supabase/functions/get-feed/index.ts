@@ -119,16 +119,39 @@ serve(async (req) => {
       { global: { headers: { Authorization: authHeader } } }
     )
 
-    // Get current user
-    const { data: { user }, error: authError } = await supabase.auth.getUser()
-    if (authError || !user) return new Response("Unauthorized", { status: 401 })
+    // Get current user. The gateway has already verified this JWT (verify_jwt = true),
+    // so the id is read from the token instead of a round trip to the auth server.
+    let userId: string | null = null
+    try {
+      const b64 = authHeader.replace(/^Bearer\s+/i, "").split(".")[1].replace(/-/g, "+").replace(/_/g, "/")
+      const claims = JSON.parse(atob(b64))
+      if (claims.role === "authenticated" && claims.sub) userId = claims.sub
+    } catch { /* malformed token */ }
+    if (!userId) return new Response("Unauthorized", { status: 401 })
+    const user = { id: userId }
 
-    // Get my profile
-    const { data: me } = await supabase
-      .from("profiles")
-      .select("*")
-      .eq("id", user.id)
-      .single()
+    // Everything below depends only on the user id, so it runs in parallel
+    const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString()
+    const [
+      { data: me },
+      { data: likedRows },
+      { data: passRows },
+      { data: blockRows },
+      { data: testCandidates },
+    ] = await Promise.all([
+      // My profile
+      supabase.from("profiles").select("*").eq("id", user.id).single(),
+      // Liked profile IDs (permanent exclusion)
+      supabase.from("likes").select("to_user").eq("from_user", user.id),
+      // Pass swipes newer than 7 days (older passes expire — person reappears)
+      supabase.from("swipes").select("target_id")
+        .eq("actor_id", user.id).eq("action", "pass").gte("created_at", sevenDaysAgo),
+      // Blocked users (both directions)
+      supabase.from("blocks").select("blocker_id, blocked_id")
+        .or(`blocker_id.eq.${user.id},blocked_id.eq.${user.id}`),
+      // Test profiles (demo accounts for feed population)
+      supabase.from("test_profiles").select("id, name, age, gender, photo_url, origin, location, created_at"),
+    ])
 
     if (!me) return new Response("Profile not found", { status: 404 })
 
@@ -141,33 +164,11 @@ serve(async (req) => {
       )
     }
 
-    // Get liked profile IDs (permanent exclusion)
-    const { data: likedRows } = await supabase
-      .from("likes")
-      .select("to_user")
-      .eq("from_user", user.id)
-
     const swipedIds = new Set((likedRows || []).map((r: any) => r.to_user))
     swipedIds.add(user.id) // exclude self
-
-    // Get pass swipes newer than 7 days (older passes expire — person reappears)
-    const sevenDaysAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString()
-    const { data: passRows } = await supabase
-      .from("swipes")
-      .select("target_id")
-      .eq("actor_id", user.id)
-      .eq("action", "pass")
-      .gte("created_at", sevenDaysAgo)
-
     for (const r of passRows || []) {
       swipedIds.add(r.target_id)
     }
-
-    // Get blocked users (both directions)
-    const { data: blockRows } = await supabase
-      .from("blocks")
-      .select("blocker_id, blocked_id")
-      .or(`blocker_id.eq.${user.id},blocked_id.eq.${user.id}`)
 
     const blockedIds = new Set<string>()
     for (const b of blockRows || []) {
@@ -193,11 +194,6 @@ serve(async (req) => {
     }
 
     const { data: realCandidates } = await query
-
-    // Also fetch test profiles (demo accounts for feed population)
-    const { data: testCandidates } = await supabase
-      .from("test_profiles")
-      .select("id, name, age, gender, photo_url, origin, location, created_at")
 
     // Apply gender filter to test profiles too
     const genderFilterValues: Record<string, string[]> = {
