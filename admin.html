@@ -581,9 +581,9 @@ Welcome to the new TwinF experience.</textarea>
       `Ban ${userName}`,
       'This user will be banned and will not be able to use the app. Their matches will be removed.',
       [{ text: 'Ban User', danger: true, action: async () => {
-        await sb.from('profiles').update({ is_banned: true }).eq('id', userId)
-        // Remove their matches
-        await sb.from('matches').delete().or(`user1.eq.${userId},user2.eq.${userId}`)
+        // Server-side: checks the caller is an admin, bans, removes their matches
+        const { error } = await sb.rpc('admin_set_banned', { target: userId, banned: true })
+        if (error) { closeModal(); showToast('Ban failed: ' + error.message); return }
         if (reportId) await markReviewed(reportId)
         closeModal()
         showToast(`${userName} banned`)
@@ -599,7 +599,8 @@ Welcome to the new TwinF experience.</textarea>
       `Unban ${userName}`,
       'This user will be able to use the app again.',
       [{ text: 'Unban User', action: async () => {
-        await sb.from('profiles').update({ is_banned: false }).eq('id', userId)
+        const { error } = await sb.rpc('admin_set_banned', { target: userId, banned: false })
+        if (error) { closeModal(); showToast('Unban failed: ' + error.message); return }
         closeModal()
         showToast(`${userName} unbanned`)
         await loadStats()

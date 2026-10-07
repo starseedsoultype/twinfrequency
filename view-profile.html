@@ -454,8 +454,9 @@ function getConnectionType(origin1, origin2) {
     document.getElementById('hero-photo').style.backgroundImage = `url('${profile.photo_url && profile.photo_url.trim() ? profile.photo_url : DEFAULT_PROFILE_IMAGE}')`
 
     // Name & age
+    const esc = s => String(s || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;')
     document.getElementById('profile-name').innerHTML =
-      `${profile.name}<span class="profile-age">${profile.age || ''}</span>`
+      `${esc(profile.name)}<span class="profile-age">${esc(profile.age)}</span>`
 
     // Origin & location
     const origin = profile.origin || ''

@@ -853,14 +853,14 @@ function getConnectionType(origin1, origin2) {
       item.className = 'match-item'
       item.onclick = () => openMatchChat(match, other, connType, color)
       item.innerHTML = `
-        <div class="match-avatar" style="background-image:url('${other.photo_url && other.photo_url.trim() ? other.photo_url : DEFAULT_PROFILE_IMAGE}')">
+        <div class="match-avatar" style="background-image:url('${escapeHtml(other.photo_url && other.photo_url.trim() ? other.photo_url : DEFAULT_PROFILE_IMAGE)}')">
           <div class="type-ring" style="border-color:${color}60"></div>
         </div>
         <div class="match-info">
-          <div class="match-name">${other.name || 'Unknown'}</div>
+          <div class="match-name">${escapeHtml(other.name || 'Unknown')}</div>
           <div class="match-connection">
             <div class="match-connection-dot" style="background:${color}"></div>
-            <span class="match-connection-name" style="color:${color}">${connType}</span>
+            <span class="match-connection-name" style="color:${color}">${escapeHtml(connType)}</span>
           </div>
           <div class="match-preview">${escapeHtml(preview)}</div>
         </div>
@@ -1085,10 +1085,10 @@ function getConnectionType(origin1, origin2) {
     const time = formatTime(msg.created_at)
 
     row.innerHTML = `
-      ${!isMine ? `<div class="msg-avatar" style="background-image:url('${avatarUrl}')"></div>` : ''}
+      ${!isMine ? `<div class="msg-avatar" style="background-image:url('${escapeHtml(avatarUrl)}')"></div>` : ''}
       <div class="msg-bubble">${bubble}</div>
       <div class="msg-time">${time}</div>
-      ${isMine ? `<div class="msg-avatar" style="background-image:url('${myProfile?.photo_url && myProfile.photo_url.trim() ? myProfile.photo_url : DEFAULT_PROFILE_IMAGE}')"></div>` : ''}`
+      ${isMine ? `<div class="msg-avatar" style="background-image:url('${escapeHtml(myProfile?.photo_url && myProfile.photo_url.trim() ? myProfile.photo_url : DEFAULT_PROFILE_IMAGE)}')"></div>` : ''}`
 
     return row
   }
