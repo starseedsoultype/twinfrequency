@@ -1,9 +1,11 @@
-// seedsoul-bot-webhook v6 — @SeedSoulTest_bot
+// seedsoul-bot-webhook v7 — @SeedSoulTest_bot
 //
 // Replaces the ManyChat webhook. Jobs:
 //   1. Record everyone who opens the bot into telegram_subscribers
 //   2. Deliver the welcome photo and the free relationships guide on /start
 //   3. Ask where the person is in their connection, and answer per stage
+//   4. Hand out a personal Origin Scan link
+//   5. Take Alexandra's Gumroad link for a pair PDF request and let Oli send it
 //
 // People arrive from an Instagram DM that already said "Here it is 💌", so the
 // bot continues that conversation instead of restarting it.
@@ -50,6 +52,25 @@ async function dbUpsert(table: string, body: unknown, onConflict: string) {
     body: JSON.stringify(body),
   });
   if (!res.ok) console.error("dbUpsert", table, res.status, await res.text());
+}
+
+async function dbInsert(path: string, body: unknown) {
+  const res = await fetch(`${DB}${path}`, {
+    method: "POST",
+    headers: { ...DB_H, Prefer: "return=minimal" },
+    body: JSON.stringify(body),
+  });
+  if (!res.ok) console.error("dbInsert", path, res.status, await res.text());
+  return res.ok;
+}
+
+async function dbPatch(path: string, body: unknown) {
+  const res = await fetch(`${DB}${path}`, {
+    method: "PATCH",
+    headers: { ...DB_H, Prefer: "return=minimal" },
+    body: JSON.stringify(body),
+  });
+  if (!res.ok) console.error("dbPatch", path, res.status, await res.text());
 }
 
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
@@ -248,6 +269,102 @@ async function handleStage(cbId: string, chatId: number, messageId: number, user
   if (ACUTE_STAGES.includes(stage)) await queueFollowups(userId);
 }
 
+// ── Pair PDF requests ─────────────────────────────────────────
+// Oli sends Alexandra a request here. She replies to it with the Gumroad
+// link, and Oli delivers that link to everyone waiting for this pair.
+
+const OLI_USER_ID = Deno.env.get("OLI_USER_ID") ?? "";
+const GUMROAD_RE = /https?:\/\/[\w.-]*gumroad\.com\/l\/[\w-]+/i;
+const slug = (o: string) => o.toLowerCase().trim().replace(/\s+/g, "_");
+let cachedAdminId: string | null = null;
+
+async function adminId(): Promise<string> {
+  if (cachedAdminId === null) {
+    const [row] = await dbGet<{ value: string }>("/bot_config?key=eq.admin_telegram_id&select=value&limit=1");
+    cachedAdminId = row?.value ?? "";
+  }
+  return cachedAdminId;
+}
+
+type PdfRequest = {
+  id: string;
+  user_id: string;
+  match_id: string | null;
+  origin_a: string;
+  origin_b: string;
+  pair_key: string;
+  relationship_frequency: string | null;
+  lang: string;
+};
+
+function readyText(r: PdfRequest, name: string, url: string): string {
+  const pair = `${r.origin_a} × ${r.origin_b}`;
+  if (r.lang === "ru") {
+    return `${name ? `${name}, разбор` : "Разбор"} вашей пары ${pair} готов. Alexandra подготовила его лично для вас двоих.\n\n${url}`;
+  }
+  return `${name ? `${name}, your` : "Your"} ${pair} reading is ready. Alexandra prepared it for the two of you.\n\n${url}`;
+}
+
+async function handleAdminReply(chatId: number, message: Record<string, any>) {
+  const [req] = await dbGet<PdfRequest>(
+    `/pdf_requests?admin_message_id=eq.${message.reply_to_message.message_id}&select=*&limit=1`,
+  );
+  if (!req) {
+    await tg("sendMessage", {
+      chat_id: chatId,
+      text: "Не нашла запрос PDF для этого сообщения. Ответь ссылкой именно на уведомление о запросе.",
+    });
+    return;
+  }
+
+  const url = String(message.text ?? "").match(GUMROAD_RE)?.[0];
+  if (!url) {
+    await tg("sendMessage", {
+      chat_id: chatId,
+      text: "Пришли ссылку на продукт Gumroad вида https://starseedsoul.gumroad.com/l/... ответом на запрос.",
+    });
+    return;
+  }
+
+  const now = new Date().toISOString();
+  const reverseKey = `${slug(req.origin_b)}__${slug(req.origin_a)}`;
+  const keys = `(${req.pair_key},${reverseKey})`;
+
+  const [product] = await dbGet<{ id: string }>(`/api_relationship_products?pair_key=in.${keys}&select=id&limit=1`);
+  if (product) {
+    await dbPatch(`/api_relationship_products?id=eq.${product.id}`, { gumroad_url: url, status: "active", updated_at: now });
+  } else {
+    await dbInsert("/api_relationship_products", {
+      origin_a: req.origin_a,
+      origin_b: req.origin_b,
+      pair_key: req.pair_key,
+      product_title: `${req.origin_a} × ${req.origin_b} ${req.relationship_frequency ?? ""} Relationship PDF`.replace(/\s+/g, " "),
+      relationship_frequency: req.relationship_frequency,
+      gumroad_url: url,
+      source: "request",
+    });
+  }
+
+  const waiting = await dbGet<PdfRequest>(`/pdf_requests?pair_key=in.${keys}&status=eq.requested&select=*`);
+  const names: string[] = [];
+  for (const r of waiting) {
+    const [p] = await dbGet<{ name: string | null }>(`/profiles?id=eq.${r.user_id}&select=name&limit=1`);
+    const name = p?.name?.trim() ?? "";
+    if (r.match_id && OLI_USER_ID) {
+      await dbInsert("/messages", { match_id: r.match_id, sender_id: OLI_USER_ID, content: readyText(r, name, url) });
+    }
+    await dbPatch(`/pdf_requests?id=eq.${r.id}`, { status: "ready", gumroad_url: url, ready_at: now });
+    names.push(name || "без имени");
+  }
+
+  await tg("sendMessage", {
+    chat_id: chatId,
+    text: waiting.length
+      ? `Готово ✓ Oli отправила ссылку: ${names.join(", ")}.\n\nТеперь Oli будет сразу давать этот PDF всем с парой ${req.origin_a} × ${req.origin_b}.`
+      : `Этот запрос уже был закрыт раньше. Ссылку в базе обновила.`,
+  });
+}
+
 Deno.serve(async (req: Request) => {
   if (req.method !== "POST") return new Response("ok");
 
@@ -316,6 +433,11 @@ Deno.serve(async (req: Request) => {
     const chatId = message?.chat?.id;
     const user = message?.from;
     if (!chatId || !user) return new Response("ok");
+
+    if (message.reply_to_message && String(user.id) === await adminId()) {
+      await handleAdminReply(chatId, message);
+      return new Response("ok");
+    }
 
     const text: string = message.text ?? "";
     const isStart = text.startsWith("/start");
