@@ -1,0 +1,527 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<title>Oli</title>
+<meta name="description" content="Oli, a quiet companion for the relationship on your mind. Built on Alexandra's system.">
+<meta name="theme-color" content="#0a0a0a">
+<link rel="icon" href="/favicon.ico" sizes="any">
+<link rel="icon" href="/favicon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="/apple-touch-icon.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;1,300;1,400&family=Inter:wght@200;300;400&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+  :root {
+    --deep: #0a0a0a;
+    --card: #161616;
+    --border: rgba(201,169,110,0.12);
+    --gold: #c9a96e;
+    --gold-soft: rgba(201,169,110,0.75);
+    --champagne: #e8d9bc;
+    --text: #e8e4df;
+    --muted: rgba(232,224,213,0.4);
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  html, body { height: 100%; background: var(--deep); color: var(--text); }
+  body {
+    font-family: 'Inter', -apple-system, sans-serif; font-weight: 300;
+    display: flex; flex-direction: column; height: 100dvh; overflow: hidden;
+  }
+  .hidden { display: none !important; }
+
+  /* ── LOADER ── */
+  #loader { flex: 1; display: flex; align-items: center; justify-content: center; }
+  .spinner {
+    width: 28px; height: 28px; border-radius: 50%;
+    border: 1px solid var(--border); border-top-color: var(--gold);
+    animation: spin 1s linear infinite;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  /* ── LOGIN ── */
+  #login {
+    flex: 1; overflow-y: auto; display: flex; flex-direction: column;
+    align-items: center; justify-content: center; padding: 40px 24px;
+  }
+  .login-box { width: 100%; max-width: 360px; text-align: center; }
+  .oli-mark {
+    width: 64px; height: 64px; margin: 0 auto 28px; border-radius: 50%;
+    border: 1px solid rgba(201,169,110,0.35);
+    background: radial-gradient(circle at 50% 45%, rgba(232,217,188,0.22), rgba(201,169,110,0.04) 62%, transparent 70%);
+    box-shadow: 0 0 40px rgba(201,169,110,0.10);
+  }
+  .login-title {
+    font-family: 'Cormorant Garamond', serif; font-weight: 300;
+    font-size: 44px; letter-spacing: 0.04em; color: var(--champagne);
+  }
+  .login-sub {
+    margin: 14px 0 36px; font-size: 13px; line-height: 1.7; color: var(--muted); letter-spacing: 0.02em;
+  }
+  .btn {
+    display: flex; align-items: center; justify-content: center; gap: 10px;
+    width: 100%; padding: 14px 18px; border-radius: 4px; cursor: pointer;
+    font-family: inherit; font-size: 12px; letter-spacing: 0.12em; text-transform: uppercase;
+    transition: background 0.2s, border-color 0.2s;
+  }
+  .btn-gold { background: rgba(201,169,110,0.14); border: 1px solid rgba(201,169,110,0.45); color: var(--gold); }
+  .btn-gold:hover { background: rgba(201,169,110,0.22); }
+  .btn-line { background: transparent; border: 1px solid var(--border); color: var(--text); }
+  .btn-line:hover { border-color: rgba(201,169,110,0.35); }
+  .btn:disabled { opacity: 0.4; cursor: default; }
+  .or {
+    display: flex; align-items: center; gap: 12px; margin: 22px 0;
+    font-size: 10px; letter-spacing: 0.25em; text-transform: uppercase; color: var(--muted);
+  }
+  .or::before, .or::after { content: ''; flex: 1; height: 1px; background: var(--border); }
+  .field {
+    width: 100%; margin-bottom: 12px; padding: 14px 16px; border-radius: 4px;
+    background: var(--card); border: 1px solid var(--border); outline: none;
+    color: var(--text); font-family: inherit; font-size: 14px; font-weight: 300; letter-spacing: 0.03em;
+  }
+  .field:focus { border-color: rgba(201,169,110,0.35); }
+  .field::placeholder { color: var(--muted); }
+  .field.code { text-align: center; font-size: 20px; letter-spacing: 0.4em; }
+  .login-msg { min-height: 18px; margin-top: 14px; font-size: 12px; line-height: 1.6; color: var(--muted); }
+  .login-msg.err { color: #d79a8a; }
+  .link-btn {
+    margin-top: 18px; background: none; border: none; cursor: pointer;
+    color: var(--gold-soft); font-family: inherit; font-size: 11px; letter-spacing: 0.1em;
+  }
+  .login-note { margin-top: 40px; font-size: 10px; line-height: 1.7; color: var(--muted); letter-spacing: 0.05em; }
+  .login-note a { color: var(--gold-soft); text-decoration: none; }
+
+  /* ── CHAT ── */
+  #chat { flex: 1; display: flex; flex-direction: column; min-height: 0; }
+  .chat-head {
+    flex-shrink: 0; display: flex; align-items: center; justify-content: space-between;
+    padding: calc(14px + env(safe-area-inset-top)) 18px 14px;
+    border-bottom: 1px solid var(--border);
+  }
+  .chat-head-left { display: flex; align-items: center; gap: 12px; }
+  .chat-head .oli-mark { width: 32px; height: 32px; margin: 0; }
+  .chat-name { font-family: 'Cormorant Garamond', serif; font-size: 22px; font-weight: 300; color: var(--champagne); line-height: 1; }
+  .chat-tag { margin-top: 4px; font-size: 8px; letter-spacing: 0.25em; text-transform: uppercase; color: var(--gold-soft); }
+  .menu-btn {
+    background: none; border: none; cursor: pointer; padding: 6px;
+    color: var(--muted); font-family: inherit; font-size: 10px; letter-spacing: 0.15em; text-transform: uppercase;
+  }
+  .menu-btn:hover { color: var(--gold); }
+
+  #messages {
+    flex: 1; overflow-y: auto; padding: 24px 16px 12px;
+    display: flex; flex-direction: column; gap: 14px;
+  }
+  .inner { width: 100%; max-width: 720px; margin: 0 auto; display: flex; flex-direction: column; gap: 14px; }
+  .msg { display: flex; }
+  .msg.mine { justify-content: flex-end; }
+  .bubble {
+    max-width: 82%; padding: 12px 16px; white-space: pre-wrap; word-break: break-word;
+    font-size: 14px; line-height: 1.6; letter-spacing: 0.01em;
+  }
+  .msg.oli .bubble { padding-left: 0; padding-right: 0; max-width: 100%; color: var(--text); }
+  .msg.mine .bubble {
+    border-radius: 16px 16px 4px 16px;
+    background: rgba(201,169,110,0.1); border: 1px solid rgba(201,169,110,0.2);
+  }
+  .oli-action {
+    display: block; margin-top: 14px; padding: 11px 16px;
+    background: transparent; border: 1px solid rgba(201,169,110,0.45); border-radius: 10px;
+    color: var(--gold); font: inherit; font-size: 13px; letter-spacing: 0.03em; cursor: pointer;
+  }
+  .oli-action:disabled { opacity: 0.4; cursor: default; }
+  .msg-date {
+    text-align: center; font-size: 9px; letter-spacing: 0.2em; text-transform: uppercase;
+    color: var(--muted); padding: 6px 0;
+  }
+  .typing { display: flex; gap: 5px; padding: 6px 0; }
+  .typing span {
+    width: 6px; height: 6px; border-radius: 50%; background: var(--gold-soft);
+    animation: blink 1.2s infinite ease-in-out;
+  }
+  .typing span:nth-child(2) { animation-delay: 0.2s; }
+  .typing span:nth-child(3) { animation-delay: 0.4s; }
+  @keyframes blink { 0%, 80%, 100% { opacity: 0.2; } 40% { opacity: 1; } }
+
+  .input-area {
+    flex-shrink: 0; padding: 10px 16px calc(16px + env(safe-area-inset-bottom));
+  }
+  .input-wrap {
+    max-width: 720px; margin: 0 auto; display: flex; align-items: flex-end; gap: 10px;
+    background: var(--card); border: 1px solid var(--border); border-radius: 22px; padding: 8px 8px 8px 18px;
+  }
+  .input-wrap:focus-within { border-color: rgba(201,169,110,0.35); }
+  #msg-input {
+    flex: 1; background: none; border: none; outline: none; resize: none;
+    color: var(--text); font-family: inherit; font-size: 15px; font-weight: 300; line-height: 1.45;
+    max-height: 160px; padding: 7px 0;
+  }
+  #msg-input::placeholder { color: var(--muted); }
+  .send-btn {
+    flex-shrink: 0; width: 36px; height: 36px; border-radius: 50%; cursor: pointer;
+    background: rgba(201,169,110,0.18); border: 1px solid rgba(201,169,110,0.4); color: var(--gold);
+    display: flex; align-items: center; justify-content: center;
+  }
+  .send-btn:disabled { opacity: 0.3; cursor: default; }
+  .ai-note { max-width: 720px; margin: 8px auto 0; text-align: center; font-size: 10px; color: var(--muted); letter-spacing: 0.04em; }
+
+  .menu {
+    position: fixed; z-index: 10; top: calc(56px + env(safe-area-inset-top)); right: 14px;
+    background: var(--card); border: 1px solid var(--border); border-radius: 4px; overflow: hidden;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.5); min-width: 170px;
+  }
+  .menu button {
+    display: block; width: 100%; padding: 13px 18px; text-align: left; cursor: pointer;
+    background: none; border: none; color: var(--text); font-family: inherit; font-size: 12px; letter-spacing: 0.08em;
+  }
+  .menu button:hover { background: rgba(201,169,110,0.06); }
+</style>
+</head>
+<body>
+
+<div id="loader"><div class="spinner"></div></div>
+
+<!-- ── LOGIN ── -->
+<section id="login" class="hidden">
+  <div class="login-box">
+    <div class="oli-mark"></div>
+    <h1 class="login-title">Oli</h1>
+    <p class="login-sub" data-t="sub"></p>
+
+    <div id="step-email">
+      <button class="btn btn-line" id="google-btn" onclick="signInGoogle()">
+        <svg width="16" height="16" viewBox="0 0 48 48" aria-hidden="true"><path fill="#c9a96e" d="M43.6 20.5H42V20H24v8h11.3C33.7 32.7 29.2 36 24 36c-6.6 0-12-5.4-12-12s5.4-12 12-12c3.1 0 5.8 1.2 7.9 3.1l5.7-5.7C34 6.1 29.3 4 24 4 12.9 4 4 12.9 4 24s8.9 20 20 20 20-8.9 20-20c0-1.3-.1-2.4-.4-3.5z"/></svg>
+        <span data-t="google"></span>
+      </button>
+      <div class="or" data-t="or"></div>
+      <input class="field" id="email" type="email" autocomplete="email" inputmode="email" data-ph="email">
+      <button class="btn btn-gold" id="email-btn" onclick="sendCode()"><span data-t="send"></span></button>
+    </div>
+
+    <div id="step-code" class="hidden">
+      <p class="login-msg" id="code-hint" style="margin:0 0 18px"></p>
+      <input class="field code" id="code" type="text" inputmode="numeric" autocomplete="one-time-code" maxlength="10" placeholder="••••••">
+      <button class="btn btn-gold" id="code-btn" onclick="verifyCode()"><span data-t="enter"></span></button>
+      <button class="link-btn" onclick="backToEmail()" data-t="other"></button>
+    </div>
+
+    <p class="login-msg" id="login-msg"></p>
+    <p class="login-note" data-t-html="note"></p>
+  </div>
+</section>
+
+<!-- ── CHAT ── -->
+<section id="chat" class="hidden">
+  <header class="chat-head">
+    <div class="chat-head-left">
+      <div class="oli-mark"></div>
+      <div>
+        <div class="chat-name">Oli</div>
+        <div class="chat-tag" data-t="tag"></div>
+      </div>
+    </div>
+    <button class="menu-btn" onclick="toggleMenu(event)">•••</button>
+  </header>
+
+  <div id="messages"><div class="inner" id="inner"></div></div>
+
+  <div class="input-area">
+    <div class="input-wrap">
+      <textarea id="msg-input" rows="1" data-ph="write" oninput="autoResize(this)" onkeydown="handleKey(event)"></textarea>
+      <button class="send-btn" id="send-btn" onclick="sendMessage()" aria-label="Send">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 19V5M5 12l7-7 7 7"/></svg>
+      </button>
+    </div>
+    <p class="ai-note" data-t="ainote"></p>
+  </div>
+</section>
+
+<div class="menu hidden" id="menu">
+  <button onclick="signOut()" data-t="signout"></button>
+</div>
+
+<script>
+  const SUPABASE_URL = 'https://pewgupxikbswhaqxjrwk.supabase.co'
+  const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBld2d1cHhpa2Jzd2hhcXhqcndrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzUyNjY0MTEsImV4cCI6MjA5MDg0MjQxMX0.rQIz0R_4Oz6VqHgSvjx9YAtF8BojdcMU7RcqDiVP1NU'
+  const OLI_ID = '29ccb8b2-586a-464f-8635-f1c98bc3172a'
+  const HOME = 'https://twinfrequency.io/oli/'
+
+  const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY)
+
+  // ─── Language: Russian browsers get Russian, everyone else English ───
+  const RU = (navigator.language || '').toLowerCase().startsWith('ru')
+  const T = RU ? {
+    sub: 'Поговорить о человеке, который не выходит из головы. Oli выслушает и поможет увидеть, что между вами происходит.',
+    google: 'Войти через Google', or: 'или', email: 'Твой email', send: 'Получить код',
+    enter: 'Войти', other: 'Другой email', tag: 'AI-компаньон · система Alexandra',
+    write: 'Напиши Oli…', ainote: 'Oli это AI. В трудную минуту обратись к живому человеку рядом.',
+    signout: 'Выйти', sent: (e) => `Мы отправили письмо на ${e}. Введи код из письма или просто открой ссылку в нём.`,
+    badEmail: 'Проверь email', badCode: 'Код не подошёл. Попробуй ещё раз или открой ссылку из письма.',
+    error: 'Что-то пошло не так. Попробуй ещё раз.', wait: 'Oli открывает разговор…',
+    note: 'Входя, ты соглашаешься с <a href="/terms.html">условиями</a> и <a href="/privacy.html">политикой конфиденциальности</a>.',
+    offer: 'Попросить Alexandra прочитать нас',
+  } : {
+    sub: 'Talk about the person who stays on your mind. Oli listens and helps you see what is really happening between you.',
+    google: 'Continue with Google', or: 'or', email: 'Your email', send: 'Send me a code',
+    enter: 'Enter', other: 'Use another email', tag: 'AI companion · Alexandra’s system',
+    write: 'Write to Oli…', ainote: 'Oli is an AI. In a hard moment, reach out to a person near you.',
+    signout: 'Sign out', sent: (e) => `We sent an email to ${e}. Enter the code from it, or simply open the link inside.`,
+    badEmail: 'Please check your email', badCode: 'That code did not work. Try again or open the link from the email.',
+    error: 'Something went wrong. Please try again.', wait: 'Oli is opening the conversation…',
+    note: 'By continuing you agree to the <a href="/terms.html">terms</a> and <a href="/privacy.html">privacy policy</a>.',
+    offer: 'Ask Alexandra to read us',
+  }
+  document.documentElement.lang = RU ? 'ru' : 'en'
+  document.querySelectorAll('[data-t]').forEach(el => { el.textContent = T[el.dataset.t] })
+  document.querySelectorAll('[data-t-html]').forEach(el => { el.innerHTML = T[el.dataset.tHtml] })
+  document.querySelectorAll('[data-ph]').forEach(el => { el.placeholder = T[el.dataset.ph] })
+
+  let me = null
+  let matchId = null
+  let channel = null
+  let acceptedOffers = new Set()
+  let typingTimer = null
+  let lastDate = null
+
+  function show(id) {
+    for (const s of ['loader', 'login', 'chat']) document.getElementById(s).classList.toggle('hidden', s !== id)
+  }
+  function setLoginMsg(text, err) {
+    const el = document.getElementById('login-msg')
+    el.textContent = text || ''
+    el.classList.toggle('err', !!err)
+  }
+
+  // ─── Auth ─────────────────────────────────────────────────
+  async function signInGoogle() {
+    const { error } = await sb.auth.signInWithOAuth({ provider: 'google', options: { redirectTo: HOME } })
+    if (error) setLoginMsg(T.error, true)
+  }
+
+  let pendingEmail = ''
+  async function sendCode() {
+    const email = document.getElementById('email').value.trim().toLowerCase()
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return setLoginMsg(T.badEmail, true)
+    const btn = document.getElementById('email-btn')
+    btn.disabled = true
+    const { error } = await sb.auth.signInWithOtp({ email, options: { shouldCreateUser: true, emailRedirectTo: HOME } })
+    btn.disabled = false
+    if (error) return setLoginMsg(T.error, true)
+    pendingEmail = email
+    setLoginMsg('')
+    document.getElementById('code-hint').textContent = T.sent(email)
+    document.getElementById('step-email').classList.add('hidden')
+    document.getElementById('step-code').classList.remove('hidden')
+    document.getElementById('code').focus()
+  }
+
+  async function verifyCode() {
+    const token = document.getElementById('code').value.replace(/\D/g, '')
+    if (token.length < 6) return setLoginMsg(T.badCode, true)
+    const btn = document.getElementById('code-btn')
+    btn.disabled = true
+    const { data, error } = await sb.auth.verifyOtp({ email: pendingEmail, token, type: 'email' })
+    btn.disabled = false
+    if (error || !data?.user) return setLoginMsg(T.badCode, true)
+    setLoginMsg('')
+    enter(data.user)
+  }
+
+  function backToEmail() {
+    document.getElementById('step-code').classList.add('hidden')
+    document.getElementById('step-email').classList.remove('hidden')
+    setLoginMsg('')
+  }
+
+  async function signOut() {
+    await sb.auth.signOut()
+    location.reload()
+  }
+
+  // ─── Profile + the one Oli chat ───────────────────────────
+  // The same Oli chat as in TwinF: one match between this person and Oli.
+  async function findOliMatch() {
+    const { data } = await sb.from('matches').select('id')
+      .or(`and(user1.eq.${OLI_ID},user2.eq.${me.id}),and(user1.eq.${me.id},user2.eq.${OLI_ID})`)
+      .limit(1)
+    return data?.[0]?.id ?? null
+  }
+
+  async function ensureProfile() {
+    const { data } = await sb.from('profiles').select('id').eq('id', me.id).maybeSingle()
+    if (data) return
+    // Mark where they came from before the profile exists, so Oli's welcome fits this page.
+    await sb.auth.updateUser({ data: { source: 'oli', lang: RU ? 'ru' : 'en' } })
+    const meta = me.user_metadata || {}
+    const name = (meta.given_name || (meta.full_name || meta.name || '').split(' ')[0] || '').trim() || null
+    await sb.from('profiles').insert({ id: me.id, name })
+  }
+
+  async function ensureMatch() {
+    // Oli's welcome creates the chat a moment after the profile appears; wait for it, then create it ourselves.
+    for (let i = 0; i < 8; i++) {
+      const id = await findOliMatch()
+      if (id) return id
+      await new Promise(r => setTimeout(r, 1000))
+    }
+    const { data } = await sb.from('matches').insert({ user1: OLI_ID, user2: me.id }).select('id').single()
+    return data?.id ?? await findOliMatch()
+  }
+
+  async function enter(user) {
+    if (me) return
+    me = user
+    show('loader')
+    try {
+      await ensureProfile()
+      matchId = await ensureMatch()
+      if (!matchId) throw new Error('no chat')
+    } catch (e) {
+      console.error(e)
+      me = null
+      show('login')
+      return setLoginMsg(T.error, true)
+    }
+    show('chat')
+    await loadMessages()
+    subscribe()
+  }
+
+  // ─── Messages ─────────────────────────────────────────────
+  async function loadMessages() {
+    const { data } = await sb.from('messages')
+      .select('id, sender_id, content, meta, created_at')
+      .eq('match_id', matchId)
+      .order('created_at', { ascending: true })
+    const msgs = data || []
+    acceptedOffers = new Set(msgs.filter(m => m.meta?.action === 'pdf_accept').map(m => m.meta.offer_id))
+    const inner = document.getElementById('inner')
+    inner.innerHTML = ''
+    lastDate = null
+    msgs.forEach(appendMessage)
+    if (!msgs.length) showTyping()
+    scrollDown()
+  }
+
+  function appendMessage(msg) {
+    const inner = document.getElementById('inner')
+    const d = new Date(msg.created_at).toDateString()
+    if (d !== lastDate) {
+      const sep = document.createElement('div')
+      sep.className = 'msg-date'
+      sep.textContent = formatDate(msg.created_at)
+      inner.appendChild(sep)
+      lastDate = d
+    }
+    const mine = msg.sender_id === me.id
+    const row = document.createElement('div')
+    row.className = 'msg ' + (mine ? 'mine' : 'oli')
+    row.dataset.id = msg.id
+    const bubble = document.createElement('div')
+    bubble.className = 'bubble'
+    bubble.textContent = msg.content || ''
+    row.appendChild(bubble)
+
+    // Oli's reading offer comes with a button; pressing it is the same as answering "yes".
+    if (!mine && msg.meta?.action === 'pdf_offer') {
+      const btn = document.createElement('button')
+      btn.className = 'oli-action'
+      btn.textContent = msg.meta.lang === 'ru' ? 'Попросить Alexandra прочитать нас' : 'Ask Alexandra to read us'
+      btn.disabled = acceptedOffers.has(msg.id)
+      btn.onclick = () => acceptOffer(msg, btn)
+      bubble.appendChild(btn)
+    }
+    // Plan upgrade: the button appears only once a payment link exists (meta.url); until then it is just Oli's words.
+    if (!mine && msg.meta?.action === 'upgrade' && msg.meta.url) {
+      const a = document.createElement('a')
+      a.className = 'oli-action'
+      a.style.textDecoration = 'none'
+      a.href = msg.meta.url
+      a.textContent = msg.meta.lang === 'ru' ? 'Продолжить без лимита' : 'Continue without a limit'
+      bubble.appendChild(a)
+    }
+    const typing = document.getElementById('typing')
+    typing ? inner.insertBefore(row, typing) : inner.appendChild(row)
+  }
+
+  async function acceptOffer(offer, btn) {
+    btn.disabled = true
+    acceptedOffers.add(offer.id)
+    const { error } = await sb.from('messages').insert({
+      match_id: matchId, sender_id: me.id, content: btn.textContent,
+      meta: { action: 'pdf_accept', offer_id: offer.id, pair: offer.meta.pair, person_id: offer.meta.person_id ?? null, lang: offer.meta.lang },
+    })
+    if (error) { btn.disabled = false; acceptedOffers.delete(offer.id) }
+    else showTyping()
+  }
+
+  async function sendMessage() {
+    const input = document.getElementById('msg-input')
+    const content = input.value.trim()
+    if (!content || !matchId) return
+    input.value = ''
+    autoResize(input)
+    const btn = document.getElementById('send-btn')
+    btn.disabled = true
+    const { error } = await sb.from('messages').insert({ match_id: matchId, sender_id: me.id, content })
+    btn.disabled = false
+    if (error) { input.value = content; autoResize(input); return }
+    showTyping()
+  }
+
+  function subscribe() {
+    if (channel) sb.removeChannel(channel)
+    channel = sb.channel(`oli:${matchId}`)
+      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'messages', filter: `match_id=eq.${matchId}` }, ({ new: msg }) => {
+        if (document.querySelector(`[data-id="${msg.id}"]`)) return
+        if (msg.sender_id === OLI_ID) hideTyping()
+        appendMessage(msg)
+        scrollDown()
+      })
+      .subscribe()
+  }
+
+  // Dots while Oli is writing; they go away when her message lands (or after a minute).
+  function showTyping() {
+    hideTyping()
+    const el = document.createElement('div')
+    el.id = 'typing'
+    el.className = 'typing'
+    el.innerHTML = '<span></span><span></span><span></span>'
+    document.getElementById('inner').appendChild(el)
+    scrollDown()
+    typingTimer = setTimeout(hideTyping, 60000)
+  }
+  function hideTyping() {
+    clearTimeout(typingTimer)
+    document.getElementById('typing')?.remove()
+  }
+
+  // ─── UI helpers ───────────────────────────────────────────
+  function handleKey(e) {
+    // Enter sends on a keyboard; on phones Enter is a new line and the arrow sends.
+    if (e.key === 'Enter' && !e.shiftKey && !('ontouchstart' in window)) { e.preventDefault(); sendMessage() }
+  }
+  function autoResize(el) { el.style.height = 'auto'; el.style.height = Math.min(el.scrollHeight, 160) + 'px' }
+  function scrollDown() { const m = document.getElementById('messages'); m.scrollTop = m.scrollHeight }
+  function toggleMenu(e) { e.stopPropagation(); document.getElementById('menu').classList.toggle('hidden') }
+  document.addEventListener('click', () => document.getElementById('menu').classList.add('hidden'))
+  function formatDate(iso) {
+    const d = new Date(iso), today = new Date(), y = new Date(); y.setDate(today.getDate() - 1)
+    if (d.toDateString() === today.toDateString()) return RU ? 'Сегодня' : 'Today'
+    if (d.toDateString() === y.toDateString()) return RU ? 'Вчера' : 'Yesterday'
+    return d.toLocaleDateString(RU ? 'ru-RU' : 'en-US', { day: 'numeric', month: 'long' })
+  }
+
+  // ─── Start ────────────────────────────────────────────────
+  sb.auth.onAuthStateChange((event, session) => {
+    if (session?.user && !me) setTimeout(() => enter(session.user), 0)
+  })
+  sb.auth.getSession().then(({ data }) => {
+    if (data.session?.user) enter(data.session.user)
+    else show('login')
+  })
+</script>
+</body>
+</html>
