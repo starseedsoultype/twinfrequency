@@ -614,6 +614,35 @@
     reader.readAsDataURL(file)
   }
 
+  // Shrink a phone photo before upload: longest side 800px, JPEG.
+  // If the browser can't read the image, the original file is uploaded as before.
+  async function compressAvatar(original) {
+    const fallback = { file: original, ext: original.name.split('.').pop() }
+    try {
+      const url = URL.createObjectURL(original)
+      const img = await new Promise((resolve, reject) => {
+        const i = new Image()
+        i.onload = () => resolve(i)
+        i.onerror = reject
+        i.src = url
+      })
+      URL.revokeObjectURL(url)
+      const scale = Math.min(1, 800 / Math.max(img.naturalWidth, img.naturalHeight))
+      const canvas = document.createElement('canvas')
+      canvas.width = Math.round(img.naturalWidth * scale)
+      canvas.height = Math.round(img.naturalHeight * scale)
+      const ctx = canvas.getContext('2d')
+      ctx.fillStyle = '#000'
+      ctx.fillRect(0, 0, canvas.width, canvas.height)
+      ctx.drawImage(img, 0, 0, canvas.width, canvas.height)
+      const blob = await new Promise(r => canvas.toBlob(r, 'image/jpeg', 0.82))
+      if (!blob || blob.size >= original.size) return fallback
+      return { file: blob, ext: 'jpg' }
+    } catch (e) {
+      return fallback
+    }
+  }
+
   function goToQuiz() {
     // Save progress first, then redirect to quiz
     saveProfileProgress().then(() => {
@@ -628,9 +657,9 @@
 
     // Upload photo if selected
     if (photoFile && currentUser) {
-      const ext = photoFile.name.split('.').pop()
+      const { file, ext } = await compressAvatar(photoFile)
       const path = `${currentUser.id}/avatar.${ext}`
-      const { data: uploadData } = await sb.storage.from('avatars').upload(path, photoFile, { upsert: true })
+      const { data: uploadData } = await sb.storage.from('avatars').upload(path, file, { upsert: true, contentType: file.type })
       if (uploadData) {
         const { data: urlData } = sb.storage.from('avatars').getPublicUrl(path)
         photoUrl = urlData.publicUrl

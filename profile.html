@@ -1196,7 +1196,7 @@
     window.Telegram.WebApp.expand()
   }
 
-  const DEFAULT_PROFILE_IMAGE = '/images/twinf-placeholder.png'
+  const DEFAULT_PROFILE_IMAGE = '/images/twinf-placeholder.jpg'
 
   // ─── ORIGINS ──────────────────────────────────────────────
   const ORIGINS = [
@@ -1405,16 +1405,45 @@
   }
 
   // ─── PHOTO CHANGE ─────────────────────────────────────────
+  // Shrink a phone photo before upload: longest side 800px, JPEG.
+  // If the browser can't read the image, the original file is uploaded as before.
+  async function compressAvatar(original) {
+    const fallback = { file: original, ext: original.name.split('.').pop() }
+    try {
+      const url = URL.createObjectURL(original)
+      const img = await new Promise((resolve, reject) => {
+        const i = new Image()
+        i.onload = () => resolve(i)
+        i.onerror = reject
+        i.src = url
+      })
+      URL.revokeObjectURL(url)
+      const scale = Math.min(1, 800 / Math.max(img.naturalWidth, img.naturalHeight))
+      const canvas = document.createElement('canvas')
+      canvas.width = Math.round(img.naturalWidth * scale)
+      canvas.height = Math.round(img.naturalHeight * scale)
+      const ctx = canvas.getContext('2d')
+      ctx.fillStyle = '#000'
+      ctx.fillRect(0, 0, canvas.width, canvas.height)
+      ctx.drawImage(img, 0, 0, canvas.width, canvas.height)
+      const blob = await new Promise(r => canvas.toBlob(r, 'image/jpeg', 0.82))
+      if (!blob || blob.size >= original.size) return fallback
+      return { file: blob, ext: 'jpg' }
+    } catch (e) {
+      return fallback
+    }
+  }
+
   async function handlePhotoChange(event) {
     const file = event.target.files[0]
     if (!file) return
 
-    const ext = file.name.split('.').pop()
-    const path = `${user.id}/avatar.${ext}`
-
     showToast('Uploading photo...')
 
-    const { error: upErr } = await sb.storage.from('avatars').upload(path, file, { upsert: true })
+    const { file: upload, ext } = await compressAvatar(file)
+    const path = `${user.id}/avatar.${ext}`
+
+    const { error: upErr } = await sb.storage.from('avatars').upload(path, upload, { upsert: true, contentType: upload.type })
     if (upErr) { showToast('Upload failed'); return }
 
     const { data: urlData } = sb.storage.from('avatars').getPublicUrl(path)
