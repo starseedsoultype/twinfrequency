@@ -364,6 +364,16 @@
     font-size: 9px; color: var(--muted); letter-spacing: 0.05em;
     padding: 0 4px 2px; align-self: flex-end;
   }
+  .ai-tag {
+    display: inline-block; margin-left: 6px; padding: 1px 6px;
+    font-size: 8px; letter-spacing: 0.2em; text-transform: uppercase;
+    color: var(--gold); border: 1px solid rgba(201,169,110,0.35); border-radius: 4px;
+    vertical-align: middle;
+  }
+  .msg-ai-label {
+    display: block; margin-bottom: 4px;
+    font-size: 9px; letter-spacing: 0.2em; text-transform: uppercase; color: var(--gold);
+  }
 
   /* Дата-разделитель */
   .msg-date {
@@ -857,7 +867,7 @@ function getConnectionType(origin1, origin2) {
           <div class="type-ring" style="border-color:${color}60"></div>
         </div>
         <div class="match-info">
-          <div class="match-name">${escapeHtml(other.name || 'Unknown')}</div>
+          <div class="match-name">${escapeHtml(other.name || 'Unknown')}${other.is_bot ? '<span class="ai-tag">AI guide</span>' : ''}</div>
           <div class="match-connection">
             <div class="match-connection-dot" style="background:${color}"></div>
             <span class="match-connection-name" style="color:${color}">${escapeHtml(connType)}</span>
@@ -941,7 +951,7 @@ function getConnectionType(origin1, origin2) {
 
     // Nav
     document.getElementById('chat-nav-name').textContent = other.name || 'Unknown'
-    document.getElementById('chat-nav-sub').textContent = other.origin || ''
+    document.getElementById('chat-nav-sub').textContent = other.is_bot ? 'AI guide · not a person' : (other.origin || '')
 
     // Connection header
     const connHeader = document.getElementById('connection-header')
@@ -1014,7 +1024,7 @@ function getConnectionType(origin1, origin2) {
   async function loadMessages(matchId) {
     const { data: msgs } = await sb
       .from('messages')
-      .select('*, sender:profiles!messages_sender_id_fkey(name, photo_url)')
+      .select('*, sender:profiles!messages_sender_id_fkey(name, photo_url, is_bot)')
       .eq('match_id', matchId)
       .order('created_at', { ascending: true })
 
@@ -1024,7 +1034,7 @@ function getConnectionType(origin1, origin2) {
   async function loadGroupMessages(groupId) {
     const { data: msgs } = await sb
       .from('group_messages')
-      .select('*, sender:profiles!group_messages_sender_id_fkey(name, photo_url)')
+      .select('*, sender:profiles!group_messages_sender_id_fkey(name, photo_url, is_bot)')
       .eq('circle_id', groupId)
       .order('created_at', { ascending: true })
       .limit(50)
@@ -1081,7 +1091,8 @@ function getConnectionType(origin1, origin2) {
     row.dataset.msgId = msg.id
 
     const avatarUrl = msg.sender?.photo_url && msg.sender.photo_url.trim() ? msg.sender.photo_url : DEFAULT_PROFILE_IMAGE
-    const bubble = escapeHtml(msg.content || '')
+    const aiLabel = !isMine && msg.sender?.is_bot ? `<span class="msg-ai-label">${escapeHtml(msg.sender.name || 'Oli')} · AI guide</span>` : ''
+    const bubble = aiLabel + escapeHtml(msg.content || '')
     const time = formatTime(msg.created_at)
 
     row.innerHTML = `
@@ -1135,7 +1146,7 @@ function getConnectionType(origin1, origin2) {
       }, async (payload) => {
         const msg = payload.new
         // Загружаем данные отправителя
-        const { data: sender } = await sb.from('profiles').select('name, photo_url').eq('id', msg.sender_id).single()
+        const { data: sender } = await sb.from('profiles').select('name, photo_url, is_bot').eq('id', msg.sender_id).single()
         msg.sender = sender
         const area = document.getElementById('messages-area')
         area.appendChild(createMsgEl(msg))
@@ -1153,7 +1164,7 @@ function getConnectionType(origin1, origin2) {
         filter: `circle_id=eq.${groupId}`
       }, async (payload) => {
         const msg = payload.new
-        const { data: sender } = await sb.from('profiles').select('name, photo_url').eq('id', msg.sender_id).single()
+        const { data: sender } = await sb.from('profiles').select('name, photo_url, is_bot').eq('id', msg.sender_id).single()
         msg.sender = sender
         const area = document.getElementById('messages-area')
         area.appendChild(createMsgEl(msg))
