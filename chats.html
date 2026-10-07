@@ -354,6 +354,7 @@
     background: var(--card); border: 1px solid var(--border);
     color: var(--text);
     word-break: break-word;
+    white-space: pre-wrap;
   }
   .msg-row.mine .msg-bubble {
     border-radius: 16px 16px 4px 16px;
@@ -370,6 +371,12 @@
     color: var(--gold); border: 1px solid rgba(201,169,110,0.35); border-radius: 4px;
     vertical-align: middle;
   }
+  .oli-action {
+    display: block; width: 100%; margin-top: 12px; padding: 10px 14px;
+    background: transparent; border: 1px solid rgba(201,169,110,0.45); border-radius: 10px;
+    color: var(--gold); font: inherit; font-size: 12px; letter-spacing: 0.04em; cursor: pointer;
+  }
+  .oli-action:disabled { opacity: 0.4; cursor: default; }
   .msg-ai-label {
     display: block; margin-bottom: 4px;
     font-size: 9px; letter-spacing: 0.2em; text-transform: uppercase; color: var(--gold);
@@ -1072,6 +1079,8 @@ function getConnectionType(origin1, origin2) {
       }
     }
 
+    acceptedOffers = new Set(msgs.filter(m => m.meta?.action === 'pdf_accept').map(m => m.meta.offer_id))
+
     let lastDate = null
     for (const msg of msgs) {
       const msgDate = new Date(msg.created_at).toDateString()
@@ -1105,7 +1114,31 @@ function getConnectionType(origin1, origin2) {
       <div class="msg-time">${time}</div>
       ${isMine ? `<div class="msg-avatar" style="background-image:url('${escapeHtml(myProfile?.photo_url && myProfile.photo_url.trim() ? myProfile.photo_url : DEFAULT_PROFILE_IMAGE)}')"></div>` : ''}`
 
+    // Oli's reading offer comes with a button; pressing it is the same as answering "yes".
+    if (!isMine && msg.meta?.action === 'pdf_offer' && currentChat?.type === 'match') {
+      const btn = document.createElement('button')
+      btn.className = 'oli-action'
+      btn.textContent = msg.meta.lang === 'ru' ? 'Попросить Alexandra прочитать нас' : 'Ask Alexandra to read us'
+      btn.disabled = acceptedOffers.has(msg.id)
+      btn.onclick = () => acceptOffer(msg, btn)
+      row.querySelector('.msg-bubble').appendChild(btn)
+    }
+
     return row
+  }
+
+  let acceptedOffers = new Set()
+
+  async function acceptOffer(offer, btn) {
+    btn.disabled = true
+    acceptedOffers.add(offer.id)
+    const { error } = await sb.from('messages').insert({
+      match_id: currentChat.matchId,
+      sender_id: myUser.id,
+      content: btn.textContent,
+      meta: { action: 'pdf_accept', offer_id: offer.id, pair: offer.meta.pair, person_id: offer.meta.person_id ?? null, lang: offer.meta.lang },
+    })
+    if (error) { btn.disabled = false; acceptedOffers.delete(offer.id) }
   }
 
   // ─── Send Message ─────────────────────────────────────────
