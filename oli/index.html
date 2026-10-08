@@ -760,6 +760,9 @@
   const orbit = new THREE.Mesh(new THREE.TorusGeometry(1.28, 0.012, 12, 96), orbitMat)
   orbit.rotation.x = Math.PI / 2
   group.add(orbit)
+  const orbit2 = orbit.clone()
+  orbit2.rotation.y = Math.PI / 3
+  group.add(orbit2)
 
   const wave = new THREE.Mesh(
     new THREE.TorusGeometry(1.01, 0.014, 12, 96),
@@ -803,7 +806,12 @@
   scene.add(new THREE.AmbientLight(0xffeee0, 0.24))
 
   let state = 'idle', started = false, responseAt = -10
+  let pointerX = 0, pointerY = 0, smoothX = 0, smoothY = 0
   let elapsed = 0
+  window.addEventListener('pointermove', e => {
+    pointerX = (e.clientX / window.innerWidth - 0.5) * 2
+    pointerY = (e.clientY / window.innerHeight - 0.5) * 2
+  })
   window.addEventListener('oli-halo-state', e => {
     state = e.detail || 'idle'
     if (state === 'responding') responseAt = elapsed
@@ -839,10 +847,15 @@
     thoughtA.material.opacity = thoughtB.material.opacity = thinking ? 0.52 : 0
     thoughtA.scale.setScalar(thinking ? 0.62 : 0.72); thoughtB.scale.copy(thoughtA.scale)
 
-    group.rotation.y += (writing ? 0.001 : 0.0022) * slow
-    group.rotation.x = Math.sin(elapsed * 0.18) * 0.055 * slow
+    smoothX += (pointerX - smoothX) * 0.035
+    smoothY += (pointerY - smoothY) * 0.035
+    group.rotation.y = elapsed * (writing ? 0.035 : 0.07) * slow + smoothX * 0.10 * slow
+    group.rotation.x = Math.sin(elapsed * 0.18) * 0.055 * slow + smoothY * 0.08 * slow
     orbit.rotation.z += (writing ? 0.001 : responding ? 0.018 : 0.0035) * slow
     orbit.rotation.x = Math.PI / 2 + Math.sin(elapsed * 0.12) * 0.08
+    orbit2.rotation.z -= (writing ? 0.0007 : responding ? 0.012 : 0.0026) * slow
+    orbit2.rotation.x = Math.PI / 2 + Math.sin(elapsed * 0.14 + 1.2) * 0.06
+    orbit2.rotation.y = Math.PI / 3 + smoothX * 0.035 * slow
 
     const pulse = responding ? Math.min((elapsed - responseAt) / 1.1, 1) : 0
     wave.scale.setScalar(1 + pulse * 0.34)
