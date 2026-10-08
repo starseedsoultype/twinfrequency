@@ -243,6 +243,32 @@
   .sheet p.small { font-size: 11px; color: var(--muted); opacity: 1; }
   .sheet p a { color: var(--gold-soft); }
   .sheet .btn { margin-top: 10px; }
+
+  /* ── REEL MODE (admin only): a clean 9:16 screen to record one question and Oli's spoken answer ── */
+  .reel {
+    position: fixed; inset: 0; z-index: 40; background: #050505;
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    padding: calc(48px + env(safe-area-inset-top)) 28px calc(40px + env(safe-area-inset-bottom));
+    cursor: pointer; user-select: none; -webkit-user-select: none;
+  }
+  .reel-q {
+    max-width: 520px; min-height: 3.2em; text-align: center;
+    font-size: 17px; line-height: 1.6; color: var(--text); opacity: 0.85; letter-spacing: 0.01em;
+  }
+  .reel-q .caret { display: inline-block; width: 1px; height: 1.1em; background: var(--gold); vertical-align: -0.2em; margin-left: 2px; animation: caret 1s steps(1) infinite; }
+  @keyframes caret { 50% { opacity: 0; } }
+  .reel-stage { width: 280px; height: 280px; margin: 28px 0; }
+  .reel #flames { width: 280px; height: 280px; margin: 0; }
+  .reel-cap {
+    max-width: 560px; min-height: 5.4em; text-align: center;
+    font-family: 'Cormorant Garamond', serif; font-weight: 400; font-size: 28px; line-height: 1.3;
+    color: var(--champagne); transition: opacity 0.35s ease;
+  }
+  .reel-foot { position: absolute; bottom: calc(22px + env(safe-area-inset-bottom)); font-size: 10px; letter-spacing: 0.3em; text-transform: uppercase; color: var(--gold-soft); }
+  .reel-hint { position: absolute; top: calc(18px + env(safe-area-inset-top)); left: 0; right: 0; text-align: center; font-size: 11px; letter-spacing: 0.12em; color: var(--muted); }
+  .reel-close { position: absolute; top: calc(10px + env(safe-area-inset-top)); right: 14px; background: none; border: none; color: var(--muted); font-size: 26px; cursor: pointer; padding: 6px 10px; }
+  .reel.playing .reel-hint, .reel.playing .reel-close { display: none; }
+  .voice-reel { color: var(--gold-soft); }
 </style>
 </head>
 <body>
@@ -331,6 +357,15 @@
   </div>
 </div>
 
+<div class="reel hidden" id="reel" onclick="reelTap(event)">
+  <button class="reel-close" onclick="closeReel(event)" aria-label="Close">×</button>
+  <div class="reel-hint" data-t="reelHint"></div>
+  <div class="reel-q" id="reel-q"></div>
+  <div class="reel-stage" id="reel-stage"></div>
+  <div class="reel-cap" id="reel-cap"></div>
+  <div class="reel-foot">Oli · twinfrequency.io/oli</div>
+</div>
+
 <div class="menu hidden" id="menu">
   <button onclick="signOut()" data-t="signout"></button>
   <button class="danger" onclick="askDelete()" data-t="delete"></button>
@@ -365,7 +400,7 @@
     error: 'Что-то пошло не так. Попробуй ещё раз.', wait: 'Oli открывает разговор…',
     note: `Входя, ты соглашаешься с <a href="${SITE}/terms.html">условиями</a> и <a href="${SITE}/privacy.html">политикой конфиденциальности</a>.`,
     offer: 'Попросить Alexandra прочитать нас',
-    listen: 'Слушать', pause: 'Пауза', save: 'Скачать', voiceMark: 'голосом',
+    listen: 'Слушать', pause: 'Пауза', save: 'Скачать', voiceMark: 'голосом', reel: 'Reel', reelHint: 'Включи запись экрана и коснись экрана',
     micDenied: 'Нет доступа к микрофону. Разреши его в настройках браузера.', voiceFail: 'Не получилось отправить голосовое. Попробуй ещё раз.',
     voiceEmpty: 'Я ничего не расслышала. Попробуй ещё раз, чуть ближе к телефону.', voiceLong: 'Слишком длинное голосовое. До двух минут, пожалуйста.',
     cTitle: 'Прежде чем начать',
@@ -387,7 +422,7 @@
     error: 'Something went wrong. Please try again.', wait: 'Oli is opening the conversation…',
     note: `By continuing you agree to the <a href="${SITE}/terms.html">terms</a> and <a href="${SITE}/privacy.html">privacy policy</a>.`,
     offer: 'Ask Alexandra to read us',
-    listen: 'Listen', pause: 'Pause', save: 'Save', voiceMark: 'voice',
+    listen: 'Listen', pause: 'Pause', save: 'Save', voiceMark: 'voice', reel: 'Reel', reelHint: 'Start screen recording, then tap the screen',
     micDenied: 'No access to the microphone. Please allow it in your browser settings.', voiceFail: 'The voice note was not sent. Please try again.',
     voiceEmpty: "I couldn't hear anything. Please try again, a little closer to the phone.", voiceLong: 'That voice note is too long. Up to two minutes, please.',
     cTitle: 'Before we begin',
@@ -417,6 +452,7 @@
     const mark = document.querySelector('.chat-head .oli-mark')
     const cv = document.getElementById('flames')
     if (!mark || !cv || cv.parentElement === mark) return
+    if (reel) return
     mark.appendChild(cv)
     mark.classList.add('has-halo')
     window.dispatchEvent(new Event('resize'))
@@ -554,6 +590,7 @@
       show('login')
       return setLoginMsg(T.error, true)
     }
+    sb.from('profiles').select('is_admin').eq('id', me.id).maybeSingle().then(({ data }) => { isAdmin = !!data?.is_admin; if (isAdmin) addReelButtons() })
     show('chat')
     document.getElementById('mic-btn').classList.toggle('hidden', !VOICE_ENABLED)
     if (!hasConsent()) document.getElementById('consent').classList.remove('hidden')
@@ -613,7 +650,7 @@
     }
     bubble.appendChild(document.createTextNode(msg.content || ''))
     row.appendChild(bubble)
-    if (!mine && msg.meta?.audio) addVoicePlayer(bubble, msg.meta.audio)
+    if (!mine && msg.meta?.audio) addVoicePlayer(bubble, msg.meta.audio, false, msg.content || '')
 
     // Oli's reading offer comes with a button; pressing it is the same as answering "yes".
     if (!mine && msg.meta?.action === 'pdf_offer') {
@@ -682,7 +719,7 @@
         // Oli's voice is added to her message a moment after the text.
         const bubble = document.querySelector(`[data-id="${msg.id}"] .bubble`)
         if (!bubble || !msg.meta?.audio || bubble.querySelector('.voice-row')) return
-        addVoicePlayer(bubble, msg.meta.audio, autoPlayNext)
+        addVoicePlayer(bubble, msg.meta.audio, autoPlayNext, msg.content || '')
         autoPlayNext = false
       })
       .subscribe(status => {
@@ -809,8 +846,8 @@
     scrollDown()
   }
 
-  let playing = null
-  function addVoicePlayer(bubble, path, autoplay = false) {
+  let playing = null, isAdmin = false
+  function addVoicePlayer(bubble, path, autoplay = false, text = '') {
     const wrap = document.createElement('div')
     wrap.className = 'voice-row'
     const play = document.createElement('button')
@@ -820,7 +857,10 @@
     save.className = 'voice-save'
     save.textContent = T.save
     wrap.append(play, save)
+    wrap.dataset.path = path
+    wrap.dataset.text = text
     bubble.appendChild(wrap)
+    if (isAdmin) addReelButton(wrap)
     let audio = null
     const url = async () => (await sb.storage.from('oli-voice').createSignedUrl(path, 3600)).data?.signedUrl
     const setLabel = on => { play.innerHTML = `<span aria-hidden="true">${on ? '❚❚' : '▶'}</span><span>${on ? T.pause : T.listen}</span>` }
@@ -847,6 +887,107 @@
     if (autoplay) play.click()
     scrollDown()
   }
+
+  // ─── Reel mode (Olesya only) ──────────────────────────────
+  // Her question types itself out, the crystal thinks, then Oli answers aloud with large captions.
+  function addReelButtons() { document.querySelectorAll('.voice-row').forEach(addReelButton) }
+  function addReelButton(wrap) {
+    if (wrap.querySelector('.voice-reel')) return
+    const b = document.createElement('button')
+    b.className = 'voice-save voice-reel'
+    b.textContent = '🎬 ' + T.reel
+    b.onclick = () => openReel(wrap)
+    wrap.appendChild(b)
+  }
+
+  let reel = null
+  function openReel(wrap) {
+    // The question is the person's message just above this answer.
+    let q = wrap.closest('.msg')?.previousElementSibling
+    while (q && !q.classList.contains('mine')) q = q.previousElementSibling
+    const question = q ? [...q.querySelector('.bubble').childNodes].filter(n => n.nodeType === 3).map(n => n.textContent).join('').trim() : ''
+    reel = { path: wrap.dataset.path, text: wrap.dataset.text, question, audio: null, busy: false }
+    document.getElementById('reel-q').textContent = ''
+    document.getElementById('reel-cap').textContent = ''
+    const el = document.getElementById('reel')
+    el.classList.remove('hidden', 'playing')
+    document.getElementById('reel-stage').appendChild(document.getElementById('flames'))
+    window.dispatchEvent(new Event('resize'))
+    setHaloState('idle')
+  }
+
+  function closeReel(e) {
+    e?.stopPropagation()
+    if (reel?.audio) reel.audio.pause()
+    reel = null
+    document.getElementById('reel').classList.add('hidden')
+    mountHaloInHeader(true)
+    setHaloState('idle')
+  }
+
+  // Captions: sentences, long ones split at commas, each shown for a share of the voice by its length.
+  function captionChunks(text) {
+    const clean = text.replace(/https?:\/\/\S+/g, '').replace(/\s+/g, ' ').trim()
+    const out = []
+    for (const sentence of clean.split(/(?<=[.!?…])\s+/)) {
+      if (sentence.length <= 110) { out.push(sentence); continue }
+      let cur = ''
+      for (const part of sentence.split(/(?<=[,;:])\s+/)) {
+        if (cur && (cur + ' ' + part).length > 110) { out.push(cur); cur = part } else cur = cur ? cur + ' ' + part : part
+      }
+      if (cur) out.push(cur)
+    }
+    return out.filter(Boolean)
+  }
+
+  async function reelTap(e) {
+    if (!reel || reel.busy || e.target.closest('.reel-close')) return
+    reel.busy = true
+    const el = document.getElementById('reel')
+    el.classList.add('playing')
+    const qEl = document.getElementById('reel-q'), cap = document.getElementById('reel-cap')
+    qEl.textContent = ''; cap.textContent = ''
+    const url = (await sb.storage.from('oli-voice').createSignedUrl(reel.path, 3600)).data?.signedUrl
+    if (!url || !reel) { if (reel) reel.busy = false; el.classList.remove('playing'); return }
+    const audio = reel.audio = new Audio(url)
+    audio.preload = 'auto'
+
+    // 1. The question types itself out.
+    const caret = '<span class="caret"></span>'
+    for (let i = 1; i <= reel.question.length; i++) {
+      if (!reel) return
+      qEl.innerHTML = escapeHtml(reel.question.slice(0, i)) + caret
+      await new Promise(r => setTimeout(r, 38))
+    }
+    qEl.textContent = reel.question
+    // 2. Oli thinks.
+    setHaloState('thinking')
+    await new Promise(r => setTimeout(r, 1400))
+    if (!reel) return
+    // 3. Oli speaks, captions follow her voice.
+    const chunks = captionChunks(reel.text)
+    const total = chunks.reduce((n, c) => n + c.length, 0) || 1
+    const bounds = []; let acc = 0
+    for (const c of chunks) { acc += c.length; bounds.push(acc / total) }
+    let shown = -1
+    const pulse = setInterval(() => setHaloState('responding'), 900)
+    audio.ontimeupdate = () => {
+      if (!audio.duration) return
+      const f = audio.currentTime / audio.duration
+      const i = Math.min(bounds.findIndex(b => f < b), chunks.length - 1)
+      const idx = i < 0 ? chunks.length - 1 : i
+      if (idx !== shown) { shown = idx; cap.style.opacity = 0; setTimeout(() => { cap.textContent = chunks[idx]; cap.style.opacity = 1 }, 180) }
+    }
+    audio.onended = () => {
+      clearInterval(pulse)
+      setHaloState('idle')
+      setTimeout(() => { if (!reel) return; reel.busy = false; el.classList.remove('playing') }, 1800)
+    }
+    setHaloState('responding')
+    audio.play().catch(() => { clearInterval(pulse); reel.busy = false; el.classList.remove('playing') })
+  }
+
+  function escapeHtml(str) { return String(str).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c])) }
 
   function scrollDown() { const m = document.getElementById('messages'); m.scrollTop = m.scrollHeight }
   function toggleMenu(e) { e.stopPropagation(); document.getElementById('menu').classList.toggle('hidden') }
