@@ -1232,13 +1232,19 @@
     color: 0x21150f, metalness: 0.28, roughness: 0.08,
     transmission: 0.48, thickness: 0.35, clearcoat: 1,
     transparent: true, opacity: 0.38,
+    depthWrite: false,
   })
   const shellGeo = new THREE.IcosahedronGeometry(0.98, 1)
   const shell = new THREE.Mesh(shellGeo, shellMat)
   group.add(shell)
 
-  const edgeMat = new THREE.LineBasicMaterial({ color: 0xc9a96e, transparent: true, opacity: 0.48 })
-  group.add(new THREE.LineSegments(new THREE.EdgesGeometry(shellGeo), edgeMat))
+  // The gold facet lines always stay visible: they breathe together with the shell
+  // (as its child) and sit a hair above it, so the glassy shell can never cover them.
+  const edgeMat = new THREE.LineBasicMaterial({ color: 0xc9a96e, transparent: true, opacity: 0.52 })
+  const edges = new THREE.LineSegments(new THREE.EdgesGeometry(shellGeo), edgeMat)
+  edges.scale.setScalar(1.006)
+  edges.renderOrder = 2
+  shell.add(edges)
 
   function orbitMaterial(offset) {
     return new THREE.ShaderMaterial({
