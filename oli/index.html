@@ -81,9 +81,12 @@
     font-family: inherit; font-size: 12px; letter-spacing: 0.12em; text-transform: uppercase;
     transition: background 0.2s, border-color 0.2s;
   }
-  /* Orange as on partners.html */
-  .btn-gold, .btn-line { background: #FF7A1F; border: 1px solid #FF7A1F; color: #140A02; font-weight: 400; }
-  .btn-gold:hover, .btn-line:hover { background: #FF8F3F; border-color: #FF8F3F; }
+  /* One clear accent on the first screen: Google is primary; email stays quiet. */
+  .btn-gold, .btn-line { font-weight: 400; }
+  .btn-line { background: #FF7A1F; border: 1px solid #FF7A1F; color: #140A02; }
+  .btn-line:hover { background: #FF8F3F; border-color: #FF8F3F; }
+  .login-box .btn-gold { background: transparent; border: 1px solid rgba(201,169,110,0.35); color: var(--champagne); }
+  .login-box .btn-gold:hover { background: rgba(255,122,31,0.10); border-color: rgba(255,122,31,0.65); color: #FFB078; }
   .btn-line svg path { fill: #140A02; }
   .btn:disabled { opacity: 0.4; cursor: default; }
   .or {
