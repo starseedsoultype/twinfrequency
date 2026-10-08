@@ -56,6 +56,12 @@ Deno.serve(async (req) => {
       await adminClient.storage.from('avatars').remove(paths)
     }
 
+    // Delete Oli voice notes (theirs and Oli's answers to them)
+    const { data: voices } = await adminClient.storage.from('oli-voice').list(userId, { limit: 1000 })
+    if (voices && voices.length > 0) {
+      await adminClient.storage.from('oli-voice').remove(voices.map((f: any) => `${userId}/${f.name}`))
+    }
+
     // Delete profile
     await adminClient.from('profiles').delete().eq('id', userId)
 

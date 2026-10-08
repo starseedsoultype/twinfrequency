@@ -120,6 +120,9 @@
   }
   .chat-head-left { display: flex; align-items: center; gap: 12px; }
   .chat-head .oli-mark { width: 32px; height: 32px; margin: 0; }
+  /* In the chat the same living crystal sits in the header and reacts while Oli thinks and answers. */
+  .chat-head .oli-mark.has-halo { width: 48px; height: 48px; border: none; background: none; box-shadow: none; }
+  .chat-head #flames { width: 48px; height: 48px; margin: 0; }
   .chat-name { font-family: 'Cormorant Garamond', serif; font-size: 22px; font-weight: 300; color: var(--champagne); line-height: 1; }
   .chat-tag { margin-top: 4px; font-size: 8px; letter-spacing: 0.25em; text-transform: uppercase; color: var(--gold-soft); }
   .menu-btn {
@@ -205,12 +208,25 @@
   .notice { align-self: center; max-width: 90%; text-align: center; font-size: 12px; line-height: 1.6; color: var(--muted); padding: 4px 0; }
   .notice button { margin-left: 6px; background: none; border: none; color: var(--gold); font: inherit; cursor: pointer; text-decoration: underline; }
 
-  /* Voice: the slot is here, switched on when voice is ready */
+  /* Voice: tap the mic to speak, tap again to send */
   .mic-btn {
     flex-shrink: 0; width: 36px; height: 36px; border-radius: 50%; cursor: pointer;
     background: none; border: 1px solid var(--border); color: var(--gold-soft);
     display: flex; align-items: center; justify-content: center;
   }
+  .mic-btn.rec { background: #FF7A1F; border-color: #FF7A1F; color: #140A02; animation: recpulse 1.4s ease-in-out infinite; }
+  .mic-btn:disabled { opacity: 0.4; cursor: default; }
+  @keyframes recpulse { 0%, 100% { box-shadow: 0 0 0 0 rgba(255,122,31,0.45); } 50% { box-shadow: 0 0 0 8px rgba(255,122,31,0); } }
+  .rec-time { flex-shrink: 0; align-self: center; font-size: 12px; color: #FF7A1F; font-variant-numeric: tabular-nums; }
+  .voice-row { display: flex; align-items: center; gap: 14px; margin-top: 12px; }
+  .voice-play {
+    display: inline-flex; align-items: center; gap: 8px; padding: 8px 14px; cursor: pointer;
+    background: transparent; border: 1px solid rgba(201,169,110,0.45); border-radius: 999px;
+    color: var(--gold); font: inherit; font-size: 12px; letter-spacing: 0.04em;
+  }
+  .voice-save { color: var(--muted); font-size: 11px; letter-spacing: 0.04em; text-decoration: none; cursor: pointer; background: none; border: none; font-family: inherit; }
+  .voice-save:hover { color: var(--gold-soft); }
+  .msg.mine .voice-mark { display: block; font-size: 10px; letter-spacing: 0.15em; text-transform: uppercase; color: var(--muted); margin-bottom: 4px; }
 
   /* ── AI CONSENT ── */
   .sheet-wrap {
@@ -283,7 +299,8 @@
     <div class="input-wrap">
       <label class="sr-only" for="msg-input" data-t="write"></label>
       <textarea id="msg-input" rows="1" data-ph="write" oninput="autoResize(this); setHaloState(this.value.trim() ? 'writing' : 'idle')" onkeydown="handleKey(event)"></textarea>
-      <button class="mic-btn hidden" id="mic-btn" aria-label="Voice">
+      <span class="rec-time hidden" id="rec-time">0:00</span>
+      <button class="mic-btn hidden" id="mic-btn" aria-label="Voice" onclick="toggleRecording()">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="9" y="3" width="6" height="12" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3"/></svg>
       </button>
       <button class="send-btn" id="send-btn" onclick="sendMessage()" aria-label="Send">
@@ -327,7 +344,7 @@
   // Where Google and the email link bring people back. In the browser that is this page;
   // inside the future iOS app it becomes the app's deep link.
   const HOME = location.protocol.startsWith('http') ? location.origin + location.pathname : SITE + '/oli/'
-  const VOICE_ENABLED = false
+  const VOICE_ENABLED = true
 
   const sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY)
 
@@ -348,6 +365,9 @@
     error: 'Что-то пошло не так. Попробуй ещё раз.', wait: 'Oli открывает разговор…',
     note: `Входя, ты соглашаешься с <a href="${SITE}/terms.html">условиями</a> и <a href="${SITE}/privacy.html">политикой конфиденциальности</a>.`,
     offer: 'Попросить Alexandra прочитать нас',
+    listen: 'Слушать', pause: 'Пауза', save: 'Скачать', voiceMark: 'голосом',
+    micDenied: 'Нет доступа к микрофону. Разреши его в настройках браузера.', voiceFail: 'Не получилось отправить голосовое. Попробуй ещё раз.',
+    voiceEmpty: 'Я ничего не расслышала. Попробуй ещё раз, чуть ближе к телефону.', voiceLong: 'Слишком длинное голосовое. До двух минут, пожалуйста.',
     cTitle: 'Прежде чем начать',
     cBody: 'Oli это AI. Чтобы ответить тебе, Oli отправляет твои сообщения в OpenAI, сервис, на котором она работает. OpenAI не использует их для обучения своих моделей. Твой разговор хранится в твоём аккаунте, и ты можешь удалить его вместе с аккаунтом.',
     cSmall: `Oli не заменяет психолога или врача. Подробнее в <a href="${SITE}/privacy.html">политике конфиденциальности</a>.`,
@@ -367,6 +387,9 @@
     error: 'Something went wrong. Please try again.', wait: 'Oli is opening the conversation…',
     note: `By continuing you agree to the <a href="${SITE}/terms.html">terms</a> and <a href="${SITE}/privacy.html">privacy policy</a>.`,
     offer: 'Ask Alexandra to read us',
+    listen: 'Listen', pause: 'Pause', save: 'Save', voiceMark: 'voice',
+    micDenied: 'No access to the microphone. Please allow it in your browser settings.', voiceFail: 'The voice note was not sent. Please try again.',
+    voiceEmpty: "I couldn't hear anything. Please try again, a little closer to the phone.", voiceLong: 'That voice note is too long. Up to two minutes, please.',
     cTitle: 'Before we begin',
     cBody: 'Oli is an AI. To reply to you, Oli sends your messages to OpenAI, the service she runs on. OpenAI does not use them to train its models. Your conversation is kept in your account, and you can delete it together with your account.',
     cSmall: `Oli is not a replacement for a therapist or a doctor. More in the <a href="${SITE}/privacy.html">privacy policy</a>.`,
@@ -387,6 +410,16 @@
   function show(id) {
     for (const s of ['loader', 'login', 'chat']) document.getElementById(s).classList.toggle('hidden', s !== id)
     if (id === 'login') startFlames()
+    if (id === 'chat') { mountHaloInHeader(); startFlames() }
+  }
+
+  function mountHaloInHeader() {
+    const mark = document.querySelector('.chat-head .oli-mark')
+    const cv = document.getElementById('flames')
+    if (!mark || !cv || cv.parentElement === mark) return
+    mark.appendChild(cv)
+    mark.classList.add('has-halo')
+    window.dispatchEvent(new Event('resize'))
   }
 
   // ─── Siri Halo ────────────────────────────────────────────
@@ -399,7 +432,7 @@
     window.dispatchEvent(new CustomEvent('oli-halo-state', { detail: state }))
     if (state === 'responding') {
       clearTimeout(responseTimer)
-      responseTimer = setTimeout(() => { haloState = 'idle' }, 1100)
+      responseTimer = setTimeout(() => setHaloState('idle'), 1100)
     }
   }
   function startFlames() {
@@ -572,8 +605,15 @@
     row.dataset.id = msg.id
     const bubble = document.createElement('div')
     bubble.className = 'bubble'
-    bubble.textContent = msg.content || ''
+    if (mine && msg.meta?.voice_in !== undefined) {
+      const mark = document.createElement('span')
+      mark.className = 'voice-mark'
+      mark.textContent = '🎙 ' + T.voiceMark
+      bubble.appendChild(mark)
+    }
+    bubble.appendChild(document.createTextNode(msg.content || ''))
     row.appendChild(bubble)
+    if (!mine && msg.meta?.audio) addVoicePlayer(bubble, msg.meta.audio)
 
     // Oli's reading offer comes with a button; pressing it is the same as answering "yes".
     if (!mine && msg.meta?.action === 'pdf_offer') {
@@ -625,6 +665,7 @@
     if (error) { input.value = content; autoResize(input); setHaloState('writing'); return notice(T.sendFail) }
     clearNotices()
     if (!document.querySelector(`[data-id="${data.id}"]`)) appendMessage(data)
+    autoPlayNext = true
     showTyping()
   }
 
@@ -636,6 +677,13 @@
         if (msg.sender_id === OLI_ID) { hideTyping(); setHaloState('responding') }
         appendMessage(msg)
         scrollDown()
+      })
+      .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'messages', filter: `match_id=eq.${matchId}` }, ({ new: msg }) => {
+        // Oli's voice is added to her message a moment after the text.
+        const bubble = document.querySelector(`[data-id="${msg.id}"] .bubble`)
+        if (!bubble || !msg.meta?.audio || bubble.querySelector('.voice-row')) return
+        addVoicePlayer(bubble, msg.meta.audio, autoPlayNext)
+        autoPlayNext = false
       })
       .subscribe(status => {
         // The connection dropped: try again in a few seconds and catch up on anything missed.
@@ -691,6 +739,115 @@
     if (e.key === 'Enter' && !e.shiftKey && !('ontouchstart' in window)) { e.preventDefault(); sendMessage() }
   }
   function autoResize(el) { el.style.height = 'auto'; el.style.height = Math.min(el.scrollHeight, 160) + 'px' }
+  // ─── Voice ────────────────────────────────────────────────
+  // Tap the mic, speak, tap again: the note goes to oli-voice, comes back as text in the chat,
+  // and Oli answers with her voice, which plays by itself.
+  let recorder = null, recChunks = [], recTimer = null, recStart = 0, autoPlayNext = false
+  const MAX_REC_MS = 120000
+
+  function pickMime() {
+    for (const m of ['audio/webm;codecs=opus', 'audio/webm', 'audio/mp4', 'audio/ogg']) {
+      if (window.MediaRecorder && MediaRecorder.isTypeSupported?.(m)) return m
+    }
+    return ''
+  }
+
+  async function toggleRecording() {
+    if (recorder?.state === 'recording') return recorder.stop()
+    if (!hasConsent()) return document.getElementById('consent').classList.remove('hidden')
+    let stream
+    try { stream = await navigator.mediaDevices.getUserMedia({ audio: true }) }
+    catch { return notice(T.micDenied) }
+    const mime = pickMime()
+    recorder = new MediaRecorder(stream, mime ? { mimeType: mime } : undefined)
+    recChunks = []
+    recorder.ondataavailable = e => { if (e.data.size) recChunks.push(e.data) }
+    recorder.onstop = () => {
+      stream.getTracks().forEach(t => t.stop())
+      clearInterval(recTimer)
+      document.getElementById('mic-btn').classList.remove('rec')
+      document.getElementById('rec-time').classList.add('hidden')
+      const blob = new Blob(recChunks, { type: (recorder.mimeType || mime || 'audio/webm').split(';')[0] })
+      if (Date.now() - recStart > 700) sendVoice(blob)
+    }
+    recorder.start()
+    recStart = Date.now()
+    document.getElementById('mic-btn').classList.add('rec')
+    const time = document.getElementById('rec-time')
+    time.classList.remove('hidden')
+    time.textContent = '0:00'
+    setHaloState('writing')
+    recTimer = setInterval(() => {
+      const sec = Math.floor((Date.now() - recStart) / 1000)
+      time.textContent = `${Math.floor(sec / 60)}:${String(sec % 60).padStart(2, '0')}`
+      if (Date.now() - recStart >= MAX_REC_MS) recorder.stop()
+    }, 250)
+  }
+
+  async function sendVoice(blob) {
+    const mic = document.getElementById('mic-btn')
+    mic.disabled = true
+    setHaloState('thinking')
+    showTyping()
+    const ext = { 'audio/mp4': 'm4a', 'audio/ogg': 'ogg' }[blob.type] || 'webm'
+    const form = new FormData()
+    form.append('audio', blob, `voice.${ext}`)
+    const { data: { session } } = await sb.auth.getSession()
+    const res = await fetch(`${SUPABASE_URL}/functions/v1/oli-voice`, {
+      method: 'POST', headers: { 'Authorization': `Bearer ${session?.access_token}`, 'apikey': SUPABASE_ANON_KEY }, body: form,
+    }).catch(() => null)
+    mic.disabled = false
+    const out = res ? await res.json().catch(() => ({})) : {}
+    if (!res || !res.ok) {
+      hideTyping(); setHaloState('idle')
+      if (out.error === 'consent_required') return document.getElementById('consent').classList.remove('hidden')
+      return notice(out.error === 'empty' ? T.voiceEmpty : out.error === 'too_long' ? T.voiceLong : T.voiceFail)
+    }
+    clearNotices()
+    autoPlayNext = true
+    if (out.message && !document.querySelector(`[data-id="${out.message.id}"]`)) appendMessage(out.message)
+    scrollDown()
+  }
+
+  let playing = null
+  function addVoicePlayer(bubble, path, autoplay = false) {
+    const wrap = document.createElement('div')
+    wrap.className = 'voice-row'
+    const play = document.createElement('button')
+    play.className = 'voice-play'
+    play.innerHTML = `<span aria-hidden="true">▶</span><span>${T.listen}</span>`
+    const save = document.createElement('button')
+    save.className = 'voice-save'
+    save.textContent = T.save
+    wrap.append(play, save)
+    bubble.appendChild(wrap)
+    let audio = null
+    const url = async () => (await sb.storage.from('oli-voice').createSignedUrl(path, 3600)).data?.signedUrl
+    const setLabel = on => { play.innerHTML = `<span aria-hidden="true">${on ? '❚❚' : '▶'}</span><span>${on ? T.pause : T.listen}</span>` }
+    play.onclick = async () => {
+      if (audio && !audio.paused) { audio.pause(); return }
+      if (!audio) {
+        const u = await url(); if (!u) return
+        audio = new Audio(u)
+        audio.onplay = () => { if (playing && playing !== audio) playing.pause(); playing = audio; setLabel(true); setHaloState('responding') }
+        audio.onpause = audio.onended = () => setLabel(false)
+      }
+      audio.play().catch(() => setLabel(false))
+    }
+    // Save the voice file, e.g. to put Oli's answer into a Reel.
+    save.onclick = async () => {
+      const u = await url(); if (!u) return
+      const blob = await fetch(u).then(r => r.blob())
+      const a = document.createElement('a')
+      a.href = URL.createObjectURL(blob)
+      a.download = `oli-${new Date().toISOString().slice(0, 16).replace(/[:T]/g, '-')}.mp3`
+      a.click()
+      setTimeout(() => URL.revokeObjectURL(a.href), 5000)
+    }
+    if (autoplay) play.click()
+    scrollDown()
+  }
+
   function scrollDown() { const m = document.getElementById('messages'); m.scrollTop = m.scrollHeight }
   function toggleMenu(e) { e.stopPropagation(); document.getElementById('menu').classList.toggle('hidden') }
   document.addEventListener('click', () => document.getElementById('menu').classList.add('hidden'))
