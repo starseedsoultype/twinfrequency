@@ -255,14 +255,14 @@
     max-width: 520px; min-height: 3.2em; text-align: center;
     font-size: 17px; line-height: 1.6; color: var(--text); opacity: 0.85; letter-spacing: 0.01em;
   }
-  .reel-q .caret { display: inline-block; width: 1px; height: 1.1em; background: var(--gold); vertical-align: -0.2em; margin-left: 2px; animation: caret 1s steps(1) infinite; }
+  .reel .caret { display: inline-block; width: 1px; height: 1.1em; background: var(--gold); vertical-align: -0.2em; margin-left: 2px; animation: caret 1s steps(1) infinite; }
   @keyframes caret { 50% { opacity: 0; } }
   .reel-stage { width: 280px; height: 280px; margin: 28px 0; }
   .reel #flames { width: 280px; height: 280px; margin: 0; }
   .reel-cap {
     max-width: 560px; min-height: 5.4em; text-align: center;
     font-family: 'Cormorant Garamond', serif; font-weight: 400; font-size: 28px; line-height: 1.3;
-    color: var(--champagne); transition: opacity 0.35s ease;
+    color: var(--champagne);
   }
   .reel-foot { position: absolute; bottom: calc(22px + env(safe-area-inset-bottom)); font-size: 10px; letter-spacing: 0.3em; text-transform: uppercase; color: var(--gold-soft); }
   .reel-hint { position: absolute; top: calc(18px + env(safe-area-inset-top)); left: 0; right: 0; text-align: center; font-size: 11px; letter-spacing: 0.12em; color: var(--muted); }
@@ -869,7 +869,7 @@
       if (!audio) {
         const u = await url(); if (!u) return
         audio = new Audio(u)
-        audio.onplay = () => { if (playing && playing !== audio) playing.pause(); playing = audio; setLabel(true); setHaloState('responding') }
+        audio.onplay = () => { if (playing && playing !== audio) playing.pause(); playing = audio; setLabel(true) }
         audio.onpause = audio.onended = () => setLabel(false)
       }
       audio.play().catch(() => setLabel(false))
@@ -969,22 +969,28 @@
     const total = chunks.reduce((n, c) => n + c.length, 0) || 1
     const bounds = []; let acc = 0
     for (const c of chunks) { acc += c.length; bounds.push(acc / total) }
-    let shown = -1
-    const pulse = setInterval(() => setHaloState('responding'), 900)
-    audio.ontimeupdate = () => {
-      if (!audio.duration) return
-      const f = audio.currentTime / audio.duration
-      const i = Math.min(bounds.findIndex(b => f < b), chunks.length - 1)
-      const idx = i < 0 ? chunks.length - 1 : i
-      if (idx !== shown) { shown = idx; cap.style.opacity = 0; setTimeout(() => { cap.textContent = chunks[idx]; cap.style.opacity = 1 }, 180) }
+    // The answer types itself out in time with her voice, sentence by sentence.
+    const starts = [0, ...bounds.slice(0, -1)]
+    let raf = 0
+    const tick = () => {
+      if (!reel || audio.paused && !audio.ended) return
+      const f = audio.duration ? Math.min(audio.currentTime / audio.duration, 1) : 0
+      let idx = bounds.findIndex(b => f < b)
+      if (idx < 0) idx = chunks.length - 1
+      const local = (f - starts[idx]) / Math.max(bounds[idx] - starts[idx], 0.0001)
+      const n = Math.max(1, Math.min(chunks[idx].length, Math.round(local * chunks[idx].length * 1.08)))
+      cap.innerHTML = escapeHtml(chunks[idx].slice(0, n)) + (n < chunks[idx].length ? '<span class="caret"></span>' : '')
+      if (!audio.ended) raf = requestAnimationFrame(tick)
     }
+    audio.onplay = () => { cancelAnimationFrame(raf); raf = requestAnimationFrame(tick) }
     audio.onended = () => {
-      clearInterval(pulse)
-      setHaloState('idle')
+      cancelAnimationFrame(raf)
+      cap.textContent = chunks[chunks.length - 1] || ''
       setTimeout(() => { if (!reel) return; reel.busy = false; el.classList.remove('playing') }, 1800)
     }
-    setHaloState('responding')
-    audio.play().catch(() => { clearInterval(pulse); reel.busy = false; el.classList.remove('playing') })
+    // While she speaks the crystal just breathes; no flashes.
+    setHaloState('idle')
+    audio.play().catch(() => { reel.busy = false; el.classList.remove('playing') })
   }
 
   function escapeHtml(str) { return String(str).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c])) }
