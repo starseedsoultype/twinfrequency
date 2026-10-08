@@ -65,12 +65,12 @@
     margin: 14px 0 36px; font-size: 13px; line-height: 1.7; color: var(--muted); letter-spacing: 0.02em;
   }
 
-  /* Two flames: they circle, draw together and become one breathing light; then the page appears. */
-  #flames { display: block; width: 220px; height: 220px; margin: -20px auto 4px; }
+  /* The sphere draws itself, then the page appears. */
+  #flames { display: block; width: 220px; height: 220px; margin: -10px auto 14px; }
   .intro { opacity: 0; transform: translateY(8px); animation: rise 1.2s ease forwards; }
-  .intro-1 { animation-delay: 3.3s; }
-  .intro-2 { animation-delay: 3.7s; }
-  .intro-3 { animation-delay: 4.1s; }
+  .intro-1 { animation-delay: 1.1s; }
+  .intro-2 { animation-delay: 1.4s; }
+  .intro-3 { animation-delay: 1.7s; }
   @keyframes rise { to { opacity: 1; transform: none; } }
   @media (prefers-reduced-motion: reduce) {
     .intro { animation: none; opacity: 1; transform: none; }
@@ -192,6 +192,15 @@
     background: none; border: none; color: var(--text); font-family: inherit; font-size: 12px; letter-spacing: 0.08em;
   }
   .menu button:hover { background: rgba(201,169,110,0.06); }
+  .menu button.danger { color: #d79a8a; }
+
+  .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; border: 0; }
+  :focus-visible { outline: 2px solid var(--gold); outline-offset: 2px; }
+  .field:focus-visible, #msg-input:focus-visible { outline: none; }
+
+  /* Calm notices inside the chat: lost connection, failed send, Oli is late */
+  .notice { align-self: center; max-width: 90%; text-align: center; font-size: 12px; line-height: 1.6; color: var(--muted); padding: 4px 0; }
+  .notice button { margin-left: 6px; background: none; border: none; color: var(--gold); font: inherit; cursor: pointer; text-decoration: underline; }
 
   /* Voice: the slot is here, switched on when voice is ready */
   .mic-btn {
@@ -234,12 +243,14 @@
         <span data-t="google"></span>
       </button>
       <div class="or" data-t="or"></div>
+      <label class="sr-only" for="email" data-t="email"></label>
       <input class="field" id="email" type="email" autocomplete="email" inputmode="email" data-ph="email">
       <button class="btn btn-gold" id="email-btn" onclick="sendCode()"><span data-t="send"></span></button>
     </div>
 
     <div id="step-code" class="hidden">
       <p class="login-msg" id="code-hint" style="margin:0 0 18px"></p>
+      <label class="sr-only" for="code" data-t="codeLabel"></label>
       <input class="field code" id="code" type="text" inputmode="numeric" autocomplete="one-time-code" maxlength="10" placeholder="••••••">
       <button class="btn btn-gold" id="code-btn" onclick="verifyCode()"><span data-t="enter"></span></button>
       <button class="link-btn" onclick="backToEmail()" data-t="other"></button>
@@ -263,10 +274,11 @@
     <button class="menu-btn" onclick="toggleMenu(event)">•••</button>
   </header>
 
-  <div id="messages"><div class="inner" id="inner"></div></div>
+  <div id="messages"><div class="inner" id="inner" role="log" aria-live="polite" aria-relevant="additions"></div></div>
 
   <div class="input-area">
     <div class="input-wrap">
+      <label class="sr-only" for="msg-input" data-t="write"></label>
       <textarea id="msg-input" rows="1" data-ph="write" oninput="autoResize(this)" onkeydown="handleKey(event)"></textarea>
       <button class="mic-btn hidden" id="mic-btn" aria-label="Voice">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="9" y="3" width="6" height="12" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3"/></svg>
@@ -289,8 +301,19 @@
   </div>
 </div>
 
+<!-- Delete account: everything goes, nothing can be restored. -->
+<div class="sheet-wrap hidden" id="delete-sheet">
+  <div class="sheet">
+    <h2 data-t="dTitle"></h2>
+    <p data-t="dBody"></p>
+    <button class="btn btn-gold" id="delete-btn" onclick="deleteAccount()" data-t="dYes"></button>
+    <button class="link-btn" style="display:block;margin:16px auto 0" onclick="closeDelete()" data-t="dNo"></button>
+  </div>
+</div>
+
 <div class="menu hidden" id="menu">
   <button onclick="signOut()" data-t="signout"></button>
+  <button class="danger" onclick="askDelete()" data-t="delete"></button>
 </div>
 
 <script>
@@ -312,6 +335,11 @@
     google: 'Войти через Google', or: 'или', email: 'Твой email', send: 'Получить код',
     enter: 'Войти', other: 'Другой email', tag: 'AI-компаньон · система Alexandra',
     write: 'Напиши Oli…', ainote: 'Oli это AI. В трудную минуту обратись к живому человеку рядом.',
+    delete: 'Удалить аккаунт', codeLabel: 'Код из письма',
+    dTitle: 'Удалить аккаунт?', dBody: 'Удалятся весь разговор с Oli, всё, что она помнит о людях в твоей жизни, и сам аккаунт. Вернуть это будет нельзя.',
+    dYes: 'Удалить навсегда', dNo: 'Отмена', dFail: 'Не получилось удалить. Попробуй ещё раз или напиши timsocion@gmail.com.',
+    loadFail: 'Не получилось загрузить разговор.', sendFail: 'Сообщение не отправилось. Проверь интернет.', retry: 'Повторить',
+    offline: 'Нет соединения. Как только оно вернётся, разговор обновится.', late: 'Oli пока не ответила. Попробуй написать ещё раз чуть позже.',
     signout: 'Выйти', sent: (e) => `Мы отправили письмо на ${e}. Введи код из письма или просто открой ссылку в нём.`,
     badEmail: 'Проверь email', badCode: 'Код не подошёл. Попробуй ещё раз или открой ссылку из письма.',
     error: 'Что-то пошло не так. Попробуй ещё раз.', wait: 'Oli открывает разговор…',
@@ -326,6 +354,11 @@
     google: 'Continue with Google', or: 'or', email: 'Your email', send: 'Send me a code',
     enter: 'Enter', other: 'Use another email', tag: 'AI companion · Alexandra’s system',
     write: 'Write to Oli…', ainote: 'Oli is an AI. In a hard moment, reach out to a person near you.',
+    delete: 'Delete account', codeLabel: 'Code from the email',
+    dTitle: 'Delete your account?', dBody: 'This deletes your whole conversation with Oli, everything she remembers about the people in your life, and the account itself. It cannot be undone.',
+    dYes: 'Delete forever', dNo: 'Cancel', dFail: 'Could not delete. Please try again or write to timsocion@gmail.com.',
+    loadFail: 'Could not load the conversation.', sendFail: 'The message was not sent. Check your connection.', retry: 'Retry',
+    offline: 'No connection. The conversation will refresh as soon as it is back.', late: 'Oli has not answered yet. Try writing again a little later.',
     signout: 'Sign out', sent: (e) => `We sent an email to ${e}. Enter the code from it, or simply open the link inside.`,
     badEmail: 'Please check your email', badCode: 'That code did not work. Try again or open the link from the email.',
     error: 'Something went wrong. Please try again.', wait: 'Oli is opening the conversation…',
@@ -353,74 +386,94 @@
     if (id === 'login') startFlames()
   }
 
-  // ─── Two flames ───────────────────────────────────────────
-  // Orange and champagne circle each other, draw together, merge into one light that breathes.
+  // ─── The sphere ───────────────────────────────────────────
+  // A gold-rimmed sphere with slow waves inside; two small lights drift together and apart within it.
   let flamesStarted = false
   function startFlames() {
     if (flamesStarted) return
     flamesStarted = true
     const cv = document.getElementById('flames')
     const ctx = cv.getContext('2d')
-    const SIZE = 220, C = SIZE / 2, dpr = Math.min(window.devicePixelRatio || 1, 2)
+    const SIZE = 220, C = SIZE / 2, R = 84, dpr = Math.min(window.devicePixelRatio || 1, 2)
     cv.width = cv.height = SIZE * dpr
     ctx.scale(dpr, dpr)
-    const BG = '#0a0a0a'
-    const ORANGE = [255, 122, 31], CHAMPAGNE = [232, 217, 188]
-    const MERGE = 3.2, FLASH = 0.7
     const still = matchMedia('(prefers-reduced-motion: reduce)').matches
-    const ease = p => p < 0.5 ? 4 * p * p * p : 1 - Math.pow(-2 * p + 2, 3) / 2
+    const ease = p => 1 - Math.pow(1 - Math.min(Math.max(p, 0), 1), 3)
+    const WAVES = [
+      { y: -0.34, amp: 0.10, freq: 1.6, speed: 0.55, color: '232,217,188', a: 0.55, w: 1 },
+      { y: -0.10, amp: 0.14, freq: 1.2, speed: -0.42, color: '255,122,31', a: 0.85, w: 1.4 },
+      { y: 0.08, amp: 0.12, freq: 2.0, speed: 0.33, color: '201,169,110', a: 0.6, w: 1 },
+      { y: 0.30, amp: 0.09, freq: 1.4, speed: -0.6, color: '255,143,63', a: 0.5, w: 1 },
+    ]
 
-    function glow(x, y, r, [cr, cg, cb], a) {
-      const g = ctx.createRadialGradient(x, y, 0, x, y, r)
-      g.addColorStop(0, `rgba(${cr},${cg},${cb},${a})`)
-      g.addColorStop(0.25, `rgba(${cr},${cg},${cb},${a * 0.45})`)
-      g.addColorStop(1, `rgba(${cr},${cg},${cb},0)`)
+    function light(x, y, rgb, a) {
+      const g = ctx.createRadialGradient(x, y, 0, x, y, 14)
+      g.addColorStop(0, `rgba(${rgb},${0.55 * a})`)
+      g.addColorStop(1, `rgba(${rgb},0)`)
       ctx.fillStyle = g
-      ctx.beginPath(); ctx.arc(x, y, r, 0, Math.PI * 2); ctx.fill()
+      ctx.beginPath(); ctx.arc(x, y, 14, 0, Math.PI * 2); ctx.fill()
+      ctx.fillStyle = `rgba(255,246,232,${a})`
+      ctx.beginPath(); ctx.arc(x, y, 2.6, 0, Math.PI * 2); ctx.fill()
     }
 
-    // The one light: a soft halo, a warm core, and the two flames still turning inside it.
-    function one(t, a) {
-      const breath = 1 + 0.06 * Math.sin(t * 1.6)
-      glow(C, C, 100 * breath, CHAMPAGNE, 0.22 * a)
-      glow(C, C, 64 * breath, ORANGE, 0.6 * a)
-      const s = t * 0.9, r = 10 * breath
-      glow(C + Math.cos(s) * r, C + Math.sin(s) * r * 0.6, 30, ORANGE, 0.7 * a)
-      glow(C - Math.cos(s) * r, C - Math.sin(s) * r * 0.6, 30, CHAMPAGNE, 0.7 * a)
-      glow(C, C, 18 * breath, [255, 240, 220], 0.8 * a)
+    function draw(t) {
+      const appear = still ? 1 : ease(t / 1.4)
+      ctx.clearRect(0, 0, SIZE, SIZE)
+
+      // Inside: a dark body that is a little warmer at the centre.
+      ctx.save()
+      ctx.beginPath(); ctx.arc(C, C, R, 0, Math.PI * 2); ctx.clip()
+      const body = ctx.createRadialGradient(C, C - R * 0.25, R * 0.1, C, C, R)
+      body.addColorStop(0, `rgba(255,122,31,${0.10 * appear})`)
+      body.addColorStop(1, 'rgba(10,10,10,0)')
+      ctx.fillStyle = body; ctx.fillRect(C - R, C - R, R * 2, R * 2)
+
+      // Waves taper towards the rim, so they read as lying on a sphere.
+      ctx.lineCap = 'round'
+      for (const w of WAVES) {
+        ctx.beginPath()
+        for (let i = 0; i <= 80; i++) {
+          const u = i / 80 * 2 - 1
+          const taper = Math.sqrt(Math.max(0, 1 - u * u))
+          const y = C + R * (w.y + w.amp * taper * Math.sin(u * Math.PI * w.freq + t * w.speed * 2 + w.y * 5))
+          const x = C + R * u
+          i ? ctx.lineTo(x, y) : ctx.moveTo(x, y)
+        }
+        ctx.strokeStyle = `rgba(${w.color},${w.a * appear})`
+        ctx.lineWidth = w.w
+        ctx.stroke()
+      }
+
+      // Two lights: they come close, almost touch, and drift apart again.
+      const spin = t * 0.5
+      const dist = R * (0.08 + 0.32 * (0.5 + 0.5 * Math.cos(t * 0.7)))
+      const dx = Math.cos(spin) * dist, dy = Math.sin(spin) * dist * 0.5
+      ctx.globalCompositeOperation = 'lighter'
+      light(C + dx, C + dy, '255,122,31', appear)
+      light(C - dx, C - dy, '232,217,188', appear)
+      ctx.restore()
+
+      // The rim: one crisp gold line, drawn in on arrival.
+      ctx.globalCompositeOperation = 'source-over'
+      ctx.beginPath()
+      ctx.arc(C, C, R, -Math.PI / 2, -Math.PI / 2 + Math.PI * 2 * appear)
+      ctx.strokeStyle = 'rgba(201,169,110,0.9)'
+      ctx.lineWidth = 1.2
+      ctx.stroke()
+      ctx.beginPath()
+      ctx.arc(C, C, R + 5, 0, Math.PI * 2)
+      ctx.strokeStyle = `rgba(201,169,110,${0.12 * appear})`
+      ctx.lineWidth = 1
+      ctx.stroke()
     }
 
-    if (still) {
-      ctx.fillStyle = BG; ctx.fillRect(0, 0, SIZE, SIZE)
-      ctx.globalCompositeOperation = 'lighter'; one(0, 1)
-      return
-    }
-
+    if (still) { draw(0); return }
     const t0 = performance.now()
     function frame(now) {
       if (document.getElementById('login').classList.contains('hidden')) { flamesStarted = false; return }
-      const t = (now - t0) / 1000
-      ctx.globalCompositeOperation = 'source-over'
-      if (t < MERGE) {
-        // Leave a fading trail behind each flame.
-        ctx.fillStyle = 'rgba(10,10,10,0.18)'; ctx.fillRect(0, 0, SIZE, SIZE)
-        const p = ease(t / MERGE)
-        const R = 74 * (1 - p)
-        const a = Math.PI * 2 * (0.22 * t + 0.16 * t * t) + 0.6
-        const dx = Math.cos(a) * R, dy = Math.sin(a) * R * 0.55
-        ctx.globalCompositeOperation = 'lighter'
-        glow(C + dx, C + dy, 20 + 10 * p, ORANGE, 0.85)
-        glow(C - dx, C - dy, 20 + 10 * p, CHAMPAGNE, 0.85)
-      } else {
-        ctx.fillStyle = BG; ctx.fillRect(0, 0, SIZE, SIZE)
-        ctx.globalCompositeOperation = 'lighter'
-        const f = Math.min((t - MERGE) / FLASH, 1)
-        one(t, f)
-        if (f < 1) glow(C, C, 30 + 70 * f, [255, 236, 210], 0.5 * (1 - f))
-      }
+      draw((now - t0) / 1000)
       requestAnimationFrame(frame)
     }
-    ctx.fillStyle = BG; ctx.fillRect(0, 0, SIZE, SIZE)
     requestAnimationFrame(frame)
   }
   function setLoginMsg(text, err) {
@@ -468,6 +521,23 @@
     document.getElementById('step-code').classList.add('hidden')
     document.getElementById('step-email').classList.remove('hidden')
     setLoginMsg('')
+  }
+
+  function askDelete() { document.getElementById('delete-sheet').classList.remove('hidden') }
+  function closeDelete() { document.getElementById('delete-sheet').classList.add('hidden') }
+
+  // The same server-side deletion as TwinF's profile page: messages, chats, memory of people, profile, account.
+  async function deleteAccount() {
+    const btn = document.getElementById('delete-btn')
+    btn.disabled = true
+    const { data: { session } } = await sb.auth.getSession()
+    const res = await fetch(`${SUPABASE_URL}/functions/v1/delete-account`, {
+      method: 'POST',
+      headers: { 'Authorization': `Bearer ${session?.access_token}`, 'apikey': SUPABASE_ANON_KEY },
+    }).catch(() => null)
+    if (!res || !res.ok) { btn.disabled = false; return alert(T.dFail) }
+    await sb.auth.signOut().catch(() => {})
+    location.reload()
   }
 
   async function signOut() {
@@ -539,10 +609,11 @@
 
   // ─── Messages ─────────────────────────────────────────────
   async function loadMessages() {
-    const { data } = await sb.from('messages')
+    const { data, error } = await sb.from('messages')
       .select('id, sender_id, content, meta, created_at')
       .eq('match_id', matchId)
       .order('created_at', { ascending: true })
+    if (error) return notice(T.loadFail, loadMessages)
     const msgs = data || []
     acceptedOffers = new Set(msgs.filter(m => m.meta?.action === 'pdf_accept').map(m => m.meta.offer_id))
     const inner = document.getElementById('inner')
@@ -602,7 +673,7 @@
       match_id: matchId, sender_id: me.id, content: btn.textContent,
       meta: { action: 'pdf_accept', offer_id: offer.id, pair: offer.meta.pair, person_id: offer.meta.person_id ?? null, lang: offer.meta.lang },
     })
-    if (error) { btn.disabled = false; acceptedOffers.delete(offer.id) }
+    if (error) { btn.disabled = false; acceptedOffers.delete(offer.id); notice(T.sendFail) }
     else showTyping()
   }
 
@@ -614,10 +685,13 @@
     input.value = ''
     autoResize(input)
     const btn = document.getElementById('send-btn')
+    if (btn.disabled) return
     btn.disabled = true
-    const { error } = await sb.from('messages').insert({ match_id: matchId, sender_id: me.id, content })
+    const { data, error } = await sb.from('messages').insert({ match_id: matchId, sender_id: me.id, content }).select('id, sender_id, content, meta, created_at').single()
     btn.disabled = false
-    if (error) { input.value = content; autoResize(input); return }
+    if (error) { input.value = content; autoResize(input); return notice(T.sendFail) }
+    clearNotices()
+    if (!document.querySelector(`[data-id="${data.id}"]`)) appendMessage(data)
     showTyping()
   }
 
@@ -630,8 +704,37 @@
         appendMessage(msg)
         scrollDown()
       })
-      .subscribe()
+      .subscribe(status => {
+        // The connection dropped: try again in a few seconds and catch up on anything missed.
+        if (status === 'CHANNEL_ERROR' || status === 'TIMED_OUT') setTimeout(resync, 4000)
+      })
   }
+
+  async function resync() {
+    if (!matchId || !navigator.onLine) return
+    clearNotices()
+    await loadMessages()
+    subscribe()
+  }
+  window.addEventListener('online', resync)
+  window.addEventListener('offline', () => matchId && notice(T.offline))
+  document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') resync() })
+
+  function notice(text, retry) {
+    clearNotices()
+    const el = document.createElement('div')
+    el.className = 'notice'
+    el.textContent = text
+    if (retry) {
+      const b = document.createElement('button')
+      b.textContent = T.retry
+      b.onclick = () => { clearNotices(); retry() }
+      el.appendChild(b)
+    }
+    document.getElementById('inner').appendChild(el)
+    scrollDown()
+  }
+  function clearNotices() { document.querySelectorAll('.notice').forEach(n => n.remove()) }
 
   // Dots while Oli is writing; they go away when her message lands (or after a minute).
   function showTyping() {
@@ -642,7 +745,7 @@
     el.innerHTML = '<span></span><span></span><span></span>'
     document.getElementById('inner').appendChild(el)
     scrollDown()
-    typingTimer = setTimeout(hideTyping, 60000)
+    typingTimer = setTimeout(() => { hideTyping(); notice(T.late) }, 60000)
   }
   function hideTyping() {
     clearTimeout(typingTimer)
