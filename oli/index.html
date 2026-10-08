@@ -396,6 +396,7 @@
   let responseTimer = null
   function setHaloState(state) {
     haloState = state
+    window.dispatchEvent(new CustomEvent('oli-halo-state', { detail: state }))
     if (state === 'responding') {
       clearTimeout(responseTimer)
       responseTimer = setTimeout(() => { haloState = 'idle' }, 1100)
@@ -404,103 +405,8 @@
   function startFlames() {
     if (flamesStarted) return
     flamesStarted = true
-    const cv = document.getElementById('flames')
-    const ctx = cv.getContext('2d')
-    const SIZE = 220, C = SIZE / 2, R = 78, dpr = Math.min(window.devicePixelRatio || 1, 2)
-    cv.width = cv.height = SIZE * dpr
-    ctx.scale(dpr, dpr)
-    const still = matchMedia('(prefers-reduced-motion: reduce)').matches
-    const ease = p => 1 - Math.pow(1 - Math.min(Math.max(p, 0), 1), 3)
-
-    function draw(t) {
-      const appear = still ? 1 : ease(t / 1.2)
-      const isWriting = haloState === 'writing'
-      const isThinking = haloState === 'thinking'
-      const isResponding = haloState === 'responding'
-      const breathSpeed = isWriting ? 1.8 : isThinking ? 0.9 : 0.82
-      const breath = 1 + (isWriting ? 0.018 : 0.035) * Math.sin(t * breathSpeed)
-      const halo = R * breath * (isWriting ? 0.96 : 1)
-      const glowRadius = halo * 1.25
-      ctx.clearRect(0, 0, SIZE, SIZE)
-
-      // The core gathers when the user writes, as if the avatar is listening closely.
-      const corePower = isWriting ? 0.28 : isThinking ? 0.20 : isResponding ? 0.30 : 0.18
-      const core = ctx.createRadialGradient(C - (isWriting ? 2 : 10), C - 14, 0, C, C, glowRadius)
-      core.addColorStop(0, `rgba(232,217,188,${corePower * appear})`)
-      core.addColorStop(0.34, `rgba(255,140,58,${(isThinking ? 0.11 : 0.075) * appear})`)
-      core.addColorStop(0.58, `rgba(218,91,24,${(isThinking ? 0.065 : 0.045) * appear})`)
-      core.addColorStop(1, 'rgba(10,10,10,0)')
-      ctx.fillStyle = core
-      ctx.beginPath(); ctx.arc(C, C, glowRadius, 0, Math.PI * 2); ctx.fill()
-
-      // While Oli thinks, two soft lights move slowly towards one another.
-      if (isThinking) {
-        const converge = 0.5 + 0.5 * Math.sin(t * 0.9)
-        const distance = 22 * (1 - 0.72 * converge)
-        const drift = Math.sin(t * 0.7) * 4
-        for (const [x, color, direction] of [[C - distance, '232,217,188', -1], [C + distance, '255,122,31', 1]]) {
-          // A faint trail follows each light, making thinking feel fluid rather than mechanical.
-          const trail = ctx.createLinearGradient(x - direction * 32, C + drift, x, C + drift)
-          trail.addColorStop(0, `rgba(${color},0)`)
-          trail.addColorStop(1, `rgba(${color},0.10)`)
-          ctx.strokeStyle = trail
-          ctx.lineWidth = 5
-          ctx.beginPath(); ctx.moveTo(x - direction * 32, C + drift); ctx.lineTo(x, C + drift); ctx.stroke()
-
-          const light = ctx.createRadialGradient(x, C + drift, 0, x, C + drift, 30)
-          light.addColorStop(0, `rgba(${color},0.30)`)
-          light.addColorStop(1, `rgba(${color},0)`)
-          ctx.fillStyle = light
-          ctx.beginPath(); ctx.arc(x, C + drift, 30, 0, Math.PI * 2); ctx.fill()
-        }
-      }
-
-      // A single warm wave crosses the sphere when Oli's message arrives.
-      if (isResponding) {
-        const wave = ((t % 1.1) / 1.1)
-        const y = C + (wave * 2 - 1) * R * 1.4
-        ctx.beginPath()
-        for (let i = 0; i <= 80; i++) {
-          const x = C - R * 1.2 + i / 80 * R * 2.4
-          const dy = Math.sin(i / 80 * Math.PI * 2.5 + wave * 4) * 4 * Math.sin(wave * Math.PI)
-          i ? ctx.lineTo(x, y + dy) : ctx.moveTo(x, y + dy)
-        }
-        ctx.strokeStyle = `rgba(255,184,120,${0.55 * Math.sin(wave * Math.PI) * appear})`
-        ctx.lineWidth = 1.4
-        ctx.stroke()
-      }
-
-      // One slow highlight travels around the rim; it never spins aggressively.
-      ctx.globalCompositeOperation = 'source-over'
-      ctx.beginPath()
-      ctx.arc(C, C, halo, 0, Math.PI * 2)
-      ctx.strokeStyle = `rgba(201,169,110,${0.38 * appear})`
-      ctx.lineWidth = 0.9
-      ctx.stroke()
-
-      const highlight = -Math.PI / 2 + (still ? 0 : t * (isWriting ? 0.10 : 0.22))
-      ctx.beginPath()
-      ctx.arc(C, C, halo, highlight, highlight + 0.38)
-      ctx.strokeStyle = `rgba(255,184,120,${0.72 * appear})`
-      ctx.lineWidth = 1.35
-      ctx.stroke()
-
-      // A second, wider trace makes the highlight feel like light, not a progress ring.
-      ctx.beginPath()
-      ctx.arc(C, C, halo + 5, highlight - 0.1, highlight + 0.28)
-      ctx.strokeStyle = `rgba(255,122,31,${0.10 * appear})`
-      ctx.lineWidth = 3
-      ctx.stroke()
-    }
-
-    if (still) { draw(0); return }
-    const t0 = performance.now()
-    function frame(now) {
-      if (document.getElementById('login').classList.contains('hidden')) { flamesStarted = false; return }
-      draw((now - t0) / 1000)
-      requestAnimationFrame(frame)
-    }
-    requestAnimationFrame(frame)
+    if (window.oliHaloStart) window.oliHaloStart()
+    else window.addEventListener('oli-halo-ready', () => window.oliHaloStart?.(), { once: true })
   }
   function setLoginMsg(text, err) {
     const el = document.getElementById('login-msg')
@@ -807,6 +713,143 @@
     if (data.session?.user) enter(data.session.user)
     else show('login')
   })
+</script>
+<script type="importmap">
+{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.174.0/build/three.module.js"}}
+</script>
+<script type="module">
+  import * as THREE from 'three'
+
+  const canvas = document.getElementById('flames')
+  const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches
+  const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true })
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2))
+  renderer.toneMapping = THREE.ACESFilmicToneMapping
+  renderer.toneMappingExposure = 1.35
+
+  const scene = new THREE.Scene()
+  const camera = new THREE.PerspectiveCamera(32, 1, 0.1, 100)
+  camera.position.set(0, 0, 4.6)
+  const group = new THREE.Group()
+  scene.add(group)
+
+  const coreMat = new THREE.MeshPhysicalMaterial({
+    color: 0x100907, metalness: 0.82, roughness: 0.16,
+    clearcoat: 1, clearcoatRoughness: 0.04,
+    emissive: 0xb9471b, emissiveIntensity: 1.35,
+  })
+  const core = new THREE.Mesh(new THREE.IcosahedronGeometry(0.68, 1), coreMat)
+  group.add(core)
+
+  const shellMat = new THREE.MeshPhysicalMaterial({
+    color: 0x21150f, metalness: 0.28, roughness: 0.08,
+    transmission: 0.35, thickness: 0.35, clearcoat: 1,
+    transparent: true, opacity: 0.32,
+  })
+  const shellGeo = new THREE.IcosahedronGeometry(0.98, 1)
+  const shell = new THREE.Mesh(shellGeo, shellMat)
+  group.add(shell)
+
+  const edgeMat = new THREE.LineBasicMaterial({ color: 0xc9a96e, transparent: true, opacity: 0.48 })
+  group.add(new THREE.LineSegments(new THREE.EdgesGeometry(shellGeo), edgeMat))
+
+  const orbitMat = new THREE.MeshStandardMaterial({
+    color: 0xc9a96e, metalness: 1, roughness: 0.24,
+    emissive: 0xff8b4d, emissiveIntensity: 0.35,
+  })
+  const orbit = new THREE.Mesh(new THREE.TorusGeometry(1.28, 0.012, 12, 96), orbitMat)
+  orbit.rotation.x = Math.PI / 2
+  group.add(orbit)
+
+  const wave = new THREE.Mesh(
+    new THREE.TorusGeometry(1.01, 0.014, 12, 96),
+    new THREE.MeshBasicMaterial({ color: 0xff9b62, transparent: true, opacity: 0, blending: THREE.AdditiveBlending })
+  )
+  group.add(wave)
+
+  function glowTexture() {
+    const c = document.createElement('canvas'); c.width = c.height = 128
+    const x = c.getContext('2d'), g = x.createRadialGradient(64, 64, 0, 64, 64, 64)
+    g.addColorStop(0, 'rgba(255,241,211,1)')
+    g.addColorStop(0.16, 'rgba(255,154,82,0.82)')
+    g.addColorStop(0.48, 'rgba(220,75,24,0.28)')
+    g.addColorStop(1, 'rgba(10,10,10,0)')
+    x.fillStyle = g; x.fillRect(0, 0, 128, 128)
+    return new THREE.CanvasTexture(c)
+  }
+  const glow = new THREE.Sprite(new THREE.SpriteMaterial({
+    map: glowTexture(), color: 0xff8a4a, transparent: true,
+    opacity: 0.68, blending: THREE.AdditiveBlending, depthWrite: false,
+  }))
+  glow.scale.set(1.8, 1.8, 1)
+  group.add(glow)
+
+  const thoughtA = glow.clone(), thoughtB = glow.clone()
+  thoughtA.material = thoughtA.material.clone(); thoughtB.material = thoughtB.material.clone()
+  thoughtA.material.color.set(0xffe0b0); thoughtB.material.color.set(0xff7a1f)
+  thoughtA.material.opacity = thoughtB.material.opacity = 0
+  thoughtA.scale.setScalar(0.72); thoughtB.scale.setScalar(0.72)
+  group.add(thoughtA, thoughtB)
+
+  const warmLight = new THREE.PointLight(0xff7a36, 3.4, 4.2)
+  warmLight.position.set(0, 0, 0.35)
+  scene.add(warmLight)
+  const champagneLight = new THREE.DirectionalLight(0xffd9a4, 1.4)
+  champagneLight.position.set(2.5, 3.5, 4)
+  scene.add(champagneLight)
+  scene.add(new THREE.AmbientLight(0xffeee0, 0.16))
+
+  let state = 'idle', started = false, responseAt = -10
+  let elapsed = 0
+  window.addEventListener('oli-halo-state', e => {
+    state = e.detail || 'idle'
+    if (state === 'responding') responseAt = elapsed
+  })
+
+  function resize() {
+    const w = canvas.clientWidth || 220, h = canvas.clientHeight || 220
+    renderer.setSize(w, h, false)
+    camera.aspect = w / h
+    camera.updateProjectionMatrix()
+  }
+  resize(); window.addEventListener('resize', resize)
+
+  function animate(now) {
+    requestAnimationFrame(animate)
+    elapsed = now * 0.001
+    const thinking = state === 'thinking'
+    const writing = state === 'writing'
+    const responding = state === 'responding'
+    const slow = reduced ? 0 : 1
+    const breath = 1 + (writing ? 0.018 : 0.035) * Math.sin(elapsed * (writing ? 1.7 : 0.78))
+    const intensity = writing ? 2.35 : thinking ? 2.55 : responding ? 3.3 : 1.95 + 0.22 * Math.sin(elapsed * 0.78)
+    coreMat.emissiveIntensity = intensity
+    warmLight.intensity = writing ? 3.2 : thinking ? 3.6 : responding ? 4.8 : 2.7 + 0.28 * Math.sin(elapsed * 0.78)
+    core.scale.setScalar(breath * (writing ? 0.96 : 1))
+    shell.scale.setScalar(1 + (thinking ? 0.012 : 0.006) * Math.sin(elapsed * 0.7))
+    glow.material.opacity = (writing ? 0.84 : thinking ? 0.88 : responding ? 1 : 0.68) * (0.96 + 0.06 * Math.sin(elapsed * 0.78))
+    glow.scale.setScalar((writing ? 1.65 : responding ? 2.15 : 1.8) * breath)
+
+    const distance = thinking ? 0.20 + 0.16 * (0.5 + 0.5 * Math.sin(elapsed * 0.85)) : 0
+    thoughtA.position.set(-distance, Math.sin(elapsed * 0.7) * 0.04, 0.35)
+    thoughtB.position.set(distance, -Math.sin(elapsed * 0.7) * 0.04, 0.35)
+    thoughtA.material.opacity = thoughtB.material.opacity = thinking ? 0.52 : 0
+    thoughtA.scale.setScalar(thinking ? 0.62 : 0.72); thoughtB.scale.copy(thoughtA.scale)
+
+    group.rotation.y += (writing ? 0.001 : 0.0022) * slow
+    group.rotation.x = Math.sin(elapsed * 0.18) * 0.055 * slow
+    orbit.rotation.z += (writing ? 0.001 : responding ? 0.018 : 0.0035) * slow
+    orbit.rotation.x = Math.PI / 2 + Math.sin(elapsed * 0.12) * 0.08
+
+    const pulse = responding ? Math.min((elapsed - responseAt) / 1.1, 1) : 0
+    wave.scale.setScalar(1 + pulse * 0.34)
+    wave.material.opacity = responding ? 0.7 * (1 - pulse) : 0
+    renderer.render(scene, camera)
+  }
+
+  window.oliHaloStart = () => { if (!started) { started = true; resize(); requestAnimationFrame(animate) } }
+  window.dispatchEvent(new Event('oli-halo-ready'))
+  if (!document.getElementById('login').classList.contains('hidden')) window.oliHaloStart()
 </script>
 </body>
 </html>
