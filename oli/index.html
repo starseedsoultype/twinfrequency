@@ -734,9 +734,9 @@
   scene.add(group)
 
   const coreMat = new THREE.MeshPhysicalMaterial({
-    color: 0x0b0806, metalness: 0.78, roughness: 0.22,
+    color: 0x100a04, metalness: 0.78, roughness: 0.22,
     clearcoat: 1, clearcoatRoughness: 0.04,
-    emissive: 0x8d3217, emissiveIntensity: 0.28,
+    emissive: 0xb86a24, emissiveIntensity: 0.28,
   })
   const core = new THREE.Mesh(new THREE.IcosahedronGeometry(0.68, 1), coreMat)
   group.add(core)
@@ -753,14 +753,38 @@
   const edgeMat = new THREE.LineBasicMaterial({ color: 0xc9a96e, transparent: true, opacity: 0.48 })
   group.add(new THREE.LineSegments(new THREE.EdgesGeometry(shellGeo), edgeMat))
 
-  const orbitMat = new THREE.MeshStandardMaterial({
-    color: 0xc9a96e, metalness: 1, roughness: 0.24,
-    emissive: 0xff8b4d, emissiveIntensity: 0.35,
-  })
-  const orbit = new THREE.Mesh(new THREE.TorusGeometry(1.28, 0.012, 12, 96), orbitMat)
+  function orbitMaterial(offset) {
+    return new THREE.ShaderMaterial({
+      uniforms: {
+        uColor: { value: new THREE.Color(0xc9a96e) },
+        uOpacity: { value: 0.86 },
+        uOffset: { value: offset },
+      },
+      vertexShader: `varying vec2 vUv; void main() { vUv = uv; gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0); }`,
+      fragmentShader: `
+        varying vec2 vUv;
+        uniform vec3 uColor;
+        uniform float uOpacity;
+        uniform float uOffset;
+        void main() {
+          float u = fract(vUv.x + uOffset);
+          float fadeIn = smoothstep(0.0, 0.18, u);
+          float fadeOut = 1.0 - smoothstep(0.82, 1.0, u);
+          float fade = fadeIn * fadeOut;
+          gl_FragColor = vec4(uColor, uOpacity * fade);
+        }
+      `,
+      transparent: true,
+      depthWrite: false,
+      blending: THREE.AdditiveBlending,
+      side: THREE.DoubleSide,
+    })
+  }
+  const orbit = new THREE.Mesh(new THREE.TorusGeometry(1.28, 0.006, 8, 128), orbitMaterial(0.02))
   orbit.rotation.x = Math.PI / 2
   group.add(orbit)
   const orbit2 = orbit.clone()
+  orbit2.material = orbitMaterial(0.48)
   orbit2.rotation.y = Math.PI / 3
   group.add(orbit2)
 
@@ -773,15 +797,15 @@
   function glowTexture() {
     const c = document.createElement('canvas'); c.width = c.height = 128
     const x = c.getContext('2d'), g = x.createRadialGradient(64, 64, 0, 64, 64, 64)
-    g.addColorStop(0, 'rgba(255,241,211,1)')
-    g.addColorStop(0.16, 'rgba(255,154,82,0.82)')
-    g.addColorStop(0.48, 'rgba(220,75,24,0.28)')
+    g.addColorStop(0, 'rgba(255,244,209,1)')
+    g.addColorStop(0.16, 'rgba(255,181,76,0.72)')
+    g.addColorStop(0.48, 'rgba(218,129,28,0.22)')
     g.addColorStop(1, 'rgba(10,10,10,0)')
     x.fillStyle = g; x.fillRect(0, 0, 128, 128)
     return new THREE.CanvasTexture(c)
   }
   const glow = new THREE.Sprite(new THREE.SpriteMaterial({
-    map: glowTexture(), color: 0xff8a4a, transparent: true,
+    map: glowTexture(), color: 0xffa43d, transparent: true,
     opacity: 0.14, blending: THREE.AdditiveBlending, depthWrite: false,
   }))
   glow.scale.set(1.8, 1.8, 1)
@@ -789,12 +813,12 @@
 
   const thoughtA = glow.clone(), thoughtB = glow.clone()
   thoughtA.material = thoughtA.material.clone(); thoughtB.material = thoughtB.material.clone()
-  thoughtA.material.color.set(0xffe0b0); thoughtB.material.color.set(0xff7a1f)
+  thoughtA.material.color.set(0xffe0b0); thoughtB.material.color.set(0xffa43d)
   thoughtA.material.opacity = thoughtB.material.opacity = 0
   thoughtA.scale.setScalar(0.72); thoughtB.scale.setScalar(0.72)
   group.add(thoughtA, thoughtB)
 
-  const warmLight = new THREE.PointLight(0xff7a36, 0.85, 4.2)
+  const warmLight = new THREE.PointLight(0xffa03e, 0.85, 4.2)
   warmLight.position.set(0, 0, 0.35)
   scene.add(warmLight)
   const champagneLight = new THREE.DirectionalLight(0xffe7c5, 2.6)
