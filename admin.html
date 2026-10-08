@@ -174,6 +174,7 @@
     <button class="tab" onclick="switchTab('users')">Users</button>
     <button class="tab" onclick="switchTab('broadcast')">Broadcast</button>
     <button class="tab" onclick="switchTab('telegram')">Telegram</button>
+    <button class="tab" onclick="switchTab('oli')">Oli</button>
   </div>
 
   <!-- Reports Tab -->
@@ -285,6 +286,11 @@ Welcome to the new TwinF experience.</textarea>
 
       <div id="bc-result" style="margin-top:20px;font-size:12px;color:var(--gold);line-height:1.7"></div>
     </div>
+  </div>
+
+  <!-- Oli Tab -->
+  <div class="tab-panel" id="tab-oli">
+    <div id="oli-container"></div>
   </div>
 
   <!-- Telegram Tab -->
@@ -613,16 +619,64 @@ Welcome to the new TwinF experience.</textarea>
   // ─── Tabs ──────────────────────────────────────────────────
   function switchTab(tab) {
     currentTab = tab
-    const tabNames = ['reports','users','broadcast','telegram']
+    const tabNames = ['reports','users','broadcast','telegram','oli']
     document.querySelectorAll('.tab').forEach((t, i) => {
       t.classList.toggle('active', tabNames[i] === tab)
     })
-    document.querySelectorAll('.tab-panel').forEach((p, i) => {
-      p.classList.toggle('active', tabNames[i] === tab)
+    document.querySelectorAll('.tab-panel').forEach(p => {
+      p.classList.toggle('active', p.id === `tab-${tab}`)
     })
     if (tab === 'users' && !document.getElementById('users-tbody')) loadUsers()
     if (tab === 'broadcast') broadcastDryRun()
     if (tab === 'telegram') tgDryRun()
+    if (tab === 'oli') loadOliStats()
+  }
+
+  // ─── Oli: numbers only, never message text ─────────────────
+  async function loadOliStats() {
+    const box = document.getElementById('oli-container')
+    box.innerHTML = '<div style="color:var(--muted);font-size:12px">Считаю…</div>'
+    const { data: s, error } = await sb.rpc('admin_oli_stats')
+    if (error || !s) { box.innerHTML = '<div style="color:var(--muted);font-size:12px">Не получилось загрузить статистику.</div>'; return }
+    const card = (v, label, hint) => `<div class="stat-card"><div class="stat-value">${v ?? '—'}</div><div class="stat-label">${label}</div>${hint ? `<div style="font-size:10px;color:var(--muted);margin-top:6px;line-height:1.4">${hint}</div>` : ''}</div>`
+    const pct = (a, b) => b ? Math.round(a / b * 100) + '%' : '—'
+    const max = Math.max(1, ...s.daily.map(d => d.active))
+    const bars = s.daily.map(d => `
+      <div style="display:flex;align-items:center;gap:10px;font-size:11px;margin-bottom:6px">
+        <div style="width:44px;color:var(--muted)">${d.day.slice(8, 10)}.${d.day.slice(5, 7)}</div>
+        <div style="flex:1;height:10px;background:rgba(201,169,110,0.06);border-radius:3px;overflow:hidden">
+          <div style="width:${d.active / max * 100}%;height:100%;background:#FF7A1F"></div>
+        </div>
+        <div style="width:90px;color:var(--muted)">${d.active} писали · ${d.new} новых</div>
+      </div>`).join('')
+    const grid = 'display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin-bottom:28px'
+    const h = t => `<div style="font-size:10px;letter-spacing:0.25em;text-transform:uppercase;color:var(--gold);margin:0 0 12px">${t}</div>`
+    box.innerHTML = `
+      ${h('Люди')}
+      <div style="${grid}">
+        ${card(s.talkers, 'Писали Oli', 'все, кто хоть раз написал, включая TwinF')}
+        ${card(s.from_oli_page, 'Пришли через /oli', `за 7 дней: ${s.new_page_7d}`)}
+        ${card(s.consented, 'Дали согласие на AI')}
+        ${card(s.active_today, 'Писали сегодня')}
+        ${card(s.active_7d, 'Писали за 7 дней')}
+      </div>
+      ${h('Возвращаются ли')}
+      <div style="${grid}">
+        ${card(s.came_back, 'Вернулись в другой день', pct(s.came_back, s.talkers) + ' от всех')}
+        ${card(s.came_back_week, 'Пишут дольше недели', pct(s.came_back_week, s.talkers) + ' от всех')}
+        ${card(s.avg_msgs, 'Сообщений на человека')}
+        ${card(s.messages_total, 'Всего сообщений Oli')}
+      </div>
+      ${h('Разборы и безопасность')}
+      <div style="${grid}">
+        ${card(s.reading_presses, 'Нажали «прочитать нас»')}
+        ${card(s.pdf_requests, 'Запросов разбора пары')}
+        ${card(s.crisis_replies, 'Кризисная защита')}
+        ${card(s.limit_hits, 'Упёрлись в лимит', 'лимит пока выключен')}
+      </div>
+      ${h('Последние 14 дней')}
+      <div style="max-width:620px">${bars}</div>
+      <div style="font-size:10px;color:var(--muted);margin-top:16px">Только цифры. Текст разговоров здесь не показывается.</div>`
   }
 
   // ─── Telegram broadcast ────────────────────────────────────
