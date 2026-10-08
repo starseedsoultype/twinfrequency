@@ -857,12 +857,14 @@
     const responding = state === 'responding'
     const slow = reduced ? 0 : 1
     const breath = 1 + (writing ? 0.018 : 0.035) * Math.sin(elapsed * (writing ? 1.7 : 0.78))
-    const intensity = writing ? 0.40 : thinking ? 0.46 : responding ? 0.62 : 0.28 + 0.04 * Math.sin(elapsed * 0.78)
+    const idle = !writing && !thinking && !responding
+    const intensity = writing ? 0.40 : thinking ? 0.46 : responding ? 0.62 : 0.28 + 0.08 * Math.sin(elapsed * 0.82)
     coreMat.emissiveIntensity = intensity
-    warmLight.intensity = writing ? 1.0 : thinking ? 1.15 : responding ? 1.55 : 0.85 + 0.08 * Math.sin(elapsed * 0.78)
-    core.scale.setScalar(breath * (writing ? 0.96 : 1))
+    warmLight.intensity = writing ? 1.0 : thinking ? 1.15 : responding ? 1.55 : 0.85 + 0.14 * Math.sin(elapsed * 0.82)
+    const corePulse = idle ? 1 + 0.045 * Math.sin(elapsed * 0.82) : 1
+    core.scale.setScalar(breath * corePulse * (writing ? 0.96 : 1))
     shell.scale.setScalar(1 + (thinking ? 0.012 : 0.006) * Math.sin(elapsed * 0.7))
-    glow.material.opacity = (writing ? 0.20 : thinking ? 0.24 : responding ? 0.32 : 0.14) * (0.96 + 0.06 * Math.sin(elapsed * 0.78))
+    glow.material.opacity = (writing ? 0.20 : thinking ? 0.24 : responding ? 0.32 : 0.14) * (idle ? 0.92 + 0.18 * Math.sin(elapsed * 0.82) : 0.98)
     glow.scale.setScalar((writing ? 1.65 : responding ? 2.15 : 1.8) * breath)
 
     const distance = thinking ? 0.20 + 0.16 * (0.5 + 0.5 * Math.sin(elapsed * 0.85)) : 0
@@ -873,11 +875,11 @@
 
     smoothX += (pointerX - smoothX) * 0.035
     smoothY += (pointerY - smoothY) * 0.035
-    group.rotation.y = elapsed * (writing ? 0.035 : 0.07) * slow + smoothX * 0.10 * slow
+    group.rotation.y = elapsed * (writing ? 0.022 : 0.038) * slow + smoothX * 0.10 * slow
     group.rotation.x = Math.sin(elapsed * 0.18) * 0.055 * slow + smoothY * 0.08 * slow
-    orbit.rotation.z += (writing ? 0.001 : responding ? 0.018 : 0.0035) * slow
+    orbit.rotation.z += (writing ? 0.0007 : responding ? 0.018 : 0.0017) * slow
     orbit.rotation.x = Math.PI / 2 + Math.sin(elapsed * 0.12) * 0.08
-    orbit2.rotation.z -= (writing ? 0.0007 : responding ? 0.012 : 0.0026) * slow
+    orbit2.rotation.z -= (writing ? 0.00045 : responding ? 0.012 : 0.00125) * slow
     orbit2.rotation.x = Math.PI / 2 + Math.sin(elapsed * 0.14 + 1.2) * 0.06
     orbit2.rotation.y = Math.PI / 3 + smoothX * 0.035 * slow
 
