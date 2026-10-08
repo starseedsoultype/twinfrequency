@@ -417,29 +417,41 @@
       const isWriting = haloState === 'writing'
       const isThinking = haloState === 'thinking'
       const isResponding = haloState === 'responding'
-      const breath = 1 + (isWriting ? 0.018 : 0.035) * Math.sin(t * (isWriting ? 1.8 : 1.35))
+      const breathSpeed = isWriting ? 1.8 : isThinking ? 0.9 : 0.82
+      const breath = 1 + (isWriting ? 0.018 : 0.035) * Math.sin(t * breathSpeed)
       const halo = R * breath * (isWriting ? 0.96 : 1)
+      const glowRadius = halo * 1.25
       ctx.clearRect(0, 0, SIZE, SIZE)
 
       // The core gathers when the user writes, as if the avatar is listening closely.
-      const corePower = isWriting ? 0.19 : isThinking ? 0.13 : isResponding ? 0.20 : 0.12
-      const core = ctx.createRadialGradient(C - (isWriting ? 2 : 10), C - 14, 0, C, C, halo)
+      const corePower = isWriting ? 0.28 : isThinking ? 0.20 : isResponding ? 0.30 : 0.18
+      const core = ctx.createRadialGradient(C - (isWriting ? 2 : 10), C - 14, 0, C, C, glowRadius)
       core.addColorStop(0, `rgba(232,217,188,${corePower * appear})`)
-      core.addColorStop(0.42, `rgba(255,122,31,${(isThinking ? 0.075 : 0.045) * appear})`)
+      core.addColorStop(0.34, `rgba(255,140,58,${(isThinking ? 0.11 : 0.075) * appear})`)
+      core.addColorStop(0.58, `rgba(218,91,24,${(isThinking ? 0.065 : 0.045) * appear})`)
       core.addColorStop(1, 'rgba(10,10,10,0)')
       ctx.fillStyle = core
-      ctx.beginPath(); ctx.arc(C, C, halo, 0, Math.PI * 2); ctx.fill()
+      ctx.beginPath(); ctx.arc(C, C, glowRadius, 0, Math.PI * 2); ctx.fill()
 
       // While Oli thinks, two soft lights move slowly towards one another.
       if (isThinking) {
         const converge = 0.5 + 0.5 * Math.sin(t * 0.9)
         const distance = 22 * (1 - 0.72 * converge)
-        for (const [x, color] of [[C - distance, '232,217,188'], [C + distance, '255,122,31']]) {
-          const light = ctx.createRadialGradient(x, C, 0, x, C, 26)
-          light.addColorStop(0, `rgba(${color},0.24)`)
+        const drift = Math.sin(t * 0.7) * 4
+        for (const [x, color, direction] of [[C - distance, '232,217,188', -1], [C + distance, '255,122,31', 1]]) {
+          // A faint trail follows each light, making thinking feel fluid rather than mechanical.
+          const trail = ctx.createLinearGradient(x - direction * 32, C + drift, x, C + drift)
+          trail.addColorStop(0, `rgba(${color},0)`)
+          trail.addColorStop(1, `rgba(${color},0.10)`)
+          ctx.strokeStyle = trail
+          ctx.lineWidth = 5
+          ctx.beginPath(); ctx.moveTo(x - direction * 32, C + drift); ctx.lineTo(x, C + drift); ctx.stroke()
+
+          const light = ctx.createRadialGradient(x, C + drift, 0, x, C + drift, 30)
+          light.addColorStop(0, `rgba(${color},0.30)`)
           light.addColorStop(1, `rgba(${color},0)`)
           ctx.fillStyle = light
-          ctx.beginPath(); ctx.arc(x, C, 26, 0, Math.PI * 2); ctx.fill()
+          ctx.beginPath(); ctx.arc(x, C + drift, 30, 0, Math.PI * 2); ctx.fill()
         }
       }
 
