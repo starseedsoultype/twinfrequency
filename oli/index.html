@@ -725,7 +725,7 @@
   const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true })
   renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2))
   renderer.toneMapping = THREE.ACESFilmicToneMapping
-  renderer.toneMappingExposure = 1.35
+  renderer.toneMappingExposure = 1.15
 
   const scene = new THREE.Scene()
   const camera = new THREE.PerspectiveCamera(32, 1, 0.1, 100)
@@ -734,17 +734,17 @@
   scene.add(group)
 
   const coreMat = new THREE.MeshPhysicalMaterial({
-    color: 0x100907, metalness: 0.82, roughness: 0.16,
+    color: 0x0b0806, metalness: 0.78, roughness: 0.22,
     clearcoat: 1, clearcoatRoughness: 0.04,
-    emissive: 0xb9471b, emissiveIntensity: 1.35,
+    emissive: 0x8d3217, emissiveIntensity: 0.28,
   })
   const core = new THREE.Mesh(new THREE.IcosahedronGeometry(0.68, 1), coreMat)
   group.add(core)
 
   const shellMat = new THREE.MeshPhysicalMaterial({
     color: 0x21150f, metalness: 0.28, roughness: 0.08,
-    transmission: 0.35, thickness: 0.35, clearcoat: 1,
-    transparent: true, opacity: 0.32,
+    transmission: 0.48, thickness: 0.35, clearcoat: 1,
+    transparent: true, opacity: 0.38,
   })
   const shellGeo = new THREE.IcosahedronGeometry(0.98, 1)
   const shell = new THREE.Mesh(shellGeo, shellMat)
@@ -779,7 +779,7 @@
   }
   const glow = new THREE.Sprite(new THREE.SpriteMaterial({
     map: glowTexture(), color: 0xff8a4a, transparent: true,
-    opacity: 0.68, blending: THREE.AdditiveBlending, depthWrite: false,
+    opacity: 0.14, blending: THREE.AdditiveBlending, depthWrite: false,
   }))
   glow.scale.set(1.8, 1.8, 1)
   group.add(glow)
@@ -791,13 +791,16 @@
   thoughtA.scale.setScalar(0.72); thoughtB.scale.setScalar(0.72)
   group.add(thoughtA, thoughtB)
 
-  const warmLight = new THREE.PointLight(0xff7a36, 3.4, 4.2)
+  const warmLight = new THREE.PointLight(0xff7a36, 0.85, 4.2)
   warmLight.position.set(0, 0, 0.35)
   scene.add(warmLight)
-  const champagneLight = new THREE.DirectionalLight(0xffd9a4, 1.4)
+  const champagneLight = new THREE.DirectionalLight(0xffe7c5, 2.6)
   champagneLight.position.set(2.5, 3.5, 4)
   scene.add(champagneLight)
-  scene.add(new THREE.AmbientLight(0xffeee0, 0.16))
+  const rimLight = new THREE.DirectionalLight(0xc9a96e, 1.8)
+  rimLight.position.set(-3.5, 1.5, 2.5)
+  scene.add(rimLight)
+  scene.add(new THREE.AmbientLight(0xffeee0, 0.24))
 
   let state = 'idle', started = false, responseAt = -10
   let elapsed = 0
@@ -822,12 +825,12 @@
     const responding = state === 'responding'
     const slow = reduced ? 0 : 1
     const breath = 1 + (writing ? 0.018 : 0.035) * Math.sin(elapsed * (writing ? 1.7 : 0.78))
-    const intensity = writing ? 2.35 : thinking ? 2.55 : responding ? 3.3 : 1.95 + 0.22 * Math.sin(elapsed * 0.78)
+    const intensity = writing ? 0.40 : thinking ? 0.46 : responding ? 0.62 : 0.28 + 0.04 * Math.sin(elapsed * 0.78)
     coreMat.emissiveIntensity = intensity
-    warmLight.intensity = writing ? 3.2 : thinking ? 3.6 : responding ? 4.8 : 2.7 + 0.28 * Math.sin(elapsed * 0.78)
+    warmLight.intensity = writing ? 1.0 : thinking ? 1.15 : responding ? 1.55 : 0.85 + 0.08 * Math.sin(elapsed * 0.78)
     core.scale.setScalar(breath * (writing ? 0.96 : 1))
     shell.scale.setScalar(1 + (thinking ? 0.012 : 0.006) * Math.sin(elapsed * 0.7))
-    glow.material.opacity = (writing ? 0.84 : thinking ? 0.88 : responding ? 1 : 0.68) * (0.96 + 0.06 * Math.sin(elapsed * 0.78))
+    glow.material.opacity = (writing ? 0.20 : thinking ? 0.24 : responding ? 0.32 : 0.14) * (0.96 + 0.06 * Math.sin(elapsed * 0.78))
     glow.scale.setScalar((writing ? 1.65 : responding ? 2.15 : 1.8) * breath)
 
     const distance = thinking ? 0.20 + 0.16 * (0.5 + 0.5 * Math.sin(elapsed * 0.85)) : 0
