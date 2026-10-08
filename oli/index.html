@@ -366,8 +366,19 @@
   <div class="reel-foot">Oli · twinfrequency.io/oli</div>
 </div>
 
+<!-- Start over (Olesya only for now): Oli forgets the conversation and the people, then greets again. -->
+<div class="sheet-wrap hidden" id="forget-sheet">
+  <div class="sheet">
+    <h2 data-t="fTitle"></h2>
+    <p data-t="fBody"></p>
+    <button class="btn btn-gold" id="forget-btn" onclick="forgetAll()" data-t="fYes"></button>
+    <button class="link-btn" style="display:block;margin:16px auto 0" onclick="closeForget()" data-t="dNo"></button>
+  </div>
+</div>
+
 <div class="menu hidden" id="menu">
   <button onclick="signOut()" data-t="signout"></button>
+  <button class="hidden" id="forget-item" onclick="askForget()" data-t="forget"></button>
   <button class="danger" onclick="askDelete()" data-t="delete"></button>
 </div>
 
@@ -390,6 +401,9 @@
     google: 'Войти через Google', or: 'или', email: 'Твой email', send: 'Получить код',
     enter: 'Войти', other: 'Другой email', tag: 'AI-компаньон · система Alexandra',
     write: 'Напиши Oli…', ainote: 'Oli это AI. В трудную минуту обратись к живому человеку рядом.',
+    forget: 'Начать с чистого листа', fTitle: 'Начать с чистого листа?',
+    fBody: 'Oli забудет весь ваш разговор, всех людей, о которых ты ей рассказывала, и голосовые. Аккаунт останется. Вернуть разговор будет нельзя.',
+    fYes: 'Да, забыть всё', fFail: 'Не получилось. Попробуй ещё раз.',
     delete: 'Удалить аккаунт', codeLabel: 'Код из письма',
     dTitle: 'Удалить аккаунт?', dBody: 'Удалятся весь разговор с Oli, всё, что она помнит о людях в твоей жизни, и сам аккаунт. Вернуть это будет нельзя.',
     dYes: 'Удалить навсегда', dNo: 'Отмена', dFail: 'Не получилось удалить. Попробуй ещё раз или напиши timsocion@gmail.com.',
@@ -412,6 +426,9 @@
     google: 'Continue with Google', or: 'or', email: 'Your email', send: 'Send me a code',
     enter: 'Enter', other: 'Use another email', tag: 'AI companion · Alexandra’s system',
     write: 'Write to Oli…', ainote: 'Oli is an AI. In a hard moment, reach out to a person near you.',
+    forget: 'Start over', fTitle: 'Start over with Oli?',
+    fBody: 'Oli will forget your whole conversation, everyone you told her about, and your voice notes. Your account stays. The conversation cannot be restored.',
+    fYes: 'Yes, forget everything', fFail: 'That did not work. Please try again.',
     delete: 'Delete account', codeLabel: 'Code from the email',
     dTitle: 'Delete your account?', dBody: 'This deletes your whole conversation with Oli, everything she remembers about the people in your life, and the account itself. It cannot be undone.',
     dYes: 'Delete forever', dNo: 'Cancel', dFail: 'Could not delete. Please try again or write to timsocion@gmail.com.',
@@ -524,6 +541,25 @@
     setLoginMsg('')
   }
 
+  function askForget() { document.getElementById('forget-sheet').classList.remove('hidden') }
+  function closeForget() { document.getElementById('forget-sheet').classList.add('hidden') }
+
+  async function forgetAll() {
+    const btn = document.getElementById('forget-btn')
+    btn.disabled = true
+    const { data: { session } } = await sb.auth.getSession()
+    const res = await fetch(`${SUPABASE_URL}/functions/v1/oli-voice`, {
+      method: 'POST',
+      headers: { 'Authorization': `Bearer ${session?.access_token}`, 'apikey': SUPABASE_ANON_KEY, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ action: 'forget', lang: RU ? 'ru' : 'en' }),
+    }).catch(() => null)
+    btn.disabled = false
+    if (!res || !res.ok) return alert(T.fFail)
+    closeForget()
+    hideTyping()
+    await loadMessages()
+  }
+
   function askDelete() { document.getElementById('delete-sheet').classList.remove('hidden') }
   function closeDelete() { document.getElementById('delete-sheet').classList.add('hidden') }
 
@@ -590,7 +626,7 @@
       show('login')
       return setLoginMsg(T.error, true)
     }
-    sb.from('profiles').select('is_admin').eq('id', me.id).maybeSingle().then(({ data }) => { isAdmin = !!data?.is_admin; if (isAdmin) addReelButtons() })
+    sb.from('profiles').select('is_admin').eq('id', me.id).maybeSingle().then(({ data }) => { isAdmin = !!data?.is_admin; if (isAdmin) { addReelButtons(); document.getElementById('forget-item').classList.remove('hidden') } })
     show('chat')
     document.getElementById('mic-btn').classList.toggle('hidden', !VOICE_ENABLED)
     if (!hasConsent()) document.getElementById('consent').classList.remove('hidden')
