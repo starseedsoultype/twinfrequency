@@ -244,6 +244,22 @@
   .sheet p a { color: var(--gold-soft); }
   .sheet .btn { margin-top: 10px; }
 
+  /* ── CARDS: a fan of face-down cards right in the chat; the chosen one turns over ── */
+  .card-fan { position: relative; height: 210px; margin: 6px 0 4px; --w: min(96px, 22vw); }
+  .card-fan .fc {
+    position: absolute; left: 50%; bottom: 8px; width: var(--w); aspect-ratio: 2/3; padding: 0; border: 0; background: none; cursor: pointer;
+    transform-origin: 50% 125%; transform: translateX(-50%) rotate(var(--r));
+    transition: transform .45s cubic-bezier(.2,.8,.2,1), opacity .45s; filter: drop-shadow(0 8px 14px rgba(0,0,0,.6));
+  }
+  .card-fan .fc:hover, .card-fan .fc:focus-visible { transform: translateX(-50%) rotate(var(--r)) translateY(-14px); outline: none; }
+  .card-fan .fc svg { width: 100%; height: 100%; display: block; border-radius: 8px; }
+  .card-fan.picked .fc { opacity: 0; pointer-events: none; }
+  .card-fan.picked .fc.chosen { opacity: 1; transform: translateX(-50%) rotate(0) translateY(-24px) scale(1.15); }
+  .card-hint { text-align: center; font-size: 12px; color: var(--muted); letter-spacing: .03em; }
+  .card-img { display: block; width: 168px; max-width: 100%; aspect-ratio: 2/3; object-fit: cover; border-radius: 10px; margin: 2px 0 8px; border: 1px solid rgba(201,169,110,.3); }
+  .reel-card { display: block; width: 150px; aspect-ratio: 2/3; object-fit: cover; margin: 0 auto; border-radius: 12px; border: 1px solid rgba(201,169,110,.35); animation: cardin 1s cubic-bezier(.2,.8,.2,1) both; }
+  @keyframes cardin { from { opacity: 0; transform: perspective(900px) rotateY(90deg) scale(.9); } to { opacity: 1; transform: none; } }
+
   /* ── REEL MODE (admin only): a clean 9:16 screen to record one question and Oli's spoken answer ── */
   .reel {
     position: fixed; inset: 0; z-index: 40; background: #050505;
@@ -305,6 +321,27 @@
     <p class="login-note intro intro-3" data-t-html="note"></p>
   </div>
 </section>
+
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <linearGradient id="backBg" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#17130d"/><stop offset=".5" stop-color="#0d0c0a"/><stop offset="1" stop-color="#17130d"/></linearGradient>
+    <radialGradient id="backGlow" cx=".5" cy=".5" r=".5"><stop offset="0" stop-color="#C9A96E" stop-opacity=".22"/><stop offset="1" stop-color="#C9A96E" stop-opacity="0"/></radialGradient>
+    <symbol id="cardBack" viewBox="0 0 200 300">
+      <rect width="200" height="300" rx="14" fill="url(#backBg)"/>
+      <rect x="8" y="8" width="184" height="284" rx="9" fill="none" stroke="#C9A96E" stroke-opacity=".55" stroke-width="1"/>
+      <rect x="14" y="14" width="172" height="272" rx="6" fill="none" stroke="#C9A96E" stroke-opacity=".22" stroke-width=".6"/>
+      <circle cx="100" cy="150" r="70" fill="url(#backGlow)"/>
+      <g fill="none" stroke="#C9A96E" stroke-width=".8">
+        <circle cx="100" cy="150" r="52" stroke-opacity=".5"/><circle cx="100" cy="150" r="40" stroke-opacity=".3" stroke-dasharray="1.5 3"/>
+        <circle cx="100" cy="150" r="24" stroke-opacity=".6"/><rect x="75" y="125" width="50" height="50" stroke-opacity=".45"/>
+        <rect x="75" y="125" width="50" height="50" stroke-opacity=".45" transform="rotate(45 100 150)"/>
+        <line x1="100" y1="84" x2="100" y2="216" stroke-opacity=".25"/><line x1="34" y1="150" x2="166" y2="150" stroke-opacity=".25"/>
+      </g>
+      <path d="M100 136 L103 147 L114 150 L103 153 L100 164 L97 153 L86 150 L97 147 Z" fill="#E8D5A8" fill-opacity=".9"/>
+      <g fill="#C9A96E"><path d="M100 30 l2 6 6 2 -6 2 -2 6 -2 -6 -6 -2 6 -2z" fill-opacity=".7"/><path d="M100 254 l2 6 6 2 -6 2 -2 6 -2 -6 -6 -2 6 -2z" fill-opacity=".7"/></g>
+    </symbol>
+  </defs>
+</svg>
 
 <!-- ── CHAT ── -->
 <section id="chat" class="hidden">
@@ -414,6 +451,7 @@
     error: 'Что-то пошло не так. Попробуй ещё раз.', wait: 'Oli открывает разговор…',
     note: `Входя, ты соглашаешься с <a href="${SITE}/terms.html">условиями</a> и <a href="${SITE}/privacy.html">политикой конфиденциальности</a>.`,
     offer: 'Попросить Alexandra прочитать нас',
+    drawCard: '🃏 Вытянуть карту', notNow: 'Не сейчас', cardPick: 'Выбери карту, которая тебя зовёт', cardMsg: '🃏 Вот моя карта',
     listen: 'Слушать', pause: 'Пауза', save: 'Скачать', voiceMark: 'голосом', reel: 'Reel', reelHint: 'Включи запись экрана и коснись экрана',
     micDenied: 'Нет доступа к микрофону. Разреши его в настройках браузера.', voiceFail: 'Не получилось отправить голосовое. Попробуй ещё раз.',
     voiceEmpty: 'Я ничего не расслышала. Попробуй ещё раз, чуть ближе к телефону.', voiceLong: 'Слишком длинное голосовое. До двух минут, пожалуйста.',
@@ -439,6 +477,7 @@
     error: 'Something went wrong. Please try again.', wait: 'Oli is opening the conversation…',
     note: `By continuing you agree to the <a href="${SITE}/terms.html">terms</a> and <a href="${SITE}/privacy.html">privacy policy</a>.`,
     offer: 'Ask Alexandra to read us',
+    drawCard: '🃏 Draw a card', notNow: 'Not now', cardPick: 'Choose the card that calls you', cardMsg: '🃏 This is my card',
     listen: 'Listen', pause: 'Pause', save: 'Save', voiceMark: 'voice', reel: 'Reel', reelHint: 'Start screen recording, then tap the screen',
     micDenied: 'No access to the microphone. Please allow it in your browser settings.', voiceFail: 'The voice note was not sent. Please try again.',
     voiceEmpty: "I couldn't hear anything. Please try again, a little closer to the phone.", voiceLong: 'That voice note is too long. Up to two minutes, please.',
@@ -456,6 +495,7 @@
   let matchId = null
   let channel = null
   let acceptedOffers = new Set()
+  let drawnOffers = new Set()
   let typingTimer = null
   let lastDate = null
 
@@ -654,6 +694,7 @@
     if (error) return notice(T.loadFail, loadMessages)
     const msgs = data || []
     acceptedOffers = new Set(msgs.filter(m => m.meta?.action === 'pdf_accept').map(m => m.meta.offer_id))
+    drawnOffers = new Set(msgs.filter(m => ['card_drawn', 'card_declined'].includes(m.meta?.action)).map(m => m.meta.offer_id))
     const inner = document.getElementById('inner')
     inner.innerHTML = ''
     lastDate = null
@@ -688,6 +729,33 @@
     row.appendChild(bubble)
     if (!mine && msg.meta?.audio) addVoicePlayer(bubble, msg.meta.audio, false, msg.content || '')
 
+    // A drawn card shows as the picture itself.
+    if (mine && msg.meta?.action === 'card_drawn' && msg.meta.card) {
+      const img = document.createElement('img')
+      img.className = 'card-img'
+      img.src = CARD_BASE + msg.meta.card
+      img.alt = ''
+      bubble.insertBefore(img, bubble.firstChild)
+      row.dataset.card = msg.meta.card
+    }
+    // Oli invites a card: the button opens a fan of face-down cards right here.
+    if (!mine && msg.meta?.action === 'card_offer' && DECKS[msg.meta.deck]) {
+      const btn = document.createElement('button')
+      btn.className = 'oli-action'
+      btn.textContent = T.drawCard
+      btn.disabled = drawnOffers.has(msg.id)
+      btn.onclick = () => openCardFan(msg, btn)
+      const no = document.createElement('button')
+      no.className = 'oli-action'
+      no.textContent = T.notNow
+      no.disabled = btn.disabled
+      no.onclick = () => declineCard(msg, btn, no)
+      const pair = document.createElement('div')
+      pair.style.cssText = 'display:flex;gap:10px;flex-wrap:wrap'
+      btn.style.marginTop = no.style.marginTop = '12px'
+      pair.append(btn, no)
+      bubble.appendChild(pair)
+    }
     // Oli's reading offer comes with a button; pressing it is the same as answering "yes".
     if (!mine && msg.meta?.action === 'pdf_offer') {
       const btn = document.createElement('button')
@@ -924,6 +992,80 @@
     scrollDown()
   }
 
+  // ─── Cards ────────────────────────────────────────────────
+  // The same decks as starseedsoultype.com/cards.html. The page asks GitHub for the folders,
+  // so new uploads join by themselves; the list below is the fallback.
+  const CARD_BASE = 'https://www.starseedsoultype.com/'
+  const DECKS = {"mak":["mak/01.jpeg","mak/02.jpeg","mak/03.jpeg","mak/04.jpeg","mak/05.jpeg","mak/06.jpeg","mak/07.jpeg","mak/09.jpeg","mak/10.jpeg","mak/100.webp","mak/101.webp","mak/102.webp","mak/103.webp","mak/104.webp","mak/105.webp","mak/106.webp","mak/107.webp","mak/108.webp","mak/109.webp","mak/110.webp","mak/111.webp","mak/112.webp","mak/113.webp","mak/13.jpeg","mak/16.jpeg","mak/17.jpeg","mak/18.jpeg","mak/19.jpeg","mak/20.jpeg","mak/22.jpeg","mak/23.jpeg","mak/24.jpeg","mak/26.jpeg","mak/27.jpeg","mak/28.jpeg","mak/29.jpeg","mak/30.jpeg","mak/32.jpeg","mak/33.jpeg","mak/34.jpeg","mak/35.jpeg","mak/36.jpeg","mak/37.jpeg","mak/38.jpeg","mak/39.jpeg","mak/40.jpeg","mak/41.jpeg","mak/42.jpeg","mak/43.jpeg","mak/44.jpeg","mak/45.jpeg","mak/46.jpeg","mak/47.jpeg","mak/49.jpeg","mak/52.jpeg","mak/54.jpeg","mak/55.jpeg","mak/56.png","mak/57.png","mak/58.png","mak/59.png","mak/60.jpeg","mak/60.png","mak/61.jpeg","mak/61.png","mak/62.jpeg","mak/63.jpeg","mak/64.jpeg","mak/65.jpeg","mak/67.jpeg","mak/69.jpeg","mak/72.jpeg","mak/73.jpeg","mak/74.jpeg","mak/76.jpeg","mak/77.webp","mak/78.webp","mak/79.webp","mak/80.webp","mak/81.webp","mak/82.webp","mak/83.webp","mak/84.webp","mak/85.webp","mak/86.webp","mak/87.webp","mak/88.webp","mak/89.webp","mak/90.webp","mak/91.webp","mak/92.webp","mak/93.webp","mak/94.webp","mak/95.webp","mak/96.webp","mak/97.webp","mak/98.webp","mak/99.webp"],"resource":["resource/01.webp","resource/02.webp","resource/03.webp","resource/04.webp","resource/05.webp","resource/06.webp","resource/07.webp","resource/08.webp","resource/09.webp","resource/10.webp","resource/11.webp","resource/12.webp","resource/13.webp","resource/14.webp","resource/15.webp","resource/16.webp","resource/17.webp","resource/18.webp","resource/19.webp","resource/20.webp","resource/21.webp","resource/22.webp","resource/23.webp","resource/24.webp","resource/25.webp","resource/26.webp","resource/27.webp","resource/28.webp","resource/29.webp","resource/30.webp","resource/31.webp","resource/32.webp","resource/33.webp","resource/34.webp","resource/35.webp","resource/36.webp","resource/37.webp","resource/38.webp","resource/39.webp","resource/40.webp","resource/41.webp","resource/42.webp","resource/43.webp","resource/44.webp","resource/45.webp","resource/46.webp","resource/47.webp","resource/48.webp"]}
+  Object.keys(DECKS).forEach(folder => {
+    fetch('https://api.github.com/repos/starseedsoultype/starseed/contents/' + folder)
+      .then(r => r.ok ? r.json() : [])
+      .then(files => {
+        const found = files.filter(f => f.type === 'file' && /\.(jpe?g|png|webp)$/i.test(f.name)).map(f => folder + '/' + f.name)
+        if (found.length) DECKS[folder] = found
+      })
+      .catch(() => {})
+  })
+
+  function openCardFan(offer, btn) {
+    if (!hasConsent()) return document.getElementById('consent').classList.remove('hidden')
+    if (btn.disabled || document.querySelector('.card-fan')) return
+    btn.parentElement.querySelectorAll('button').forEach(b => { b.disabled = true })
+    const deck = DECKS[offer.meta.deck]
+    const picks = [...deck].sort(() => Math.random() - 0.5).slice(0, 7)
+    const wrap = document.createElement('div')
+    const hint = document.createElement('div')
+    hint.className = 'card-hint'
+    hint.textContent = T.cardPick
+    const fan = document.createElement('div')
+    fan.className = 'card-fan'
+    picks.forEach((card, i) => {
+      const c = document.createElement('button')
+      c.className = 'fc'
+      c.style.setProperty('--r', `${(i - 3) * 9}deg`)
+      c.setAttribute('aria-label', `${i + 1}`)
+      c.innerHTML = '<svg><use href="#cardBack"/></svg>'
+      c.onclick = () => pickCard(offer, fan, c, card, wrap)
+      fan.appendChild(c)
+    })
+    wrap.append(hint, fan)
+    document.getElementById('inner').appendChild(wrap)
+    scrollDown()
+  }
+
+  // "Not now": Oli simply goes on from where the conversation was.
+  async function declineCard(offer, btn, no) {
+    if (!hasConsent()) return document.getElementById('consent').classList.remove('hidden')
+    btn.disabled = no.disabled = true
+    const { data, error } = await sb.from('messages')
+      .insert({ match_id: matchId, sender_id: me.id, content: T.notNow, meta: { action: 'card_declined', offer_id: offer.id } })
+      .select('id, sender_id, content, meta, created_at').single()
+    if (error) { btn.disabled = no.disabled = false; return notice(T.sendFail) }
+    drawnOffers.add(offer.id)
+    if (!document.querySelector(`[data-id="${data.id}"]`)) appendMessage(data)
+    autoPlayNext = true
+    setHaloState('thinking')
+    showTyping()
+  }
+
+  async function pickCard(offer, fan, el, card, wrap) {
+    if (fan.classList.contains('picked')) return
+    fan.classList.add('picked')
+    el.classList.add('chosen')
+    new Image().src = CARD_BASE + card  // start loading the picture while the card rises
+    await new Promise(r => setTimeout(r, 650))
+    const { data, error } = await sb.from('messages')
+      .insert({ match_id: matchId, sender_id: me.id, content: T.cardMsg, meta: { action: 'card_drawn', deck: offer.meta.deck, card, offer_id: offer.id } })
+      .select('id, sender_id, content, meta, created_at').single()
+    wrap.remove()
+    if (error) { document.querySelector(`[data-id="${offer.id}"] .oli-action`)?.removeAttribute('disabled'); return notice(T.sendFail) }
+    drawnOffers.add(offer.id)
+    if (!document.querySelector(`[data-id="${data.id}"]`)) appendMessage(data)
+    autoPlayNext = true
+    setHaloState('thinking')
+    showTyping()
+  }
+
   // ─── Reel mode (Olesya only) ──────────────────────────────
   // Her question types itself out, the crystal thinks, then Oli answers aloud with large captions.
   function addReelButtons() { document.querySelectorAll('.voice-row').forEach(addReelButton) }
@@ -942,7 +1084,7 @@
     let q = wrap.closest('.msg')?.previousElementSibling
     while (q && !q.classList.contains('mine')) q = q.previousElementSibling
     const question = q ? [...q.querySelector('.bubble').childNodes].filter(n => n.nodeType === 3).map(n => n.textContent).join('').trim() : ''
-    reel = { path: wrap.dataset.path, text: wrap.dataset.text, question, audio: null, busy: false }
+    reel = { path: wrap.dataset.path, text: wrap.dataset.text, question, card: q?.dataset.card || null, audio: null, busy: false }
     document.getElementById('reel-q').textContent = ''
     document.getElementById('reel-cap').textContent = ''
     const el = document.getElementById('reel')
@@ -988,14 +1130,19 @@
     const audio = reel.audio = new Audio(url)
     audio.preload = 'auto'
 
-    // 1. The question types itself out.
-    const caret = '<span class="caret"></span>'
-    for (let i = 1; i <= reel.question.length; i++) {
-      if (!reel) return
-      qEl.innerHTML = escapeHtml(reel.question.slice(0, i)) + caret
-      await new Promise(r => setTimeout(r, 38))
+    // 1. The question types itself out, or the drawn card turns over.
+    if (reel.card) {
+      qEl.innerHTML = `<img class="reel-card" src="${CARD_BASE + reel.card}" alt="">`
+      await new Promise(r => setTimeout(r, 1600))
+    } else {
+      const caret = '<span class="caret"></span>'
+      for (let i = 1; i <= reel.question.length; i++) {
+        if (!reel) return
+        qEl.innerHTML = escapeHtml(reel.question.slice(0, i)) + caret
+        await new Promise(r => setTimeout(r, 38))
+      }
+      qEl.textContent = reel.question
     }
-    qEl.textContent = reel.question
     // 2. Oli thinks.
     setHaloState('thinking')
     await new Promise(r => setTimeout(r, 1400))
