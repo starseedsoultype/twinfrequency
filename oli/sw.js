@@ -1,6 +1,6 @@
 // Oli app shell. Network first, so a new version of the page is picked up at once;
 // the cached copy only opens the app when there is no connection.
-const CACHE = 'oli-shell-v1'
+const CACHE = 'oli-shell-v2'
 const SHELL = ['./', 'manifest.webmanifest', 'vendor/supabase-2.45.4.js', 'icons/icon-192.png', 'icons/icon-512.png']
 
 self.addEventListener('install', e => {
