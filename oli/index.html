@@ -282,7 +282,7 @@
   <div class="input-area">
     <div class="input-wrap">
       <label class="sr-only" for="msg-input" data-t="write"></label>
-      <textarea id="msg-input" rows="1" data-ph="write" oninput="autoResize(this)" onkeydown="handleKey(event)"></textarea>
+      <textarea id="msg-input" rows="1" data-ph="write" oninput="autoResize(this); setHaloState(this.value.trim() ? 'writing' : 'idle')" onkeydown="handleKey(event)"></textarea>
       <button class="mic-btn hidden" id="mic-btn" aria-label="Voice">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="9" y="3" width="6" height="12" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3"/></svg>
       </button>
@@ -392,6 +392,15 @@
   // ─── Siri Halo ────────────────────────────────────────────
   // A quiet, breathing halo: no waves, no dots, just a warm intelligent presence.
   let flamesStarted = false
+  let haloState = 'idle'
+  let responseTimer = null
+  function setHaloState(state) {
+    haloState = state
+    if (state === 'responding') {
+      clearTimeout(responseTimer)
+      responseTimer = setTimeout(() => { haloState = 'idle' }, 1100)
+    }
+  }
   function startFlames() {
     if (flamesStarted) return
     flamesStarted = true
@@ -405,17 +414,49 @@
 
     function draw(t) {
       const appear = still ? 1 : ease(t / 1.2)
-      const breath = 1 + 0.035 * Math.sin(t * 1.35)
-      const halo = R * breath
+      const isWriting = haloState === 'writing'
+      const isThinking = haloState === 'thinking'
+      const isResponding = haloState === 'responding'
+      const breath = 1 + (isWriting ? 0.018 : 0.035) * Math.sin(t * (isWriting ? 1.8 : 1.35))
+      const halo = R * breath * (isWriting ? 0.96 : 1)
       ctx.clearRect(0, 0, SIZE, SIZE)
 
-      // A barely warm core gives the halo depth without becoming a glowing orb.
-      const core = ctx.createRadialGradient(C - 10, C - 14, 0, C, C, halo)
-      core.addColorStop(0, `rgba(232,217,188,${0.12 * appear})`)
-      core.addColorStop(0.42, `rgba(255,122,31,${0.045 * appear})`)
+      // The core gathers when the user writes, as if the avatar is listening closely.
+      const corePower = isWriting ? 0.19 : isThinking ? 0.13 : isResponding ? 0.20 : 0.12
+      const core = ctx.createRadialGradient(C - (isWriting ? 2 : 10), C - 14, 0, C, C, halo)
+      core.addColorStop(0, `rgba(232,217,188,${corePower * appear})`)
+      core.addColorStop(0.42, `rgba(255,122,31,${(isThinking ? 0.075 : 0.045) * appear})`)
       core.addColorStop(1, 'rgba(10,10,10,0)')
       ctx.fillStyle = core
       ctx.beginPath(); ctx.arc(C, C, halo, 0, Math.PI * 2); ctx.fill()
+
+      // While Oli thinks, two soft lights move slowly towards one another.
+      if (isThinking) {
+        const converge = 0.5 + 0.5 * Math.sin(t * 0.9)
+        const distance = 22 * (1 - 0.72 * converge)
+        for (const [x, color] of [[C - distance, '232,217,188'], [C + distance, '255,122,31']]) {
+          const light = ctx.createRadialGradient(x, C, 0, x, C, 26)
+          light.addColorStop(0, `rgba(${color},0.24)`)
+          light.addColorStop(1, `rgba(${color},0)`)
+          ctx.fillStyle = light
+          ctx.beginPath(); ctx.arc(x, C, 26, 0, Math.PI * 2); ctx.fill()
+        }
+      }
+
+      // A single warm wave crosses the sphere when Oli's message arrives.
+      if (isResponding) {
+        const wave = ((t % 1.1) / 1.1)
+        const y = C + (wave * 2 - 1) * R * 1.4
+        ctx.beginPath()
+        for (let i = 0; i <= 80; i++) {
+          const x = C - R * 1.2 + i / 80 * R * 2.4
+          const dy = Math.sin(i / 80 * Math.PI * 2.5 + wave * 4) * 4 * Math.sin(wave * Math.PI)
+          i ? ctx.lineTo(x, y + dy) : ctx.moveTo(x, y + dy)
+        }
+        ctx.strokeStyle = `rgba(255,184,120,${0.55 * Math.sin(wave * Math.PI) * appear})`
+        ctx.lineWidth = 1.4
+        ctx.stroke()
+      }
 
       // One slow highlight travels around the rim; it never spins aggressively.
       ctx.globalCompositeOperation = 'source-over'
@@ -425,7 +466,7 @@
       ctx.lineWidth = 0.9
       ctx.stroke()
 
-      const highlight = -Math.PI / 2 + (still ? 0 : t * 0.22)
+      const highlight = -Math.PI / 2 + (still ? 0 : t * (isWriting ? 0.10 : 0.22))
       ctx.beginPath()
       ctx.arc(C, C, halo, highlight, highlight + 0.38)
       ctx.strokeStyle = `rgba(255,184,120,${0.72 * appear})`
@@ -646,8 +687,8 @@
       match_id: matchId, sender_id: me.id, content: btn.textContent,
       meta: { action: 'pdf_accept', offer_id: offer.id, pair: offer.meta.pair, person_id: offer.meta.person_id ?? null, lang: offer.meta.lang },
     })
-    if (error) { btn.disabled = false; acceptedOffers.delete(offer.id); notice(T.sendFail) }
-    else showTyping()
+    if (error) { btn.disabled = false; acceptedOffers.delete(offer.id); setHaloState('idle'); notice(T.sendFail) }
+    else { setHaloState('thinking'); showTyping() }
   }
 
   async function sendMessage() {
@@ -657,12 +698,13 @@
     if (!hasConsent()) return document.getElementById('consent').classList.remove('hidden')
     input.value = ''
     autoResize(input)
+    setHaloState('thinking')
     const btn = document.getElementById('send-btn')
     if (btn.disabled) return
     btn.disabled = true
     const { data, error } = await sb.from('messages').insert({ match_id: matchId, sender_id: me.id, content }).select('id, sender_id, content, meta, created_at').single()
     btn.disabled = false
-    if (error) { input.value = content; autoResize(input); return notice(T.sendFail) }
+    if (error) { input.value = content; autoResize(input); setHaloState('writing'); return notice(T.sendFail) }
     clearNotices()
     if (!document.querySelector(`[data-id="${data.id}"]`)) appendMessage(data)
     showTyping()
@@ -673,7 +715,7 @@
     channel = sb.channel(`oli:${matchId}`)
       .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'messages', filter: `match_id=eq.${matchId}` }, ({ new: msg }) => {
         if (document.querySelector(`[data-id="${msg.id}"]`)) return
-        if (msg.sender_id === OLI_ID) hideTyping()
+        if (msg.sender_id === OLI_ID) { hideTyping(); setHaloState('responding') }
         appendMessage(msg)
         scrollDown()
       })
