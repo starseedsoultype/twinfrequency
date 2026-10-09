@@ -143,6 +143,7 @@
     font-size: 14px; line-height: 1.6; letter-spacing: 0.01em;
   }
   .msg.oli .bubble { padding-left: 0; padding-right: 0; max-width: 100%; color: var(--text); }
+  .bubble a { color: var(--gold); text-decoration: underline; text-underline-offset: 3px; word-break: break-all; }
   .msg.mine .bubble {
     border-radius: 16px 16px 4px 16px;
     background: rgba(201,169,110,0.1); border: 1px solid rgba(201,169,110,0.2);
@@ -703,6 +704,19 @@
     scrollDown()
   }
 
+  // Oli's links (Origin Scan, readings, sessions) become tappable; everything else stays plain text.
+  function appendText(el, text, links) {
+    if (!links) { el.appendChild(document.createTextNode(text)); return }
+    text.split(/(https:\/\/[^\s]+)/g).forEach((part, i) => {
+      if (i % 2 === 0) { if (part) el.appendChild(document.createTextNode(part)); return }
+      const url = part.replace(/[.,;:!?)»"']+$/, '')
+      const a = document.createElement('a')
+      a.href = url; a.target = '_blank'; a.rel = 'noopener noreferrer'; a.textContent = url
+      el.appendChild(a)
+      if (url.length < part.length) el.appendChild(document.createTextNode(part.slice(url.length)))
+    })
+  }
+
   function appendMessage(msg) {
     const inner = document.getElementById('inner')
     const d = new Date(msg.created_at).toDateString()
@@ -725,7 +739,7 @@
       mark.textContent = '🎙 ' + T.voiceMark
       bubble.appendChild(mark)
     }
-    bubble.appendChild(document.createTextNode(msg.content || ''))
+    appendText(bubble, msg.content || '', !mine)
     row.appendChild(bubble)
     if (!mine && msg.meta?.audio) addVoicePlayer(bubble, msg.meta.audio, false, msg.content || '')
 

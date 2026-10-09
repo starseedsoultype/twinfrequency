@@ -356,6 +356,7 @@
     word-break: break-word;
     white-space: pre-wrap;
   }
+  .msg-link { color: inherit; text-decoration: underline; text-underline-offset: 3px; word-break: break-all; }
   .msg-row.mine .msg-bubble {
     border-radius: 16px 16px 4px 16px;
     background: rgba(201,169,110,0.1);
@@ -1105,7 +1106,8 @@ function getConnectionType(origin1, origin2) {
 
     const avatarUrl = msg.sender?.photo_url && msg.sender.photo_url.trim() ? msg.sender.photo_url : DEFAULT_PROFILE_IMAGE
     const aiLabel = !isMine && msg.sender?.is_bot ? `<span class="msg-ai-label">${escapeHtml(msg.sender.name || 'Oli')} · AI guide</span>` : ''
-    const bubble = aiLabel + escapeHtml(msg.content || '')
+    // Oli's links become tappable; people's messages stay plain text.
+    const bubble = aiLabel + (!isMine && msg.sender?.is_bot ? linkify(escapeHtml(msg.content || '')) : escapeHtml(msg.content || ''))
     const time = formatTime(msg.created_at)
 
     row.innerHTML = `
@@ -1401,6 +1403,14 @@ function getConnectionType(origin1, origin2) {
   function autoResize(el) {
     el.style.height = 'auto'
     el.style.height = Math.min(el.scrollHeight, 100) + 'px'
+  }
+
+  // Works on already escaped text: wraps https links, leaving trailing punctuation outside.
+  function linkify(html) {
+    return html.replace(/https:\/\/[^\s<]+/g, part => {
+      const url = part.replace(/([.,;:!?)»']|&quot;)+$/, '')
+      return `<a href="${url}" target="_blank" rel="noopener noreferrer" class="msg-link">${url}</a>${part.slice(url.length)}`
+    })
   }
 
   function escapeHtml(str) {
