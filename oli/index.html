@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
 <title>Oli</title>
 <meta name="description" content="Oli, a quiet companion for the relationship on your mind. Built on Alexandra's system.">
-<meta name="theme-color" content="#0a0a0a">
+<meta name="theme-color" content="#050816">
 <!-- App shell: installable as a PWA now, wrapped by Capacitor later. Paths stay relative. -->
 <link rel="manifest" href="manifest.webmanifest">
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -286,10 +286,107 @@
   .reel-close { position: absolute; top: calc(10px + env(safe-area-inset-top)); right: 14px; background: none; border: none; color: var(--muted); font-size: 26px; cursor: pointer; padding: 6px 10px; }
   .reel.playing .reel-hint, .reel.playing .reel-close { display: none; }
   .voice-reel { color: var(--gold-soft); }
+
+  /* ── GLASS SKIN (10 Oct 2026): Alexandra's cosmic portrait fills the screen, everything Oli shows sits on frosted glass.
+     Desktop: Oli lives on the empty cosmos on the left. Phone: the face on top, the conversation below. ── */
+  :root {
+    --deep: #050816; --card: rgba(255,255,255,0.08); --border: rgba(255,255,255,0.18);
+    --gold: #8fe9ff; --gold-soft: rgba(143,233,255,0.8); --champagne: #eef3ff;
+    --text: #eef3ff; --muted: rgba(238,243,255,0.55);
+    --glass-blur: blur(18px) saturate(150%);
+    --edge-top: rgba(255,255,255,0.5);
+  }
+  html, body { background: var(--deep); }
+  .bg { position: fixed; inset: 0; z-index: 0; background: url("oli-bg.webp") right center / cover no-repeat var(--deep); }
+  .bg::after { content: ""; position: absolute; inset: 0;
+    background: linear-gradient(90deg, rgba(5,8,22,.6) 0%, rgba(5,8,22,.2) 45%, rgba(5,8,22,0) 70%); }
+  #loader, #login, #chat { position: relative; z-index: 1; }
+
+  .glassy, .input-wrap, .menu, .sheet, .field, #chat {
+    -webkit-backdrop-filter: var(--glass-blur); backdrop-filter: var(--glass-blur);
+  }
+  .field, .input-wrap { background: rgba(255,255,255,0.07); border-color: var(--border); }
+  .field { border-radius: 14px; }
+  .input-wrap { border-radius: 999px; border-top-color: var(--edge-top); box-shadow: inset 0 1px 0 rgba(255,255,255,.25); }
+  .field:focus, .input-wrap:focus-within { border-color: rgba(143,233,255,0.6); }
+  .menu, .sheet { background: rgba(14,20,44,0.62); border-color: var(--border); border-top-color: var(--edge-top); }
+  .sheet-wrap { background: rgba(3,5,14,0.55); }
+
+  /* Glass buttons: frosted fill, bright top edge, a soft cyan glow on hover */
+  .btn, .oli-action, .voice-play, .send-btn, .mic-btn {
+    color: var(--text);
+    background: linear-gradient(180deg, rgba(255,255,255,.22), rgba(255,255,255,.06));
+    -webkit-backdrop-filter: blur(14px) saturate(160%); backdrop-filter: blur(14px) saturate(160%);
+    border: 1px solid rgba(255,255,255,.3); border-top-color: rgba(255,255,255,.65);
+    box-shadow: inset 0 1px 0 rgba(255,255,255,.45), 0 4px 18px rgba(0,0,0,.25);
+    transition: box-shadow .2s, background .2s, transform .1s;
+  }
+  .btn { border-radius: 999px; }
+  .oli-action { display: inline-block; border-radius: 999px; padding: 10px 18px; margin-right: 8px; }
+  .btn:hover, .oli-action:hover, .voice-play:hover, .send-btn:hover, .mic-btn:hover {
+    box-shadow: inset 0 1px 0 rgba(255,255,255,.55), 0 0 22px rgba(143,233,255,.45);
+    background: linear-gradient(180deg, rgba(255,255,255,.3), rgba(255,255,255,.1));
+  }
+  .btn:active, .oli-action:active { transform: scale(.98); }
+  .btn-line, .btn-line:hover { color: var(--text); background: linear-gradient(180deg, rgba(143,233,255,.38), rgba(143,233,255,.12)); border-color: rgba(143,233,255,.55); }
+  .btn-line svg path { fill: #eef3ff; }
+  .login-box .btn-gold, .login-box .btn-gold:hover { color: var(--text); border-color: rgba(255,255,255,.3); }
+  .mic-btn.rec { color: #050816; background: var(--gold); border-color: var(--gold); animation: recpulse-glass 1.4s ease-in-out infinite; }
+  @keyframes recpulse-glass { 0%, 100% { box-shadow: 0 0 0 0 rgba(143,233,255,.5); } 50% { box-shadow: 0 0 0 8px rgba(143,233,255,0); } }
+  .rec-time { color: var(--gold); }
+
+  /* Messages: Oli on clear glass, the person on a cyan tint */
+  .msg.oli .bubble {
+    padding: 12px 16px; max-width: 88%; border-radius: 18px 18px 18px 6px;
+    background: rgba(255,255,255,.07); border: 1px solid rgba(255,255,255,.14);
+    -webkit-backdrop-filter: var(--glass-blur); backdrop-filter: var(--glass-blur);
+  }
+  .msg.mine .bubble { border-radius: 18px 18px 6px 18px; background: rgba(143,233,255,.16); border: 1px solid rgba(143,233,255,.3); }
+  .card-img { border-color: rgba(255,255,255,.3); }
+
+  /* Login: no sphere here, the portrait is Oli */
+  #login #flames { display: none; }
+  .login-title { font-size: 56px; text-shadow: 0 0 30px rgba(143,233,255,.35); }
+  .login-sub { color: rgba(238,243,255,.75); }
+  .login-box { padding: 26px; border-radius: 24px; background: rgba(255,255,255,.06);
+    border: 1px solid var(--border); border-top-color: var(--edge-top);
+    box-shadow: inset 0 1px 0 rgba(255,255,255,.25), 0 10px 40px rgba(0,0,0,.35);
+    -webkit-backdrop-filter: var(--glass-blur); backdrop-filter: var(--glass-blur); }
+
+  /* Desktop: one floating glass column over the empty cosmos on the left */
+  @media (min-width: 761px) {
+    #login { align-items: flex-start; padding-left: clamp(16px, 6vw, 96px); }
+    #chat {
+      position: fixed; z-index: 1; left: clamp(16px, 6vw, 96px); top: 24px; bottom: 24px; width: min(540px, calc(100vw - 32px));
+      border-radius: 24px; overflow: hidden; background: rgba(255,255,255,.05);
+      border: 1px solid var(--border); border-top-color: var(--edge-top);
+      box-shadow: inset 0 1px 0 rgba(255,255,255,.25), 0 10px 40px rgba(0,0,0,.35);
+    }
+    .chat-head { padding-top: 14px; }
+    .input-area { padding-bottom: 14px; }
+  }
+  /* Phone: the face on top, the conversation underneath on a darkening sky */
+  @media (max-width: 760px) {
+    /* A portrait made for phones: the whole picture stays visible, the conversation floats over it on glass. */
+    .bg { background-image: url("oli-bg-phone.webp"); background-position: center; background-size: cover; }
+    .bg::after { background: linear-gradient(180deg, rgba(5,8,22,.35) 0%, rgba(5,8,22,0) 20%, rgba(5,8,22,0) 70%, rgba(5,8,22,.55) 100%); }
+    #login { justify-content: flex-end; padding-bottom: calc(16px + env(safe-area-inset-bottom)); }
+    .login-box { padding: 20px 20px 16px; }
+    .login-title { font-size: 44px; }
+    .login-sub { margin: 8px 0 20px; }
+    .or { margin: 14px 0; }
+    .login-note { margin-top: 18px; }
+    /* Few messages sit low, so her face stays visible above them; a long talk scrolls over the picture. */
+    .inner { margin-top: auto; }
+    .chat-head { border-bottom-color: transparent; }
+    .chat-head { justify-content: center; position: relative; }
+    .chat-head .menu-btn { position: absolute; right: 12px; }
+  }
 </style>
 </head>
 <body>
 
+<div class="bg" aria-hidden="true"></div>
 <div id="loader"><div class="spinner"></div></div>
 
 <!-- ── LOGIN ── -->
