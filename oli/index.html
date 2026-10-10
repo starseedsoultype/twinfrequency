@@ -1352,7 +1352,7 @@
     let sum = 0
     for (const v of voiceData) { const d = (v - 128) / 128; sum += d * d }
     const rms = Math.min(1, Math.sqrt(sum / voiceData.length) * 4)
-    voiceLevel += (rms - voiceLevel) * (rms > voiceLevel ? 0.22 : 0.07) // soft rise on syllables, slow fade in pauses
+    voiceLevel += (rms - voiceLevel) * (rms > voiceLevel ? 0.1 : 0.04) // a slow breath with the voice, never a flicker
     return voiceLevel
   }
 
@@ -1474,8 +1474,8 @@
     const c = document.createElement('canvas'); c.width = c.height = 128
     const x = c.getContext('2d'), g = x.createRadialGradient(64, 64, 0, 64, 64, 64)
     g.addColorStop(0, 'rgba(255,244,209,1)')
-    g.addColorStop(0.16, 'rgba(255,181,76,0.72)')
-    g.addColorStop(0.48, 'rgba(218,129,28,0.22)')
+    g.addColorStop(0.16, 'rgba(255,236,226,0.7)')
+    g.addColorStop(0.48, 'rgba(220,226,255,0.2)')
     g.addColorStop(1, 'rgba(10,10,10,0)')
     x.fillStyle = g; x.fillRect(0, 0, 128, 128)
     return new THREE.CanvasTexture(c)
@@ -1532,12 +1532,12 @@
   // The core slowly travels through pastel colours: orange, yellow, turquoise, sky blue, violet,
   // then sinks into darkness and starts again. Brightness b dims the light at the dark stop.
   const CORE_COLOURS = [
-    { c: new THREE.Color(0xff9a5c), b: 1 },    // pastel orange
+    { c: new THREE.Color(0xffc2a8), b: 1 },    // clean pastel peach
     { c: new THREE.Color(0xffd95a), b: 1 },    // pastel yellow
     { c: new THREE.Color(0x45dcc4), b: 1 },    // turquoise
     { c: new THREE.Color(0x68b4ff), b: 1 },    // sky blue
     { c: new THREE.Color(0xa987ff), b: 1 },    // violet
-    { c: new THREE.Color(0x2a1d14), b: 0.15 }, // into the dark
+    { c: new THREE.Color(0x101a3a), b: 0.2 },  // into the night blue of the background
   ]
   const CYCLE_SECONDS = 30
   const coreColour = new THREE.Color()
@@ -1564,14 +1564,14 @@
     const voice = window.oliVoiceLevel?.() || 0
     coreMat.emissive.copy(coreColour)
     // While she speaks the core glows with her voice and dims in the pauses; its size barely moves.
-    coreMat.emissiveIntensity = intensity * 2.1 * bright * (window.oliVoiceActive?.() ? 0.45 + 1.5 * voice : 1)
+    coreMat.emissiveIntensity = intensity * 2.1 * bright * (window.oliVoiceActive?.() ? 0.8 + 0.55 * voice : 1)
     coreMat.color.copy(coreColour).multiplyScalar(0.22 * bright)
     warmLight.color.copy(coreColour)
     glow.material.color.copy(coreColour)
     warmLight.intensity = writing ? 1.0 : thinking ? 1.15 : responding ? 1.55 : 0.85 + 0.14 * Math.sin(elapsed * 0.82)
     warmLight.intensity *= bright
     const corePulse = idle ? 1 + 0.045 * Math.sin(elapsed * 0.82) : 1
-    core.scale.setScalar(breath * corePulse * (writing ? 0.96 : 1) * (1 + 0.06 * voice))
+    core.scale.setScalar(breath * corePulse * (writing ? 0.96 : 1) * (1 + 0.02 * voice))
     shell.scale.setScalar(1 + (thinking ? 0.012 : 0.006) * Math.sin(elapsed * 0.7))
     glow.material.opacity = (writing ? 0.20 : thinking ? 0.24 : responding ? 0.32 : 0.14) * (idle ? 0.92 + 0.18 * Math.sin(elapsed * 0.82) : 0.98) * (0.4 + 0.6 * bright)
     glow.scale.setScalar((writing ? 1.65 : responding ? 2.15 : 1.8) * breath)
