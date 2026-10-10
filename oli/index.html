@@ -1345,13 +1345,14 @@
       src.connect(voiceAnalyser); voiceAnalyser.connect(voiceCtx.destination)
     } catch { voiceAnalyser = null }
   }
+  window.oliVoiceActive = () => Boolean(voiceAnalyser && reel?.audio && !reel.audio.paused)
   window.oliVoiceLevel = () => {
     if (!voiceAnalyser || !reel?.audio || reel.audio.paused) { voiceLevel *= 0.85; return voiceLevel }
     voiceAnalyser.getByteTimeDomainData(voiceData)
     let sum = 0
     for (const v of voiceData) { const d = (v - 128) / 128; sum += d * d }
     const rms = Math.min(1, Math.sqrt(sum / voiceData.length) * 4)
-    voiceLevel += (rms - voiceLevel) * (rms > voiceLevel ? 0.5 : 0.12) // quick on syllables, soft in pauses
+    voiceLevel += (rms - voiceLevel) * (rms > voiceLevel ? 0.22 : 0.07) // soft rise on syllables, slow fade in pauses
     return voiceLevel
   }
 
@@ -1562,14 +1563,15 @@
     // Only the inner coloured core pulses with Oli's voice (Reel mode); glass, lines and orbits stay calm.
     const voice = window.oliVoiceLevel?.() || 0
     coreMat.emissive.copy(coreColour)
-    coreMat.emissiveIntensity = intensity * 2.1 * bright + 2.2 * voice * bright
+    // While she speaks the core glows with her voice and dims in the pauses; its size barely moves.
+    coreMat.emissiveIntensity = intensity * 2.1 * bright * (window.oliVoiceActive?.() ? 0.45 + 1.5 * voice : 1)
     coreMat.color.copy(coreColour).multiplyScalar(0.22 * bright)
     warmLight.color.copy(coreColour)
     glow.material.color.copy(coreColour)
     warmLight.intensity = writing ? 1.0 : thinking ? 1.15 : responding ? 1.55 : 0.85 + 0.14 * Math.sin(elapsed * 0.82)
     warmLight.intensity *= bright
     const corePulse = idle ? 1 + 0.045 * Math.sin(elapsed * 0.82) : 1
-    core.scale.setScalar(breath * corePulse * (writing ? 0.96 : 1) * (1 + 0.3 * voice))
+    core.scale.setScalar(breath * corePulse * (writing ? 0.96 : 1) * (1 + 0.06 * voice))
     shell.scale.setScalar(1 + (thinking ? 0.012 : 0.006) * Math.sin(elapsed * 0.7))
     glow.material.opacity = (writing ? 0.20 : thinking ? 0.24 : responding ? 0.32 : 0.14) * (idle ? 0.92 + 0.18 * Math.sin(elapsed * 0.82) : 0.98) * (0.4 + 0.6 * bright)
     glow.scale.setScalar((writing ? 1.65 : responding ? 2.15 : 1.8) * breath)
