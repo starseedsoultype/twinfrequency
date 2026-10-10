@@ -298,6 +298,9 @@
   }
   html, body { background: var(--deep); }
   .bg { position: fixed; inset: 0; z-index: 0; background: url("oli-bg.webp") right center / cover no-repeat var(--deep); }
+  /* While Oli thinks she lifts a hand to the headphones and listens; the clip starts and ends on the still. */
+  #bg-listen { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; object-position: right center; opacity: 0; transition: opacity .4s; }
+  #bg-listen.on { opacity: 1; }
   .bg::after { content: ""; position: absolute; inset: 0;
     background: linear-gradient(90deg, rgba(5,8,22,.6) 0%, rgba(5,8,22,.2) 45%, rgba(5,8,22,0) 70%); }
   #loader, #login, #chat { position: relative; z-index: 1; }
@@ -372,6 +375,7 @@
     /* Only the small panels are frosted, and lightly, so the picture stays sharp around them. */
     :root { --glass-blur: blur(8px) saturate(140%); }
     .login-box { background: rgba(5,8,22,.28); }
+    #bg-listen { display: none; }
     .bg { background-image: url("oli-bg-phone.webp"); background-position: center; background-size: cover; }
     .bg::after { background: linear-gradient(180deg, rgba(5,8,22,.35) 0%, rgba(5,8,22,0) 20%, rgba(5,8,22,0) 70%, rgba(5,8,22,.55) 100%); }
     #login { justify-content: flex-end; padding-bottom: calc(16px + env(safe-area-inset-bottom)); }
@@ -390,7 +394,7 @@
 </head>
 <body>
 
-<div class="bg" aria-hidden="true"></div>
+<div class="bg" aria-hidden="true"><video id="bg-listen" muted playsinline preload="none"></video></div>
 <div id="loader"><div class="spinner"></div></div>
 
 <!-- ── LOGIN ── -->
@@ -622,6 +626,23 @@
   let flamesStarted = false
   let haloState = 'idle'
   let responseTimer = null
+  // Desktop only, and only for people who allow motion: the portrait listens while Oli thinks.
+  const listen = document.getElementById('bg-listen')
+  const listenOk = listen && matchMedia('(min-width: 761px)').matches && !matchMedia('(prefers-reduced-motion: reduce)').matches && !navigator.connection?.saveData
+  if (listenOk) {
+    listen.src = 'oli-listen.mp4'
+    listen.preload = 'auto'
+    listen.addEventListener('ended', () => listen.classList.remove('on'))
+    window.addEventListener('oli-halo-state', ({ detail }) => {
+      if (detail === 'thinking') {
+        listen.loop = true
+        if (listen.paused) { listen.currentTime = 0; listen.play().then(() => listen.classList.add('on')).catch(() => {}) }
+      } else if (detail !== 'writing') {
+        listen.loop = false // finish the gesture, then the still takes over again
+      }
+    })
+  }
+
   function setHaloState(state) {
     haloState = state
     window.dispatchEvent(new CustomEvent('oli-halo-state', { detail: state }))
