@@ -1333,13 +1333,13 @@
   }
 
   // The crystal's inner core follows Oli's voice in Reel mode: the page reads how loud she is, frame by frame.
-  let voiceCtx = null, voiceAnalyser = null, voiceData = null, voiceLevel = 0
+  let voiceCtx = null, voiceAnalyser = null, voiceData = null, voiceLevel = 0, voicePeak = 0.05
   function listenToVoice(audio) {
     try {
       voiceCtx = voiceCtx || new (window.AudioContext || window.webkitAudioContext)()
       voiceCtx.resume?.()
       const src = voiceCtx.createMediaElementSource(audio)
-      voiceAnalyser = voiceCtx.createAnalyser()
+      voiceAnalyser = voiceCtx.createAnalyser(); voicePeak = 0.05
       voiceAnalyser.fftSize = 1024
       voiceData = new Uint8Array(voiceAnalyser.fftSize)
       src.connect(voiceAnalyser); voiceAnalyser.connect(voiceCtx.destination)
@@ -1351,8 +1351,11 @@
     voiceAnalyser.getByteTimeDomainData(voiceData)
     let sum = 0
     for (const v of voiceData) { const d = (v - 128) / 128; sum += d * d }
-    const rms = Math.min(1, Math.sqrt(sum / voiceData.length) * 4)
-    voiceLevel += (rms - voiceLevel) * (rms > voiceLevel ? 0.1 : 0.04) // a slow breath with the voice, never a flicker
+    // Scaled to her own loudness, so a quiet voice still uses the whole range from dim to bright.
+    const raw = Math.sqrt(sum / voiceData.length)
+    voicePeak = Math.max(raw, voicePeak * 0.998, 0.02)
+    const rms = Math.min(1, raw / voicePeak)
+    voiceLevel += (rms - voiceLevel) * (rms > voiceLevel ? 0.14 : 0.05) // breathes with the voice, never flickers
     return voiceLevel
   }
 
@@ -1564,7 +1567,7 @@
     const voice = window.oliVoiceLevel?.() || 0
     coreMat.emissive.copy(coreColour)
     // While she speaks the core glows with her voice and dims in the pauses; its size barely moves.
-    coreMat.emissiveIntensity = intensity * 2.1 * bright * (window.oliVoiceActive?.() ? 0.8 + 0.55 * voice : 1)
+    coreMat.emissiveIntensity = intensity * 2.1 * bright * (window.oliVoiceActive?.() ? 0.35 + 1.25 * voice : 1)
     coreMat.color.copy(coreColour).multiplyScalar(0.22 * bright)
     warmLight.color.copy(coreColour)
     glow.material.color.copy(coreColour)
