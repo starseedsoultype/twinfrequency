@@ -1404,10 +1404,12 @@
   scene.add(group)
 
   const coreMat = new THREE.MeshPhysicalMaterial({
-    color: 0x100a04, metalness: 0.78, roughness: 0.22,
+    color: 0x100a04, metalness: 0.35, roughness: 0.22,
     clearcoat: 1, clearcoatRoughness: 0.04,
-    emissive: 0xb86a24, emissiveIntensity: 0.28,
+    emissive: 0xff7a1f, emissiveIntensity: 0.28,
   })
+  // The core shows its colour exactly as set: no film tone curve, so orange stays orange, never brown or white.
+  coreMat.toneMapped = false
   const core = new THREE.Mesh(new THREE.IcosahedronGeometry(0.68, 1), coreMat)
   group.add(core)
 
@@ -1535,7 +1537,7 @@
   // The core slowly travels through pastel colours: orange, yellow, turquoise, sky blue, violet,
   // then sinks into darkness and starts again. Brightness b dims the light at the dark stop.
   const CORE_COLOURS = [
-    { c: new THREE.Color(0xffc2a8), b: 1 },    // clean pastel peach
+    { c: new THREE.Color(0xff7a1f), b: 1 },    // clean orange, the TwinF orange
     { c: new THREE.Color(0xffd95a), b: 1 },    // pastel yellow
     { c: new THREE.Color(0x45dcc4), b: 1 },    // turquoise
     { c: new THREE.Color(0x68b4ff), b: 1 },    // sky blue
@@ -1567,8 +1569,9 @@
     const voice = window.oliVoiceLevel?.() || 0
     coreMat.emissive.copy(coreColour)
     // While she speaks the core glows with her voice and dims in the pauses; its size barely moves.
-    coreMat.emissiveIntensity = intensity * 2.1 * bright * (window.oliVoiceActive?.() ? 0.35 + 1.25 * voice : 1)
-    coreMat.color.copy(coreColour).multiplyScalar(0.22 * bright)
+    // Her voice only darkens the core: dim in the pauses, back to its normal light on the words, never brighter.
+    coreMat.emissiveIntensity = Math.min(1, intensity * 2.1 * bright) * (window.oliVoiceActive?.() ? 0.4 + 0.6 * voice : 1)
+    coreMat.color.copy(coreColour).multiplyScalar(0.35 * bright)
     warmLight.color.copy(coreColour)
     glow.material.color.copy(coreColour)
     warmLight.intensity = writing ? 1.0 : thinking ? 1.15 : responding ? 1.55 : 0.85 + 0.14 * Math.sin(elapsed * 0.82)
