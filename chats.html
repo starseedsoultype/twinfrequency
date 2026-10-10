@@ -1126,6 +1126,24 @@ function getConnectionType(origin1, origin2) {
       row.querySelector('.msg-bubble').appendChild(btn)
     }
 
+    // Oli's links arrive as buttons (meta.links), never as raw URLs in her words.
+    if (!isMine && Array.isArray(msg.meta?.links)) {
+      const wrap = document.createElement('div')
+      wrap.style.cssText = 'display:flex;gap:10px;flex-wrap:wrap;margin-top:12px'
+      for (const l of msg.meta.links) {
+        if (!/^https:\/\//.test(l?.url || '')) continue
+        const a = document.createElement('a')
+        a.className = 'oli-action'
+        a.style.textDecoration = 'none'
+        a.href = l.url
+        a.target = '_blank'
+        a.rel = 'noopener'
+        a.textContent = l.label || 'Open'
+        wrap.appendChild(a)
+      }
+      if (wrap.children.length) row.querySelector('.msg-bubble').appendChild(wrap)
+    }
+
     return row
   }
 
