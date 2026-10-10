@@ -302,7 +302,7 @@
     background: linear-gradient(90deg, rgba(5,8,22,.6) 0%, rgba(5,8,22,.2) 45%, rgba(5,8,22,0) 70%); }
   #loader, #login, #chat { position: relative; z-index: 1; }
 
-  .glassy, .input-wrap, .menu, .sheet, .field, #chat {
+  .glassy, .input-wrap, .menu, .sheet, .field {
     -webkit-backdrop-filter: var(--glass-blur); backdrop-filter: var(--glass-blur);
   }
   .field, .input-wrap { background: rgba(255,255,255,0.07); border-color: var(--border); }
@@ -357,6 +357,7 @@
   @media (min-width: 761px) {
     #login { align-items: flex-start; padding-left: clamp(16px, 6vw, 96px); }
     #chat {
+      -webkit-backdrop-filter: var(--glass-blur); backdrop-filter: var(--glass-blur);
       position: fixed; z-index: 1; left: clamp(16px, 6vw, 96px); top: 24px; bottom: 24px; width: min(540px, calc(100vw - 32px));
       border-radius: 24px; overflow: hidden; background: rgba(255,255,255,.05);
       border: 1px solid var(--border); border-top-color: var(--edge-top);
@@ -368,6 +369,9 @@
   /* Phone: the face on top, the conversation underneath on a darkening sky */
   @media (max-width: 760px) {
     /* A portrait made for phones: the whole picture stays visible, the conversation floats over it on glass. */
+    /* Only the small panels are frosted, and lightly, so the picture stays sharp around them. */
+    :root { --glass-blur: blur(8px) saturate(140%); }
+    .login-box { background: rgba(5,8,22,.28); }
     .bg { background-image: url("oli-bg-phone.webp"); background-position: center; background-size: cover; }
     .bg::after { background: linear-gradient(180deg, rgba(5,8,22,.35) 0%, rgba(5,8,22,0) 20%, rgba(5,8,22,0) 70%, rgba(5,8,22,.55) 100%); }
     #login { justify-content: flex-end; padding-bottom: calc(16px + env(safe-area-inset-bottom)); }
