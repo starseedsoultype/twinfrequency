@@ -346,6 +346,13 @@
   }
   .msg.mine .bubble { border-radius: 18px 18px 6px 18px; background: rgba(143,233,255,.16); border: 1px solid rgba(143,233,255,.3); }
   .card-img { border-color: rgba(255,255,255,.3); }
+  .scan-hint { margin-top: 12px; font-size: 12px; color: var(--muted); }
+  .scan-choices { display: grid; gap: 8px; margin-top: 8px; }
+  .scan-choice { display: block; width: 100%; margin: 0; text-align: left; border-radius: 14px; padding: 11px 14px; white-space: normal; line-height: 1.45; position: relative; }
+  .scan-choice.picked { background: linear-gradient(180deg, rgba(143,233,255,.38), rgba(143,233,255,.12)); border-color: rgba(143,233,255,.6); }
+  .scan-choice.picked::after { content: attr(data-mark); position: absolute; right: 14px; top: 10px; font-size: 14px; color: var(--gold); }
+  .scan-choice.picked { padding-right: 40px; }
+  .scan-choice:disabled:not(.picked) { opacity: .45; }
 
   /* Login: no sphere here, the portrait is Oli */
   #login #flames { display: none; }
@@ -901,6 +908,8 @@
       btn.onclick = () => acceptOffer(msg, btn)
       bubble.appendChild(btn)
     }
+    // An Origin question comes with its answers as buttons, in the person's language; typing your own words still works.
+    if (!mine && msg.meta?.action === 'scan_q' && Array.isArray(msg.meta.options) && msg.meta.options.length === 4) addScanChoices(bubble, msg)
     // Oli's links arrive as buttons (meta.links), never as raw URLs in her words.
     if (!mine && Array.isArray(msg.meta?.links)) {
       const wrap = document.createElement('div')
@@ -929,6 +938,50 @@
     }
     const typing = document.getElementById('typing')
     typing ? inner.insertBefore(row, typing) : inner.appendChild(row)
+  }
+
+  // One tap for "which fits", two for "most / least", four in order for a ranking.
+  const scanAnswered = new Set()
+  function addScanChoices(bubble, msg) {
+    const kind = msg.meta.kind, need = kind === 'most_least' ? 2 : kind === 'ranking' ? 4 : 1
+    const hint = document.createElement('div')
+    hint.className = 'scan-hint'
+    hint.textContent = msg.meta.hint || ''
+    const box = document.createElement('div')
+    box.className = 'scan-choices'
+    const picks = []
+    const buttons = msg.meta.options.map((text, i) => {
+      const b = document.createElement('button')
+      b.type = 'button'
+      b.className = 'oli-action scan-choice'
+      b.textContent = text
+      b.disabled = scanAnswered.has(msg.id)
+      b.onclick = () => {
+        if (picks.includes(i) || scanAnswered.has(msg.id)) return
+        picks.push(i)
+        b.dataset.mark = kind === 'most_least' ? (picks.length === 1 ? '↑' : '↓') : kind === 'ranking' ? String(picks.length) : '✓'
+        b.classList.add('picked')
+        if (picks.length === need - 1 && kind === 'ranking') { // the last one is implied
+          const last = [0, 1, 2, 3].find(k => !picks.includes(k)); picks.push(last); buttons[last].dataset.mark = '4'; buttons[last].classList.add('picked')
+        }
+        if (picks.length === need) sendScanPick(msg, picks, buttons)
+      }
+      box.appendChild(b)
+      return b
+    })
+    bubble.append(hint, box)
+  }
+
+  async function sendScanPick(q, picks, buttons) {
+    if (!hasConsent()) return document.getElementById('consent').classList.remove('hidden')
+    scanAnswered.add(q.id)
+    buttons.forEach(b => b.disabled = true)
+    const opts = q.meta.options
+    const content = q.meta.kind === 'most_least' ? `↑ ${opts[picks[0]]}\n↓ ${opts[picks[1]]}`
+      : q.meta.kind === 'ranking' ? picks.map((p, n) => `${n + 1}. ${opts[p]}`).join('\n') : opts[picks[0]]
+    const { error } = await sb.from('messages').insert({ match_id: matchId, sender_id: me.id, content, meta: { action: 'scan_pick', step: q.meta.step, picks } })
+    if (error) { scanAnswered.delete(q.id); buttons.forEach(b => { b.disabled = false; b.classList.remove('picked'); delete b.dataset.mark }); notice(T.sendFail) }
+    else { setHaloState('thinking'); showTyping() }
   }
 
   async function acceptOffer(offer, btn) {
