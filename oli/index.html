@@ -1237,7 +1237,7 @@
     let q = wrap.closest('.msg')?.previousElementSibling
     while (q && !q.classList.contains('mine')) q = q.previousElementSibling
     const question = q ? [...q.querySelector('.bubble').childNodes].filter(n => n.nodeType === 3).map(n => n.textContent).join('').trim() : ''
-    reel = { path: wrap.dataset.path, text: wrap.dataset.text, question, card: q?.dataset.card || null, audio: null, busy: false }
+    reel = { id: wrap.closest('.msg')?.dataset.id || null, path: wrap.dataset.path, text: wrap.dataset.text, question, card: q?.dataset.card || null, audio: null, busy: false, short: false }
     document.getElementById('reel-q').textContent = ''
     document.getElementById('reel-cap').textContent = ''
     const el = document.getElementById('reel')
@@ -1278,6 +1278,15 @@
     el.classList.add('playing')
     const qEl = document.getElementById('reel-q'), cap = document.getElementById('reel-cap')
     qEl.textContent = ''; cap.textContent = ''
+    // A Reel plays a short version of the answer (about 20 seconds), made once on the server and kept on the message.
+    if (reel.id && !reel.short) {
+      cap.textContent = RU ? 'Готовлю короткую версию…' : 'Preparing a short version…'
+      const { data } = await sb.functions.invoke('oli-reel', { body: { message_id: reel.id } }).catch(() => ({ data: null }))
+      if (!reel) return
+      if (data?.path && data?.text) { reel.path = data.path; reel.text = data.text }
+      reel.short = true
+      cap.textContent = ''
+    }
     const url = (await sb.storage.from('oli-voice').createSignedUrl(reel.path, 3600)).data?.signedUrl
     if (!url || !reel) { if (reel) reel.busy = false; el.classList.remove('playing'); return }
     const audio = reel.audio = new Audio()
