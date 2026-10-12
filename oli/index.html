@@ -615,7 +615,7 @@
   function show(id) {
     for (const s of ['loader', 'login', 'chat']) document.getElementById(s).classList.toggle('hidden', s !== id)
     if (id === 'login') startFlames()
-    if (id === 'chat') { mountHaloInHeader(); startFlames() }
+    if (id === 'chat') mountHaloInHeader() // the crystal starts once the messages are on screen (openChat)
   }
 
   function mountHaloInHeader() {
@@ -636,9 +636,13 @@
   // Desktop only, and only for people who allow motion: the portrait listens while Oli thinks.
   const listen = document.getElementById('bg-listen')
   const listenOk = listen && matchMedia('(min-width: 761px)').matches && !matchMedia('(prefers-reduced-motion: reduce)').matches && !navigator.connection?.saveData
-  if (listenOk) {
+  // The 5.5 MB clip is fetched only after the conversation is on screen (openChat).
+  function loadListenClip() {
+    if (!listenOk || listen.getAttribute('src')) return
     listen.src = 'oli-listen.mp4'
     listen.preload = 'auto'
+  }
+  if (listenOk) {
     listen.addEventListener('ended', () => listen.classList.remove('on'))
     window.addEventListener('oli-halo-state', ({ detail }) => {
       if (detail === 'thinking') {
@@ -658,9 +662,13 @@
       responseTimer = setTimeout(() => setHaloState('idle'), 1100)
     }
   }
+  // The crystal's 3D engine is fetched only when the crystal is wanted, so it never competes with the page itself.
+  let haloWanted
+  window.oliHaloWanted = new Promise(r => { haloWanted = r })
   function startFlames() {
     if (flamesStarted) return
     flamesStarted = true
+    haloWanted()
     if (window.oliHaloStart) window.oliHaloStart()
     else window.addEventListener('oli-halo-ready', () => window.oliHaloStart?.(), { once: true })
   }
@@ -743,6 +751,7 @@
       headers: { 'Authorization': `Bearer ${session?.access_token}`, 'apikey': SUPABASE_ANON_KEY },
     }).catch(() => null)
     if (!res || !res.ok) { btn.disabled = false; return alert(T.dFail) }
+    saveMatch(me.id, null)
     await sb.auth.signOut().catch(() => {})
     location.reload()
   }
@@ -773,18 +782,42 @@
 
   async function ensureMatch() {
     // Oli's welcome creates the chat a moment after the profile appears; wait for it, then create it ourselves.
-    for (let i = 0; i < 8; i++) {
+    for (let i = 0; i < 32; i++) {
       const id = await findOliMatch()
       if (id) return id
-      await new Promise(r => setTimeout(r, 1000))
+      await new Promise(r => setTimeout(r, 250))
     }
     const { data } = await sb.from('matches').insert({ user1: OLI_ID, user2: me.id }).select('id').single()
     return data?.id ?? await findOliMatch()
   }
 
+  // The chat id is remembered on this device, so a returning person sees the conversation at once.
+  const MATCH_KEY = 'oli_match_'
+  function savedMatch(userId) { try { return localStorage.getItem(MATCH_KEY + userId) } catch { return null } }
+  function saveMatch(userId, id) {
+    try { id ? localStorage.setItem(MATCH_KEY + userId, id) : localStorage.removeItem(MATCH_KEY + userId) } catch {}
+  }
+
   async function enter(user) {
     if (me) return
     me = user
+    const saved = savedMatch(me.id)
+    if (saved) {
+      matchId = saved
+      openChat()
+      // Check in the background; if the remembered chat is not the real one, switch to it.
+      ensureProfile()
+        .then(() => ensureMatch())
+        .then(id => {
+          if (!id || id === matchId) return
+          matchId = id
+          saveMatch(me.id, id)
+          loadMessages()
+          subscribe()
+        })
+        .catch(e => console.error(e))
+      return
+    }
     show('loader')
     try {
       await ensureProfile()
@@ -796,12 +829,20 @@
       show('login')
       return setLoginMsg(T.error, true)
     }
+    saveMatch(me.id, matchId)
+    openChat()
+  }
+
+  async function openChat() {
     sb.from('profiles').select('is_admin').eq('id', me.id).maybeSingle().then(({ data }) => { isAdmin = !!data?.is_admin; if (isAdmin) { addReelButtons(); document.getElementById('forget-item').classList.remove('hidden') } })
     show('chat')
     document.getElementById('mic-btn').classList.toggle('hidden', !VOICE_ENABLED)
     if (!hasConsent()) document.getElementById('consent').classList.remove('hidden')
     await loadMessages()
     subscribe()
+    // Extras wait until the conversation is on screen
+    startFlames()
+    loadListenClip()
   }
 
   // ─── Consent to the AI ────────────────────────────────────
@@ -1450,7 +1491,8 @@
 {"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.174.0/build/three.module.js"}}
 </script>
 <script type="module">
-  import * as THREE from 'three'
+  await window.oliHaloWanted
+  const THREE = await import('three')
 
   const canvas = document.getElementById('flames')
   const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches
