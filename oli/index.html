@@ -243,6 +243,9 @@
   .sheet p { font-size: 13px; line-height: 1.7; color: var(--text); opacity: 0.85; margin-bottom: 12px; }
   .sheet p.small { font-size: 11px; color: var(--muted); opacity: 1; }
   .sheet p a { color: var(--gold-soft); }
+  .age-check { display: flex; align-items: center; gap: 10px; font-size: 13px; color: var(--text); margin: 4px 0 16px; cursor: pointer; }
+  .age-check input { width: 18px; height: 18px; accent-color: var(--gold-soft); flex-shrink: 0; }
+  .login-adult { font-size: 12px; color: var(--text); opacity: 0.8; margin-top: 14px; text-align: center; }
   .sheet .btn { margin-top: 10px; }
 
   /* ── CARDS: a fan of face-down cards right in the chat; the chosen one turns over ── */
@@ -431,6 +434,7 @@
     </div>
 
     <p class="login-msg" id="login-msg"></p>
+    <p class="login-adult intro intro-3" data-t="adult"></p>
     <p class="login-note intro intro-3" data-t-html="note"></p>
   </div>
 </section>
@@ -493,7 +497,8 @@
     <h2 data-t="cTitle"></h2>
     <p data-t="cBody"></p>
     <p class="small" data-t-html="cSmall"></p>
-    <button class="btn btn-gold" onclick="giveConsent()" data-t="cAgree"></button>
+    <label class="age-check"><input type="checkbox" id="age-check" onchange="document.getElementById('consent-btn').disabled = !this.checked"> <span data-t="cAge"></span></label>
+    <button class="btn btn-gold" id="consent-btn" onclick="giveConsent()" data-t="cAgree" disabled></button>
   </div>
 </div>
 
@@ -572,6 +577,8 @@
     cBody: 'Oli это AI. Чтобы ответить тебе, Oli отправляет твои сообщения в OpenAI, сервис, на котором она работает. OpenAI не использует их для обучения своих моделей. Твой разговор хранится в твоём аккаунте, и ты можешь удалить его вместе с аккаунтом.',
     cSmall: `Oli не заменяет психолога или врача. Подробнее в <a href="${SITE}/privacy.html">политике конфиденциальности</a>.`,
     cAgree: 'Хорошо, начать',
+    cAge: 'Мне есть 18 лет',
+    adult: 'Oli создана для взрослых, от 18 лет.',
   } : {
     sub: 'Talk about the person who stays on your mind. Oli listens and helps you see what is really happening between you.',
     google: 'Continue with Google', or: 'or', email: 'Your email', send: 'Send me a code',
@@ -598,6 +605,8 @@
     cBody: 'Oli is an AI. To reply to you, Oli sends your messages to OpenAI, the service she runs on. OpenAI does not use them to train its models. Your conversation is kept in your account, and you can delete it together with your account.',
     cSmall: `Oli is not a replacement for a therapist or a doctor. More in the <a href="${SITE}/privacy.html">privacy policy</a>.`,
     cAgree: 'I agree, start',
+    cAge: 'I am 18 or older',
+    adult: 'Oli is made for adults, 18 and over.',
   }
   document.documentElement.lang = RU ? 'ru' : 'en'
   document.querySelectorAll('[data-t]').forEach(el => { el.textContent = T[el.dataset.t] })
@@ -846,12 +855,15 @@
   }
 
   // ─── Consent to the AI ────────────────────────────────────
-  function hasConsent() { return !!me?.user_metadata?.ai_consent_at }
+  // Oli is for adults: the same sheet also confirms 18+, and the server checks both.
+  function hasConsent() { return !!(me?.user_metadata?.ai_consent_at && me?.user_metadata?.age_confirmed_at) }
 
   async function giveConsent() {
+    if (!document.getElementById('age-check').checked) return
     const at = new Date().toISOString()
-    const { data } = await sb.auth.updateUser({ data: { ai_consent_at: at } })
-    me = data?.user ?? { ...me, user_metadata: { ...(me.user_metadata || {}), ai_consent_at: at } }
+    const fields = { ai_consent_at: me?.user_metadata?.ai_consent_at || at, age_confirmed_at: at }
+    const { data } = await sb.auth.updateUser({ data: fields })
+    me = data?.user ?? { ...me, user_metadata: { ...(me.user_metadata || {}), ...fields } }
     document.getElementById('consent').classList.add('hidden')
     document.getElementById('msg-input').focus()
   }
