@@ -423,6 +423,7 @@
       <label class="sr-only" for="email" data-t="email"></label>
       <input class="field" id="email" type="email" autocomplete="email" inputmode="email" data-ph="email">
       <button class="btn btn-gold" id="email-btn" onclick="sendCode()"><span data-t="send"></span></button>
+      <p class="login-msg hidden" id="inapp-hint" data-t="inApp"></p>
     </div>
 
     <div id="step-code" class="hidden">
@@ -579,6 +580,8 @@
     cAgree: 'Хорошо, начать',
     cAge: 'Мне есть 18 лет',
     adult: 'Oli создана для взрослых, от 18 лет.',
+    inApp: 'Здесь проще всего войти по коду из письма. Для входа через Google нажми ••• вверху и выбери «Открыть в браузере».',
+    sentInApp: (e) => `Мы отправили письмо на ${e}. Введи код из письма здесь.`,
   } : {
     sub: 'Talk about the person who stays on your mind. Oli listens and helps you see what is really happening between you.',
     google: 'Continue with Google', or: 'or', email: 'Your email', send: 'Send me a code',
@@ -607,11 +610,46 @@
     cAgree: 'I agree, start',
     cAge: 'I am 18 or older',
     adult: 'Oli is made for adults, 18 and over.',
+    inApp: 'Here the easiest way in is a code from your email. For Google, tap ••• at the top and choose Open in browser.',
+    sentInApp: (e) => `We sent an email to ${e}. Enter the code from it here.`,
   }
   document.documentElement.lang = RU ? 'ru' : 'en'
   document.querySelectorAll('[data-t]').forEach(el => { el.textContent = T[el.dataset.t] })
   document.querySelectorAll('[data-t-html]').forEach(el => { el.innerHTML = T[el.dataset.tHtml] })
   document.querySelectorAll('[data-ph]').forEach(el => { el.placeholder = T[el.dataset.ph] })
+
+  // ─── Instagram / Facebook browser ─────────────────────────
+  // Links from Instagram DMs open inside the app's own browser, where Google refuses to sign in.
+  // There the email code is the way in, and Google waits for the real browser.
+  const IN_APP = /Instagram|FBAN|FBAV|FB_IAB|Barcelona/i.test(navigator.userAgent || '')
+  if (IN_APP) {
+    document.getElementById('google-btn').classList.add('hidden')
+    document.querySelector('#step-email .or').classList.add('hidden')
+    document.getElementById('email-btn').classList.replace('btn-gold', 'btn-line')
+    document.getElementById('inapp-hint').classList.remove('hidden')
+  }
+
+  // ─── Where people came from ───────────────────────────────
+  // utm_* from the link are kept on this device until sign-in (Google and the email link drop the query),
+  // then saved once into the new account next to source: 'oli'.
+  const UTM_KEY = 'oli_utm'
+  const UTM_FIELDS = ['utm_source', 'utm_medium', 'utm_campaign', 'utm_content', 'utm_term']
+  ;(() => {
+    const q = new URLSearchParams(location.search)
+    const utm = {}
+    for (const k of UTM_FIELDS) { const v = q.get(k); if (v) utm[k] = v.slice(0, 100) }
+    if (!Object.keys(utm).length) return
+    utm.landed_at = new Date().toISOString()
+    try { localStorage.setItem(UTM_KEY, JSON.stringify(utm)) } catch {}
+  })()
+  function savedUtm() {
+    try {
+      const utm = JSON.parse(localStorage.getItem(UTM_KEY) || 'null')
+      // A visit older than 30 days no longer explains a sign-up.
+      if (utm && Date.now() - Date.parse(utm.landed_at) < 30 * 864e5) return utm
+    } catch {}
+    return null
+  }
 
   let me = null
   let matchId = null
@@ -704,7 +742,7 @@
     if (error) return setLoginMsg(T.error, true)
     pendingEmail = email
     setLoginMsg('')
-    document.getElementById('code-hint').textContent = T.sent(email)
+    document.getElementById('code-hint').textContent = (IN_APP ? T.sentInApp : T.sent)(email)
     document.getElementById('step-email').classList.add('hidden')
     document.getElementById('step-code').classList.remove('hidden')
     document.getElementById('code').focus()
@@ -783,7 +821,9 @@
     const { data } = await sb.from('profiles').select('id').eq('id', me.id).maybeSingle()
     if (data) return
     // Mark where they came from before the profile exists, so Oli's welcome fits this page.
-    await sb.auth.updateUser({ data: { source: 'oli', lang: RU ? 'ru' : 'en' } })
+    const utm = savedUtm()
+    await sb.auth.updateUser({ data: { source: 'oli', lang: RU ? 'ru' : 'en', ...(utm && { utm }) } })
+    try { localStorage.removeItem(UTM_KEY) } catch {}
     const meta = me.user_metadata || {}
     const name = (meta.given_name || (meta.full_name || meta.name || '').split(' ')[0] || '').trim() || null
     await sb.from('profiles').insert({ id: me.id, name })
