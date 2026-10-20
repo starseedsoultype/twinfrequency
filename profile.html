@@ -1316,7 +1316,7 @@
       const res = await fetch(`${SUPABASE_URL}/functions/v1/telegram-auth`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'apikey': SUPABASE_ANON_KEY },
-        body: JSON.stringify({ action: 'merge', email, password, tg_user_id: tgUserId })
+        body: JSON.stringify({ action: 'merge', email, password, tg_user_id: tgUserId, initData: window.Telegram?.WebApp?.initData || '' })
       })
       const json = await res.json()
       if (json.error) {
