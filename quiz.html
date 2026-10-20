@@ -474,8 +474,6 @@ body {
     <input type="hidden" name="from_name" value="Starseed Soul Quiz">
     <input type="hidden" name="redirect" value="false">
     <input type="hidden" name="soul_type" id="ecSoulType" value="">
-    <input type="hidden" name="soul_group" id="ecSoulGroup" value="">
-    <input type="hidden" name="soul_scores" id="ecSoulScores" value="">
     <input class="ec-input" type="email" name="email" id="ecEmail" placeholder="your@email.com" required autocomplete="email">
     <div class="ec-error" id="ecError">Please enter a valid email address</div>
     <button class="ec-btn" type="submit">Reveal My Origin</button>
@@ -486,438 +484,328 @@ body {
 <script>
 // ── TYPES ──────────────────────────────────────────────────────────────────
 
-const FC = {
-  R:{ hex:"#28b450", name:"Relationships", sym:"🜄" },
-  E:{ hex:"#ffc814", name:"Energy",        sym:"🜂" },
-  M:{ hex:"#d22828", name:"Matter",        sym:"🜔" },
-  L:{ hex:"#3c78ff", name:"Logic",         sym:"🜁" },
-};
 
-const CH_R = [0,80,56,34,17];
-const CH_W = [0,0.60,0.25,0.12,0.03];
-const FUNC_AXIS = { E:-Math.PI/2, M:Math.PI/2, R:0, L:Math.PI };
 
 // ── QUESTIONS ──────────────────────────────────────────────────────────────
 const QUESTIONS = [
 
-  // NEW Q1 (Original Q1 - Block 1, force4, 3pts, M/L/R/E)
   {
-    id:1, block:1, type:"force4",
+    id:1, type:"force4",
     text:"You walk into a room where a conversation is already unfolding. Before you consciously decide to pay attention, what has your body already registered?",
     opts:[
-      { text:"The physical reality. What feels grounded, what resources are present, the tangible facts of the space.", f:"M" },
-      { text:"The underlying structure. Whether the situation holds together or if something feels fundamentally off-balance.", f:"L" },
-      { text:"The unspoken dynamic. Who needs what, the invisible threads connecting the people, what is being carefully avoided.", f:"R" },
-      { text:"The current of desire. Who is truly alive in this moment, and where the real energy is trying to move.", f:"E" },
+      { text:"The physical reality. What feels grounded, what resources are present, the tangible facts of the space." },
+      { text:"The underlying structure. Whether the situation holds together or if something feels fundamentally off-balance." },
+      { text:"The unspoken dynamic. Who needs what, the invisible threads connecting the people, what is being carefully avoided." },
+      { text:"The current of desire. Who is truly alive in this moment, and where the real energy is trying to move." },
     ]
   },
 
-  // NEW Q2 (Original Q9 - Block 2, most_least, +2/-1, R/E/M/L)
   {
-    id:9, block:2, type:"most_least",
+    id:9, type:"most_least",
     text:"Select the gift you most naturally bring into a space, and the one that feels least like you.",
     opts:[
-      { text:"A presence that creates deep safety, making others feel profoundly seen.", f:"R" },
-      { text:"A spark of aliveness that activates the energy and makes things move.", f:"E" },
-      { text:"An anchoring stability that helps others feel physically and practically grounded.", f:"M" },
-      { text:"A clarifying perspective that cuts through confusion and illuminates the path.", f:"L" },
+      { text:"A presence that creates deep safety, making others feel profoundly seen." },
+      { text:"A spark of aliveness that activates the energy and makes things move." },
+      { text:"An anchoring stability that helps others feel physically and practically grounded." },
+      { text:"A clarifying perspective that cuts through confusion and illuminates the path." },
     ]
   },
 
-  // NEW Q3 (Original Q15 - Block 3, force4, 2pts, R/E/M/L)
   {
-    id:15, block:3, type:"force4",
+    id:15, type:"force4",
     text:"There is a theme your soul cannot stop exploring. You return to it, notice when others miss it, and care about it deeply. Which domain pulls you the most?",
     opts:[
-      { text:"The art of genuine connection. What it means to truly meet another soul without losing yourself.", f:"R" },
-      { text:"The truth of our desires. What it means to follow your authentic calling and live fully alive.", f:"E" },
-      { text:"The mastery of the physical world. How we handle our bodies, our resources, and build a grounded life.", f:"M" },
-      { text:"The pursuit of clarity. How we find truth, build sound frameworks, and see without illusion.", f:"L" },
+      { text:"The art of genuine connection. What it means to truly meet another soul without losing yourself." },
+      { text:"The truth of our desires. What it means to follow your authentic calling and live fully alive." },
+      { text:"The mastery of the physical world. How we handle our bodies, our resources, and build a grounded life." },
+      { text:"The pursuit of clarity. How we find truth, build sound frameworks, and see without illusion." },
     ]
   },
 
-  // NEW Q4 (Original Q21 - Block 4, most_least, +2/-1, R/E/M/L)
   {
-    id:21, block:4, type:"most_least",
+    id:21, type:"most_least",
     text:"We all have areas where we prefer to simply receive rather than lead. Select the domain where you most naturally let others take the reins, and the one where you least do this.",
     opts:[
-      { text:"In navigating group dynamics. If someone else is reading the room, I can just exist in it.", f:"R" },
-      { text:"In finding the spark. If the environment already has a strong current, I can just flow with it.", f:"E" },
-      { text:"In handling the physical details. If someone else manages the logistics and resources, I can just receive them.", f:"M" },
-      { text:"In building the framework. If a coherent system is provided, I can just work within it.", f:"L" },
+      { text:"In navigating group dynamics. If someone else is reading the room, I can just exist in it." },
+      { text:"In finding the spark. If the environment already has a strong current, I can just flow with it." },
+      { text:"In handling the physical details. If someone else manages the logistics and resources, I can just receive them." },
+      { text:"In building the framework. If a coherent system is provided, I can just work within it." },
     ]
   },
 
-  // NEW Q5 (Original Q25 - Block 5, ranking, 3/2/1/0, E/R/M/L)
   {
-    id:25, block:5, type:"ranking",
+    id:25, type:"ranking",
     text:"Rank these four ways of moving through an experience, from most like you (1) to least like you (4).",
     opts:[
-      { text:"I want to dwell inside the moment. Completion feels like a loss; the beauty is in the unfolding.", f:"E", mode:"processual" },
-      { text:"I move toward the resolution. The point is to arrive, and lingering in the middle feels uncomfortable.", f:"R", mode:"resultative" },
-      { text:"I need to feel the tangible result. After it ends, I want to see what was actually built and what remains.", f:"M", mode:"resultative" },
-      { text:"I need to understand what it meant. After it ends, I want to see the pattern it revealed.", f:"L", mode:"processual" },
+      { text:"I want to dwell inside the moment. Completion feels like a loss; the beauty is in the unfolding." },
+      { text:"I move toward the resolution. The point is to arrive, and lingering in the middle feels uncomfortable." },
+      { text:"I need to feel the tangible result. After it ends, I want to see what was actually built and what remains." },
+      { text:"I need to understand what it meant. After it ends, I want to see the pattern it revealed." },
     ]
   },
 
-  // NEW Q6 (Original Q2 - Block 1, force4, 3pts, L/R/E/M)
   {
-    id:2, block:1, type:"force4",
+    id:2, type:"force4",
     text:"A stranger is pouring their heart out to you. Minutes in, without trying to analyze them, you already know something essential. What is it?",
     opts:[
-      { text:"Whether their story actually makes sense, or if there is a crack in their reasoning.", f:"L" },
-      { text:"What they truly need from you, hiding just beneath the words they are saying.", f:"R" },
-      { text:"Whether they actually want to change, or if they are secretly holding onto the pain.", f:"E" },
-      { text:"The practical, concrete step they are avoiding that would actually solve their problem.", f:"M" },
+      { text:"Whether their story actually makes sense, or if there is a crack in their reasoning." },
+      { text:"What they truly need from you, hiding just beneath the words they are saying." },
+      { text:"Whether they actually want to change, or if they are secretly holding onto the pain." },
+      { text:"The practical, concrete step they are avoiding that would actually solve their problem." },
     ]
   },
 
-  // NEW Q7 (Original Q10 - Block 2, most_least, +2/-1, R/E/M/L)
   {
-    id:10, block:2, type:"most_least",
+    id:10, type:"most_least",
     text:"Select the mark you most often leave on a conversation, and the one you least often leave.",
     opts:[
-      { text:"People leave feeling deeply understood, as if something real was finally witnessed.", f:"R" },
-      { text:"People leave feeling activated, carrying a new spark of energy they didn\u2019t have before.", f:"E" },
-      { text:"People leave with a concrete shift, feeling a practical matter was finally handled.", f:"M" },
-      { text:"People leave with a new perspective, seeing their situation with sudden clarity.", f:"L" },
+      { text:"People leave feeling deeply understood, as if something real was finally witnessed." },
+      { text:"People leave feeling activated, carrying a new spark of energy they didn\u2019t have before." },
+      { text:"People leave with a concrete shift, feeling a practical matter was finally handled." },
+      { text:"People leave with a new perspective, seeing their situation with sudden clarity." },
     ]
   },
 
-  // NEW Q8 (Original Q16 - Block 3, force4, 2pts, R/E/M/L)
   {
-    id:16, block:3, type:"force4",
+    id:16, type:"force4",
     text:"You are watching someone handle a situation carelessly, and you feel an irresistible pull to step in. What are they mishandling?",
     opts:[
-      { text:"Their impact on others. They are breaking the connection or ignoring the emotional reality.", f:"R" },
-      { text:"Their own truth. They are performing a life instead of honoring what they actually want.", f:"E" },
-      { text:"The practical reality. They are ignoring the physical facts or mismanaging resources.", f:"M" },
-      { text:"The logic of the situation. They are operating on a flawed assumption that will collapse.", f:"L" },
+      { text:"Their impact on others. They are breaking the connection or ignoring the emotional reality." },
+      { text:"Their own truth. They are performing a life instead of honoring what they actually want." },
+      { text:"The practical reality. They are ignoring the physical facts or mismanaging resources." },
+      { text:"The logic of the situation. They are operating on a flawed assumption that will collapse." },
     ]
   },
 
-  // NEW Q9 (Original Q22 - Block 4, most_least, +2/-1, R/E/M/L)
   {
-    id:22, block:4, type:"most_least",
+    id:22, type:"most_least",
     text:"Select the pattern that most resonates with your experience, and the one that least resonates.",
     opts:[
-      { text:"I sometimes absorb the emotional weight of a room before deciding if it\u2019s good for me.", f:"R" },
-      { text:"I sometimes get swept up in another person\u2019s energy before realizing it isn\u2019t my own.", f:"E" },
-      { text:"I sometimes accept the physical arrangements provided without questioning if they serve me.", f:"M" },
-      { text:"I sometimes adopt a way of thinking without testing if the foundation is truly sound.", f:"L" },
+      { text:"I sometimes absorb the emotional weight of a room before deciding if it\u2019s good for me." },
+      { text:"I sometimes get swept up in another person\u2019s energy before realizing it isn\u2019t my own." },
+      { text:"I sometimes accept the physical arrangements provided without questioning if they serve me." },
+      { text:"I sometimes adopt a way of thinking without testing if the foundation is truly sound." },
     ]
   },
 
-  // NEW Q10 (Original Q26 - Block 5, force4, 1pt, E/R/M/L)
   {
-    id:26, block:5, type:"force4",
+    id:26, type:"force4",
     text:"A significant chapter in your life has just closed. What is your very first instinct?",
     opts:[
-      { text:"To linger in the feeling of it, letting the experience wash over me a little longer.", f:"E" },
-      { text:"To cleanly close the door. The energy is already moving toward what comes next.", f:"R" },
-      { text:"To look at what remains. To assess the tangible reality of what was built.", f:"M" },
-      { text:"To extract the lesson. To understand the hidden structure of why it happened.", f:"L" },
+      { text:"To linger in the feeling of it, letting the experience wash over me a little longer." },
+      { text:"To cleanly close the door. The energy is already moving toward what comes next." },
+      { text:"To look at what remains. To assess the tangible reality of what was built." },
+      { text:"To extract the lesson. To understand the hidden structure of why it happened." },
     ]
   },
 
-  // NEW Q11 (Original Q3 - Block 1, force4, 3pts, M/R/L/E)
   {
-    id:3, block:1, type:"force4",
+    id:3, type:"force4",
     text:"The energy in a group suddenly derails. People are confused and directionless. Before you even decide to act, where does your focus automatically go?",
     opts:[
-      { text:"To the immediate physical fix. What tangible action will ground the situation right now.", f:"M" },
-      { text:"To the unspoken tension. Who caused the shift and what the people actually need to feel safe again.", f:"R" },
-      { text:"To the root cause. Where the plan broke down and what the most logical next step is.", f:"L" },
-      { text:"To the lost spark. What everyone is secretly craving but not saying, and how to bring the life back.", f:"E" },
+      { text:"To the immediate physical fix. What tangible action will ground the situation right now." },
+      { text:"To the unspoken tension. Who caused the shift and what the people actually need to feel safe again." },
+      { text:"To the root cause. Where the plan broke down and what the most logical next step is." },
+      { text:"To the lost spark. What everyone is secretly craving but not saying, and how to bring the life back." },
     ]
   },
 
-  // NEW Q12 (Original Q11 - Block 2, most_least, +2/-1, R/E/M/L)
   {
-    id:11, block:2, type:"most_least",
+    id:11, type:"most_least",
     text:"Select the reason people most often seek you out, and the reason they least often do.",
     opts:[
-      { text:"When they need to feel less alone, seeking someone who will truly hear them.", f:"R" },
-      { text:"When they feel numb, seeking someone who can remind them how to feel alive.", f:"E" },
-      { text:"When they are overwhelmed, seeking someone who knows how to ground the situation.", f:"M" },
-      { text:"When they are confused, seeking someone who can untangle the complexity.", f:"L" },
+      { text:"When they need to feel less alone, seeking someone who will truly hear them." },
+      { text:"When they feel numb, seeking someone who can remind them how to feel alive." },
+      { text:"When they are overwhelmed, seeking someone who knows how to ground the situation." },
+      { text:"When they are confused, seeking someone who can untangle the complexity." },
     ]
   },
 
-  // NEW Q13 (Original Q17 - Block 3, force4, 2pts, R/E/M/L)
   {
-    id:17, block:3, type:"force4",
+    id:17, type:"force4",
     text:"There is a central question your soul has been exploring in this lifetime. Which of these feels closest to that core inquiry?",
     opts:[
-      { text:"How do we create genuine intimacy without losing our own center?", f:"R" },
-      { text:"How do we know when a desire is truly ours, and find the courage to follow it?", f:"E" },
-      { text:"How do we build a life that feels deeply rooted and secure in the physical world?", f:"M" },
-      { text:"How do we strip away illusions to see the pure, unvarnished truth?", f:"L" },
+      { text:"How do we create genuine intimacy without losing our own center?" },
+      { text:"How do we know when a desire is truly ours, and find the courage to follow it?" },
+      { text:"How do we build a life that feels deeply rooted and secure in the physical world?" },
+      { text:"How do we strip away illusions to see the pure, unvarnished truth?" },
     ]
   },
 
-  // NEW Q14 (Original Q23 - Block 4, most_least, +2/-1, R/E/M/L)
   {
-    id:23, block:4, type:"most_least",
+    id:23, type:"most_least",
     text:"Select the area where you most prefer to just receive the final outcome, and the area where you least prefer this.",
     opts:[
-      { text:"Knowing where I stand with someone. I\u2019d rather just be told than have to figure it out.", f:"R" },
-      { text:"Knowing my own direction. I sometimes wish my desires would just arrive fully formed.", f:"E" },
-      { text:"Managing the logistics of life. I\u2019d love it if the practical details were just handled for me.", f:"M" },
-      { text:"Finding a framework to trust. I\u2019d rather be given a solid philosophy to work within.", f:"L" },
+      { text:"Knowing where I stand with someone. I\u2019d rather just be told than have to figure it out." },
+      { text:"Knowing my own direction. I sometimes wish my desires would just arrive fully formed." },
+      { text:"Managing the logistics of life. I\u2019d love it if the practical details were just handled for me." },
+      { text:"Finding a framework to trust. I\u2019d rather be given a solid philosophy to work within." },
     ]
   },
 
-  // NEW Q15 (Original Q27 - Block 5, force4, 1pt, R/E/M/L)
   {
-    id:27, block:5, type:"force4",
+    id:27, type:"force4",
     text:"When you are trying to deeply understand something, how does that clarity usually arrive?",
     opts:[
-      { text:"Through connection. I need to talk it out and feel it in the presence of someone else.", f:"R" },
-      { text:"Through movement. I think toward a resolution and feel restless until I reach the point.", f:"E" },
-      { text:"Through tangible action. I need to work with it physically and understand it by doing.", f:"M" },
-      { text:"Through deconstruction. I need to take it apart, find the pattern, and see how it fits.", f:"L" },
+      { text:"Through connection. I need to talk it out and feel it in the presence of someone else." },
+      { text:"Through movement. I think toward a resolution and feel restless until I reach the point." },
+      { text:"Through tangible action. I need to work with it physically and understand it by doing." },
+      { text:"Through deconstruction. I need to take it apart, find the pattern, and see how it fits." },
     ]
   },
 
-  // NEW Q16 (Original Q4 - Block 1, force4, 3pts, E/R/L/M)
   {
-    id:4, block:1, type:"force4",
+    id:4, type:"force4",
     text:"You watch others struggle to learn a skill that has simply always been second nature to you. What is it?",
     opts:[
-      { text:"Knowing exactly what you want. You don\u2019t understand why others find it so hard to hear their own desires.", f:"E" },
-      { text:"Reading the emotional undercurrents of a room. You\u2019ve never needed a guide to understand people.", f:"R" },
-      { text:"Seeing the architecture of an idea. You instantly know if a concept is built on a solid foundation.", f:"L" },
-      { text:"Navigating the material world. You\u2019ve always felt a natural ease with the physical and practical aspects of life.", f:"M" },
+      { text:"Knowing exactly what you want. You don\u2019t understand why others find it so hard to hear their own desires." },
+      { text:"Reading the emotional undercurrents of a room. You\u2019ve never needed a guide to understand people." },
+      { text:"Seeing the architecture of an idea. You instantly know if a concept is built on a solid foundation." },
+      { text:"Navigating the material world. You\u2019ve always felt a natural ease with the physical and practical aspects of life." },
     ]
   },
 
-  // NEW Q17 (Original Q12 - Block 2, most_least, +2/-1, R/E/M/L)
   {
-    id:12, block:2, type:"most_least",
+    id:12, type:"most_least",
     text:"Select the capacity that flows from you most effortlessly, and the one that flows least effortlessly.",
     opts:[
-      { text:"The ability to create profound, authentic contact with another person.", f:"R" },
-      { text:"The ability to bring a palpable, magnetic energy into any space.", f:"E" },
-      { text:"The ability to manifest ideas into solid, tangible reality.", f:"M" },
-      { text:"The ability to distill chaos into elegant, structural clarity.", f:"L" },
+      { text:"The ability to create profound, authentic contact with another person." },
+      { text:"The ability to bring a palpable, magnetic energy into any space." },
+      { text:"The ability to manifest ideas into solid, tangible reality." },
+      { text:"The ability to distill chaos into elegant, structural clarity." },
     ]
   },
 
-  // NEW Q18 (Original Q18 - Block 3, force4, 2pts, R/E/M/L)
   {
-    id:18, block:3, type:"force4",
+    id:18, type:"force4",
     text:"You have a high standard in one specific area, and you find it difficult to tolerate when others are careless with it. Which area is this?",
     opts:[
-      { text:"How people treat one another. You have a deep reverence for the sacredness of connection.", f:"R" },
-      { text:"Authenticity of spirit. You can instantly feel when someone is performing rather than living truly.", f:"E" },
-      { text:"Respect for the material. You see the cost of ignoring physical reality, resources, or the body.", f:"M" },
-      { text:"Intellectual integrity. You feel a flawed argument or a false assumption like a wrong note in a song.", f:"L" },
+      { text:"How people treat one another. You have a deep reverence for the sacredness of connection." },
+      { text:"Authenticity of spirit. You can instantly feel when someone is performing rather than living truly." },
+      { text:"Respect for the material. You see the cost of ignoring physical reality, resources, or the body." },
+      { text:"Intellectual integrity. You feel a flawed argument or a false assumption like a wrong note in a song." },
     ]
   },
 
-  // NEW Q19 (Original Q24 - Block 4, most_least, +2/-1, R/E/M/L)
   {
-    id:24, block:4, type:"most_least",
+    id:24, type:"most_least",
     text:"Select the domain where you have historically been most likely to accept what wasn\u2019t quite right for you, and the domain where you are least likely to do this.",
     opts:[
-      { text:"In relationships. I have sometimes stayed too long or trusted too readily.", f:"R" },
-      { text:"In following a path. I have sometimes been swept into a current that wasn\u2019t truly mine.", f:"E" },
-      { text:"In material situations. I have sometimes accepted practical arrangements without asking if they served me.", f:"M" },
-      { text:"In adopting beliefs. I have sometimes built my life on a foundation someone else created.", f:"L" },
+      { text:"In relationships. I have sometimes stayed too long or trusted too readily." },
+      { text:"In following a path. I have sometimes been swept into a current that wasn\u2019t truly mine." },
+      { text:"In material situations. I have sometimes accepted practical arrangements without asking if they served me." },
+      { text:"In adopting beliefs. I have sometimes built my life on a foundation someone else created." },
     ]
   },
 
-  // NEW Q20 (Original Q28 - Block 5, ranking, 3/2/1/0, R/E/M/L)
   {
-    id:28, block:5, type:"ranking",
+    id:28, type:"ranking",
     text:"Rank these four deep yearnings from what pulls your soul the most (1) to what pulls it the least (4).",
     opts:[
-      { text:"To experience profound, unmasked intimacy and love.", f:"R" },
-      { text:"To live with unapologetic passion, following my truest spark.", f:"E" },
-      { text:"To build something enduring and real in the physical world.", f:"M" },
-      { text:"To see the universe clearly, without illusion or distortion.", f:"L" },
+      { text:"To experience profound, unmasked intimacy and love." },
+      { text:"To live with unapologetic passion, following my truest spark." },
+      { text:"To build something enduring and real in the physical world." },
+      { text:"To see the universe clearly, without illusion or distortion." },
     ]
   },
 
-  // NEW Q21 (Original Q5 - Block 1, force4, 3pts, M/E/R/L)
   {
-    id:5, block:1, type:"force4",
+    id:5, type:"force4",
     text:"A group decision is dragging on endlessly. What is the glaring issue that is obvious to you, but everyone else is ignoring?",
     opts:[
-      { text:"The practical constraints. They are ignoring the actual, physical limitations of the situation.", f:"M" },
-      { text:"The hidden desires. No one is admitting what they actually want, so nothing can move forward.", f:"E" },
-      { text:"The unspoken tension. The real issue is who trusts whom, not the decision itself.", f:"R" },
-      { text:"The flawed premise. They are arguing over the wrong question entirely.", f:"L" },
+      { text:"The practical constraints. They are ignoring the actual, physical limitations of the situation." },
+      { text:"The hidden desires. No one is admitting what they actually want, so nothing can move forward." },
+      { text:"The unspoken tension. The real issue is who trusts whom, not the decision itself." },
+      { text:"The flawed premise. They are arguing over the wrong question entirely." },
     ]
   },
 
-  // NEW Q22 (Original Q13 - Block 2, most_least, +2/-1, R/E/M/L)
   {
-    id:13, block:2, type:"most_least",
+    id:13, type:"most_least",
     text:"Select the experience where you feel most fully yourself, and the one where you feel least fully yourself.",
     opts:[
-      { text:"When a conversation deepens unexpectedly and a profound truth is shared between us.", f:"R" },
-      { text:"When I am moving toward something I deeply desire, and all distractions fall away.", f:"E" },
-      { text:"When I can feel the weight of something I have built and know it will last.", f:"M" },
-      { text:"When a complex concept suddenly clicks into place and I understand the hidden pattern.", f:"L" },
+      { text:"When a conversation deepens unexpectedly and a profound truth is shared between us." },
+      { text:"When I am moving toward something I deeply desire, and all distractions fall away." },
+      { text:"When I can feel the weight of something I have built and know it will last." },
+      { text:"When a complex concept suddenly clicks into place and I understand the hidden pattern." },
     ]
   },
 
-  // NEW Q23 (Original Q19 - Block 3, force4, 2pts, R/E/M/L)
   {
-    id:19, block:3, type:"force4",
+    id:19, type:"force4",
     text:"We all have an edge where we push ourselves to perform a mastery we are still developing. Where do you feel the strain of this overreach?",
     opts:[
-      { text:"In the emotional field. I try to hold space for more than is mine to carry.", f:"R" },
-      { text:"In my sense of direction. I project a certainty about what I want, even when I am still searching.", f:"E" },
-      { text:"In the material world. I try to project a competence with physical reality that I am still learning to embody.", f:"M" },
-      { text:"In my convictions. I defend viewpoints with more certainty than I actually feel inside.", f:"L" },
+      { text:"In the emotional field. I try to hold space for more than is mine to carry." },
+      { text:"In my sense of direction. I project a certainty about what I want, even when I am still searching." },
+      { text:"In the material world. I try to project a competence with physical reality that I am still learning to embody." },
+      { text:"In my convictions. I defend viewpoints with more certainty than I actually feel inside." },
     ]
   },
 
-  // NEW Q24 (Original Q6 - Block 1, force4, 3pts, M/L/R/E)
   {
-    id:6, block:1, type:"force4",
+    id:6, type:"force4",
     text:"You meet a stranger and instantly recognize them as part of your cosmic family. What gave them away?",
     opts:[
-      { text:"The effortless, grounded way they navigated the physical details of the moment.", f:"M" },
-      { text:"The sharp, structural elegance of how they observed the world.", f:"L" },
-      { text:"The unspoken way they immediately felt and responded to the energy between you.", f:"R" },
-      { text:"The undeniable, authentic spark of life running beneath everything they did.", f:"E" },
+      { text:"The effortless, grounded way they navigated the physical details of the moment." },
+      { text:"The sharp, structural elegance of how they observed the world." },
+      { text:"The unspoken way they immediately felt and responded to the energy between you." },
+      { text:"The undeniable, authentic spark of life running beneath everything they did." },
     ]
   },
 
-  // NEW Q25 (Original Q14 - Block 2, most_least, +2/-1, R/E/M/L)
   {
-    id:14, block:2, type:"most_least",
+    id:14, type:"most_least",
     text:"Select the gift your soul has been offering the world since before you had words for it, and the one that feels least natural.",
     opts:[
-      { text:"The gift of true meeting. Creating a space where people feel safe enough to drop their masks.", f:"R" },
-      { text:"The gift of awakening. Carrying a frequency that invites others to remember their own passion.", f:"E" },
-      { text:"The gift of grounding. Knowing how to anchor ideas into the tangible, physical world.", f:"M" },
-      { text:"The gift of vision. Seeing the truth clearly and having the courage to name it.", f:"L" },
+      { text:"The gift of true meeting. Creating a space where people feel safe enough to drop their masks." },
+      { text:"The gift of awakening. Carrying a frequency that invites others to remember their own passion." },
+      { text:"The gift of grounding. Knowing how to anchor ideas into the tangible, physical world." },
+      { text:"The gift of vision. Seeing the truth clearly and having the courage to name it." },
     ]
   },
 
-  // NEW Q26 (Original Q20 - Block 3, force4, check:true, 2pts, M/R/L/E)
   {
-    id:20, block:3, type:"force4", check:true,
+    id:20, type:"force4",
     text:"There is a specific territory where life has handed you your deepest lessons and most complex challenges. Which domain has been your greatest teacher?",
     opts:[
-      { text:"The physical world. Navigating the reality of the body, resources, and earthly stability.", f:"M" },
-      { text:"The relational field. Navigating the beautiful, messy reality of human connection and love.", f:"R" },
-      { text:"The domain of truth. Navigating belief systems, illusions, and learning how to see clearly.", f:"L" },
-      { text:"The domain of desire. Navigating what it means to claim my own path and follow my spark.", f:"E" },
+      { text:"The physical world. Navigating the reality of the body, resources, and earthly stability." },
+      { text:"The relational field. Navigating the beautiful, messy reality of human connection and love." },
+      { text:"The domain of truth. Navigating belief systems, illusions, and learning how to see clearly." },
+      { text:"The domain of desire. Navigating what it means to claim my own path and follow my spark." },
     ]
   },
 
-  // NEW Q27 (Original Q7 - Block 1, force4, 3pts, R/E/M/L)
   {
-    id:7, block:1, type:"force4",
+    id:7, type:"force4",
     text:"There is something you do so naturally that you barely notice it, while others spend years trying to cultivate it. What is it?",
     opts:[
-      { text:"Sensing the invisible currents between people and knowing exactly what is needed.", f:"R" },
-      { text:"Trusting my own internal compass and knowing which way to move before thinking begins.", f:"E" },
-      { text:"Existing comfortably in my body and moving through the practical world with ease.", f:"M" },
-      { text:"Instantly sensing whether an idea or system is fundamentally sound or flawed.", f:"L" },
+      { text:"Sensing the invisible currents between people and knowing exactly what is needed." },
+      { text:"Trusting my own internal compass and knowing which way to move before thinking begins." },
+      { text:"Existing comfortably in my body and moving through the practical world with ease." },
+      { text:"Instantly sensing whether an idea or system is fundamentally sound or flawed." },
     ]
   },
 
-  // NEW Q28 (Original Q8 - Block 1, force4, check:true, 3pts, L/R/M/E)
   {
-    id:8, block:1, type:"force4", check:true,
+    id:8, type:"force4",
     text:"In moments when a deep, sudden knowing lands in your body\u2014faster than thought\u2014what are you usually recognizing?",
     opts:[
-      { text:"The structural truth. A sudden, felt sense of whether something holds together or falls apart.", f:"L" },
-      { text:"The relational truth. A sudden awareness of who is being genuine and who is wearing a mask.", f:"R" },
-      { text:"The material truth. A sudden understanding of what is solid and what is fragile in the physical space.", f:"M" },
-      { text:"The energetic truth. A sudden recognition of where the real momentum wants to flow.", f:"E" },
+      { text:"The structural truth. A sudden, felt sense of whether something holds together or falls apart." },
+      { text:"The relational truth. A sudden awareness of who is being genuine and who is wearing a mask." },
+      { text:"The material truth. A sudden understanding of what is solid and what is fragile in the physical space." },
+      { text:"The energetic truth. A sudden recognition of where the real momentum wants to flow." },
     ]
   },
 ];
 
 
-// TIEBREAK QUESTIONS
-const TIEBREAK = {
-  "R_E": { id:"tb_re", type:"binary",
-    text:"You have the energy to give yourself completely to only one thing right now. Which pull is stronger?",
-    opts:[
-      { text:"The pull toward the person in front of you. The connection needs your full presence.", f:"R" },
-      { text:"The pull toward your own calling. Your inner spark is moving, and you must follow it.", f:"E" },
-    ]
-  },
-  "R_M": { id:"tb_rm", type:"binary",
-    text:"Two things require your immediate devotion. Which do you choose?",
-    opts:[
-      { text:"The emotional reality. A delicate situation between people needs to be held and healed.", f:"R" },
-      { text:"The physical reality. A tangible, practical matter needs to be anchored and resolved.", f:"M" },
-    ]
-  },
-  "R_L": { id:"tb_rl", type:"binary",
-    text:"You are stepping into a complex situation. Which of your gifts leads the way?",
-    opts:[
-      { text:"Your profound presence. You feel what everyone needs and create the space for genuine connection.", f:"R" },
-      { text:"Your sharp clarity. You assess what is actually true and map out the most sound path forward.", f:"L" },
-    ]
-  },
-  "E_M": { id:"tb_em", type:"binary",
-    text:"Your soul must choose where to direct its deepest focus. Which calls to you more?",
-    opts:[
-      { text:"The truth of your desire. Ensuring you are living a life that feels genuinely alive and yours.", f:"E" },
-      { text:"The truth of your foundation. Ensuring you are building something real, secure, and lasting.", f:"M" },
-    ]
-  },
-  "E_L": { id:"tb_el", type:"binary",
-    text:"In a moment of uncertainty, which inner voice do you trust more?",
-    opts:[
-      { text:"The pull of your intuition. The raw, undeniable feeling of what you want, even if it defies logic.", f:"E" },
-      { text:"The clarity of your reason. The structural truth of what makes sense, even if it challenges your desires.", f:"L" },
-    ]
-  },
-  "M_L": { id:"tb_ml", type:"binary",
-    text:"Which of these two realms feels most like your native home?",
-    opts:[
-      { text:"The tangible world. The realm of the body, nature, resources, and things you can touch.", f:"M" },
-      { text:"The conceptual world. The realm of ideas, frameworks, patterns, and things you can understand.", f:"L" },
-    ]
-  },
-};
 
 
-// PREVIEW TEXTS
-const PREVIEWS = {
-  R: {
-    1:"Connection is not something you seek — it is the medium you live in. You read the space between people the way others read words on a page. Your greatest gift is invisible to you, because for you, it has always simply been the air.",
-    2:"You bring people into contact with something real in themselves. In conversation, in presence, in the quality of attention you offer — you are a catalyst for genuine meeting. This is your natural creative force in the world.",
-    3:"Relationships are where your deepest learning happens — and your deepest wounds. You are drawn to the complexity of human connection, sometimes more than is comfortable. This tension is your growth edge.",
-    4:"You receive connection easily, without much analysis. When someone offers warmth or belonging, you absorb it naturally — trusting what arrives without needing to verify it first.",
-  },
-  E: {
-    1:"You were born already knowing what you want. Not as a thought, but as a current — something that runs underneath everything and does not ask permission. Others often feel more alive in your presence without knowing why.",
-    2:"Your aliveness is visible. When you move toward something you want, the room notices. You bring energy into spaces that needed it — this is your creative contribution, whether you intend it or not.",
-    3:"The question of desire — what you truly want, whether you are living your actual life — runs through everything you do. This is not a flaw. It is the territory of your transformation.",
-    4:"You receive energy from your environment freely. You don't guard it or analyze it — it simply flows in. Other people's charge becomes available to you without resistance.",
-  },
-  M: {
-    1:"You understand the physical world — money, the body, space, time — with an authority that is simply native to you. You have never needed to learn how to be real. You arrived here already knowing.",
-    2:"You make things real. Ideas that float in other people's minds land in the physical world when you're involved. This is your specific creative power — the capacity to bring things into form.",
-    3:"The material world is where you work hardest on yourself — money, health, physical stability — this is the terrain of your growth. You think deeply about these things. That depth is the gift inside the wound.",
-    4:"In material matters, you receive what comes easily and don't overthink it. Someone handles the food, the space, the logistics — and you absorb it, trusting the provision without needing to direct it.",
-  },
-  L: {
-    1:"You understand how things work. Not as an intellectual exercise, but as a fundamental orientation — the way a fish understands water. Structure, causality, the architecture of systems — this is your native language.",
-    2:"You generate ideas and frameworks that others find clarifying. When you speak your thinking aloud, something in the room settles. This is your creative gift — the capacity to make the complex navigable.",
-    3:"You are drawn to other people's systems and ideas, evaluating them, questioning them, weighing them. This intelligence is most alive when you allow it to be fed by those who think structurally at the deepest level.",
-    4:"You receive frameworks and explanations readily. When something is presented to you coherently, you absorb it and use it — trusting the structure you're given rather than needing to build it from scratch.",
-  },
-};
 
 // ── STATE ──────────────────────────────────────────────────────────────────
 let current = 0;
 let answers = {};
 let tbQueue = [];
-let scores = { R:0, E:0, M:0, L:0 };
 
 // Контекст: пришёл из онбординга (зарегистрированный) или с лендинга
 const isOnboarding = new URLSearchParams(window.location.search).get('redirect') === 'onboarding';
@@ -951,71 +839,33 @@ const GUMROAD_LINKS = {
   "Hyperborean":     "https://starseedsoul.gumroad.com/l/soul-12",
 };
 
-// ── SCORING ────────────────────────────────────────────────────────────────
-function scoreQuestion(q, ans) {
-  if (q.type === "force4") {
-    const f = q.opts[ans].f;
-    const pts = q.block === 1 ? 3 : q.block === 3 ? 2 : 1;
-    scores[f] += pts;
-  }
-  else if (q.type === "most_least") {
-    if (ans.most !== null) scores[q.opts[ans.most].f] += 2;
-    if (ans.least !== null) scores[q.opts[ans.least].f] -= 1;
-  }
-  else if (q.type === "ranking") {
-    ans.forEach((optIdx, pos) => {
-      const pts = [3, 2, 1, 0][pos];
-      scores[q.opts[optIdx].f] += pts;
-    });
-  }
-  else if (q.type === "binary") {
-    scores[q.opts[ans].f] += 5;
-  }
-}
-
+// ── ORIGIN ─────────────────────────────────────────────────────────────────
+// The answers go to the server as they are; it either asks one more question or returns the Origin.
+let scanBusy = false;
 function calculateResult() {
-  // Recalculate scores from scratch including any TB answers
-  scores = { R:0, E:0, M:0, L:0 };
-  QUESTIONS.forEach(q => {
-    if (answers[q.id] !== undefined) scoreQuestion(q, answers[q.id]);
-  });
-  tbQueue.forEach(tb => {
-    if (answers[tb.id] !== undefined) scoreQuestion(tb, answers[tb.id]);
-  });
-
-  // Find pairs in a tie (difference < 3)
-  const sorted = Object.entries(scores).sort((a,b) => b[1]-a[1]);
-  let needTB = null;
-  for (let i = 0; i < 3; i++) {
-    if (Math.abs(sorted[i][1] - sorted[i+1][1]) < 3) {
-      const pair = [sorted[i][0], sorted[i+1][0]].sort().join("_");
-      const alreadyAsked = tbQueue.find(tb => tb.pair === pair);
-      if (!alreadyAsked && tbQueue.length < 3) {
-        needTB = pair;
-        break;
-      }
-    }
-  }
-
-  if (needTB) {
-    const tb = TIEBREAK[needTB];
-    if (tb) {
-      tbQueue.push({ ...tb, pair: needTB });
+  if (scanBusy) return;
+  scanBusy = true;
+  const qa = {}, tb = {};
+  QUESTIONS.forEach(q => { qa[q.id] = answers[q.id]; });
+  tbQueue.forEach(t => { if (answers[t.id] !== undefined) tb[t.id] = answers[t.id]; });
+  scanServer({ quiz: 'app', answers: qa, tb: tb }).then(function(r){
+    scanBusy = false;
+    if (r.ask) {
+      tbQueue.push({ id: r.ask.id, type: "binary", text: r.ask.text, opts: r.ask.opts.map(x => ({ text: x })) });
       renderTB();
       return;
     }
-  }
-
-  resolveTypeServer({scores:scores}).then(function(t){resolvedType=t;showEmailCapture();}).catch(function(){alert('The portal flickered. Please check your connection and try again.');});
+    resolvedType = r.result;
+    showEmailCapture();
+  }).catch(function(){ scanBusy = false; alert('The portal flickered. Please check your connection and try again.'); });
 }
 
 // ── QUIZ ENGINE ────────────────────────────────────────────────────────────
-// ── TYPE RESOLUTION — server-side only (stacks are not shipped to the client) ──
-const _RESOLVE_URL = 'https://pewgupxikbswhaqxjrwk.supabase.co/functions/v1/resolve-type';
+const _SCAN_URL = 'https://pewgupxikbswhaqxjrwk.supabase.co/functions/v1/origin-scan';
 let resolvedType = null;
-async function resolveTypeServer(payload){
-  const r = await fetch(_RESOLVE_URL, {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(payload)});
-  if(!r.ok) throw new Error('resolve failed');
+async function scanServer(payload){
+  const r = await fetch(_SCAN_URL, {method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(payload)});
+  if(!r.ok) throw new Error('scan failed');
   return await r.json();
 }
 function getType(){ return resolvedType; }
@@ -1228,9 +1078,6 @@ function showEmailCapture() {
   // Pre-fill hidden fields with quiz result before user submits email
   const preType = getType();
   document.getElementById('ecSoulType').value = preType.name;
-  document.getElementById('ecSoulGroup').value = preType.group;
-  const sortedScores = Object.entries(scores).sort((a,b) => b[1]-a[1]).map(([f,s]) => f+':'+s).join(', ');
-  document.getElementById('ecSoulScores').value = sortedScores;
 
   const form = document.getElementById('ecForm');
   form.addEventListener('submit', async function(e) {
@@ -1269,37 +1116,29 @@ function showResult() {
   document.getElementById('result').style.display = 'block';
 
   const type = getType();
-  const [ch1, ch2, ch3] = type.funcs;
-  const fc1 = FC[ch1];
 
-  const SOUL_RESONANCE = {
-    "I":  "You have spent your life translating the unspoken spaces between people. Your sensitivity is not a burden to be managed\u2014it is the exact instrument you were sent here to use.",
-    "II": "You see the architecture underneath the chaos. Your constant need to understand how things connect is not overthinking\u2014it is your soul trying to build a map for others to follow.",
-    "III":"You have always known what you wanted before you had the words for it. Your intensity scares people, so you learned to turn it down. It is time to turn it back up.",
-    "IV": "You carry an innate authority over the physical world. While others get lost in ideas, you know exactly how to make things real. Your grounding is your greatest power."
-  };
 
   const html = `
     <div class="result-eyebrow">Origin Consciousness System</div>
     <div class="result-crystal"><canvas id="resCrystal" width="200" height="200"></canvas></div>
-    <div class="result-origin" style="color:${fc1.hex}">${type.name}</div>
+    <div class="result-origin" style="color:${type.color}">${type.name}</div>
     <div class="result-subtitle">Soul Origin Reading · ${new Date().toLocaleDateString('en-US', {year:'numeric', month:'long', day:'numeric'})}</div>
 
-    <div class="soul-resonance">${SOUL_RESONANCE[type.group]}</div>
+    <div class="soul-resonance">${type.resonance}</div>
 
     <div class="preview-box">
       <h2>Your Soul Frequency</h2>
       <div class="preview-section">
         <div class="preview-label">Your Core Frequency</div>
-        <div class="preview-text">${PREVIEWS[ch1][1]}</div>
+        <div class="preview-text">${type.core}</div>
       </div>
       <div class="preview-section">
         <div class="preview-label">Your Creative Force</div>
-        <div class="preview-text">${PREVIEWS[ch2][2]}</div>
+        <div class="preview-text">${type.creative}</div>
       </div>
       <div class="preview-section">
         <div class="preview-label">Your Growth Edge</div>
-        <div class="preview-text">${PREVIEWS[ch3][3]}</div>
+        <div class="preview-text">${type.growth}</div>
       </div>
     </div>
 
@@ -1334,81 +1173,46 @@ function showResult() {
   }
 
   window.scrollTo({ top: 0, behavior: 'smooth' });
-  setTimeout(() => drawCrystal(type), 100);
+  setTimeout(() => drawCrystal(type.crystal), 100);
 }
 
 function retake() {
   current = 0; answers = {}; tbQueue = [];
-  scores = { R:0, E:0, M:0, L:0 };
   document.getElementById('result').style.display = 'none';
   document.getElementById('progressWrap').style.display = 'none';
   document.getElementById('intro').style.display = 'block';
 }
 
 // ── CRYSTAL ────────────────────────────────────────────────────────────────
-function drawCrystal(type) {
-  const canvas = document.getElementById('resCrystal');
-  if (!canvas) return;
-  const ctx = canvas.getContext('2d');
-  const W = canvas.width, H = canvas.height;
-  const cx = W/2, cy = H/2;
+function drawCrystal(c){
+  const canvas=document.getElementById('resCrystal');if(!canvas||!c)return;
+  const ctx=canvas.getContext('2d'),W=canvas.width,H=canvas.height,cx=W/2,cy=H/2;
   ctx.clearRect(0,0,W,H);
-
-  const channels = {};
-  type.funcs.forEach((f,i) => channels[f] = i+1);
-
-  let r=0,g=0,b=0;
-  const COLS = { E:{r:255,g:200,b:20}, M:{r:210,g:40,b:40}, R:{r:40,g:180,b:80}, L:{r:60,g:120,b:255} };
-  type.funcs.forEach((f,i) => { const w=CH_W[i+1]; r+=COLS[f].r*w; g+=COLS[f].g*w; b+=COLS[f].b*w; });
-  r=Math.round(r); g=Math.round(g); b=Math.round(b);
-
-  const tips = {};
-  for (const [f,ch] of Object.entries(channels)) {
-    tips[f] = { x: cx + Math.cos(FUNC_AXIS[f])*CH_R[ch]*0.9, y: cy + Math.sin(FUNC_AXIS[f])*CH_R[ch]*0.9 };
-  }
-
   const bg=ctx.createRadialGradient(cx,cy,0,cx,cy,90);
-  bg.addColorStop(0,`rgba(${r},${g},${b},0.08)`); bg.addColorStop(1,'rgba(0,0,0,0)');
-  ctx.fillStyle=bg; ctx.fillRect(0,0,W,H);
-
-  [[cx,cy,tips.E.x,tips.E.y,tips.R.x,tips.R.y,'E','R',0.85],[cx,cy,tips.E.x,tips.E.y,tips.L.x,tips.L.y,'E','L',0.65],
-   [cx,cy,tips.M.x,tips.M.y,tips.R.x,tips.R.y,'M','R',0.55],[cx,cy,tips.M.x,tips.M.y,tips.L.x,tips.L.y,'M','L',0.40]]
-  .forEach(([x0,y0,x1,y1,x2,y2,f1,f2,bv]) => {
-    const c1=COLS[f1],c2=COLS[f2];
-    const bf={r:Math.round((c1.r+c2.r)/2),g:Math.round((c1.g+c2.g)/2),b:Math.round((c1.b+c2.b)/2)};
-    const a=0.18+bv*0.22;
-    ctx.save(); ctx.globalCompositeOperation='screen';
+  bg.addColorStop(0,c.bg);bg.addColorStop(1,'rgba(0,0,0,0)');
+  ctx.fillStyle=bg;ctx.fillRect(0,0,W,H);
+  c.tris.forEach(([x0,y0,x1,y1,x2,y2,c0,c1,st])=>{
+    ctx.save();ctx.globalCompositeOperation='screen';
     const grad=ctx.createLinearGradient(x0,y0,x2,y2);
-    grad.addColorStop(0,`rgba(${bf.r},${bf.g},${bf.b},${a+0.1})`);
-    grad.addColorStop(1,`rgba(${Math.round(r*.6)},${Math.round(g*.6)},${Math.round(b*.6)},${a*.5})`);
-    ctx.beginPath(); ctx.moveTo(x0,y0); ctx.lineTo(x1,y1); ctx.lineTo(x2,y2);
-    ctx.closePath(); ctx.fillStyle=grad; ctx.fill();
-    ctx.strokeStyle=`rgba(${bf.r+60},${bf.g+60},${bf.b+60},0.35)`;
-    ctx.lineWidth=0.8; ctx.stroke(); ctx.restore();
+    grad.addColorStop(0,c0);grad.addColorStop(1,c1);
+    ctx.beginPath();ctx.moveTo(x0,y0);ctx.lineTo(x1,y1);ctx.lineTo(x2,y2);ctx.closePath();ctx.fillStyle=grad;ctx.fill();
+    ctx.strokeStyle=st;ctx.lineWidth=0.8;ctx.stroke();ctx.restore();
   });
-
-  ctx.save(); ctx.globalCompositeOperation='screen';
-  ctx.beginPath(); ctx.moveTo(tips.E.x,tips.E.y); ctx.lineTo(tips.R.x,tips.R.y);
-  ctx.lineTo(tips.M.x,tips.M.y); ctx.lineTo(tips.L.x,tips.L.y); ctx.closePath();
-  ctx.strokeStyle=`rgba(${r+80},${g+80},${b+80},0.55)`; ctx.lineWidth=1.2; ctx.stroke(); ctx.restore();
-
-  ctx.save(); ctx.globalCompositeOperation='screen';
-  for (const [f,ch] of Object.entries(channels)) {
-    const tip=tips[f], fc=COLS[f];
-    const sz=[0,7,5,3.5,2][ch], gr=[0,20,14,9,5][ch], al=[0,0.45,0.3,0.2,0.1][ch];
-    const glow=ctx.createRadialGradient(tip.x,tip.y,0,tip.x,tip.y,gr);
-    glow.addColorStop(0,`rgba(${fc.r},${fc.g},${fc.b},${al})`);
-    glow.addColorStop(1,'rgba(0,0,0,0)');
-    ctx.fillStyle=glow; ctx.beginPath(); ctx.arc(tip.x,tip.y,gr,0,Math.PI*2); ctx.fill();
-    ctx.beginPath(); ctx.arc(tip.x,tip.y,sz,0,Math.PI*2);
-    ctx.fillStyle=`rgba(${fc.r},${fc.g},${fc.b},0.9)`; ctx.fill();
-  }
+  const e=c.edge;
+  ctx.save();ctx.globalCompositeOperation='screen';
+  ctx.beginPath();ctx.moveTo(e[0],e[1]);ctx.lineTo(e[2],e[3]);ctx.lineTo(e[4],e[5]);ctx.lineTo(e[6],e[7]);ctx.closePath();
+  ctx.strokeStyle=e[8];ctx.lineWidth=1.2;ctx.stroke();ctx.restore();
+  ctx.save();ctx.globalCompositeOperation='screen';
+  c.dots.forEach(([x,y,gr,glowCol,sz,fill])=>{
+    const glow=ctx.createRadialGradient(x,y,0,x,y,gr);
+    glow.addColorStop(0,glowCol);glow.addColorStop(1,'rgba(0,0,0,0)');
+    ctx.fillStyle=glow;ctx.beginPath();ctx.arc(x,y,gr,0,Math.PI*2);ctx.fill();
+    ctx.beginPath();ctx.arc(x,y,sz,0,Math.PI*2);ctx.fillStyle=fill;ctx.fill();
+  });
   ctx.restore();
-
   const sg=ctx.createRadialGradient(cx,cy,0,cx,cy,10);
-  sg.addColorStop(0,'rgba(255,255,255,0.85)'); sg.addColorStop(0.4,`rgba(${r+80},${g+80},${b+80},0.4)`); sg.addColorStop(1,'rgba(0,0,0,0)');
-  ctx.save(); ctx.globalCompositeOperation='screen';
-  ctx.fillStyle=sg; ctx.beginPath(); ctx.arc(cx,cy,10,0,Math.PI*2); ctx.fill(); ctx.restore();
+  sg.addColorStop(0,'rgba(255,255,255,0.85)');sg.addColorStop(0.4,c.core);sg.addColorStop(1,'rgba(0,0,0,0)');
+  ctx.save();ctx.globalCompositeOperation='screen';ctx.fillStyle=sg;ctx.beginPath();ctx.arc(cx,cy,10,0,Math.PI*2);ctx.fill();ctx.restore();
 }
 
 // u2500u2500u2500 ANALYTICS u2500u2500u2500u2500u2500u2500u2500u2500u2500u2500u2500u2500u2500u2500u2500u2500u2500u2500u2500u2500u2500u2500u2500u2500u2500u2500u2500u2500u2500u2500u2500u2500u2500u2500u2500u2500u2500u2500u2500u2500u2500u2500u2500u2500u2500u2500u2500u2500u2500u2500u2500u2500u2500u2500u2500u2500u2500u2500u2500u2500u2500u2500
