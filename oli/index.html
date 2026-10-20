@@ -355,6 +355,9 @@
   .scan-choice.picked { background: linear-gradient(180deg, rgba(143,233,255,.38), rgba(143,233,255,.12)); border-color: rgba(143,233,255,.6); }
   .scan-choice.picked::after { content: attr(data-mark); position: absolute; right: 14px; top: 10px; font-size: 14px; color: var(--gold); }
   .scan-choice.picked { padding-right: 40px; }
+  .feel-choices { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 8px; }
+  .feel-choices .oli-action { margin: 0; padding: 8px 14px; }
+  .feel-choices .oli-action.picked { background: linear-gradient(180deg, rgba(143,233,255,.38), rgba(143,233,255,.12)); border-color: rgba(143,233,255,.6); opacity: 1; }
   .scan-choice:disabled:not(.picked) { opacity: .45; }
 
   /* Login: no sphere here, the portrait is Oli */
@@ -1003,6 +1006,8 @@
     }
     // An Origin question comes with its answers as buttons, in the person's language; typing your own words still works.
     if (!mine && msg.meta?.action === 'scan_q' && Array.isArray(msg.meta.options) && msg.meta.options.length === 4) addScanChoices(bubble, msg)
+    // In tears Oli offers feeling words as buttons; a tap sends the word, the last one opens the input for their own.
+    if (!mine && msg.meta?.action === 'feelings' && Array.isArray(msg.meta.options)) addFeelingChoices(bubble, msg)
     // Oli's links arrive as buttons (meta.links), never as raw URLs in her words.
     if (!mine && Array.isArray(msg.meta?.links)) {
       const wrap = document.createElement('div')
@@ -1075,6 +1080,42 @@
     const { error } = await sb.from('messages').insert({ match_id: matchId, sender_id: me.id, content, meta: { action: 'scan_pick', step: q.meta.step, picks } })
     if (error) { scanAnswered.delete(q.id); buttons.forEach(b => { b.disabled = false; b.classList.remove('picked'); delete b.dataset.mark }); notice(T.sendFail) }
     else { setHaloState('thinking'); showTyping() }
+  }
+
+  const feelingAnswered = new Set()
+  function addFeelingChoices(bubble, msg) {
+    const hint = document.createElement('div')
+    hint.className = 'scan-hint'
+    hint.textContent = msg.meta.hint || ''
+    const box = document.createElement('div')
+    box.className = 'feel-choices'
+    const buttons = [...msg.meta.options, msg.meta.other].filter(Boolean).map((text, i) => {
+      const b = document.createElement('button')
+      b.type = 'button'
+      b.className = 'oli-action'
+      b.textContent = text
+      b.disabled = feelingAnswered.has(msg.id)
+      b.onclick = i === msg.meta.options.length
+        ? () => document.getElementById('msg-input').focus()
+        : () => sendFeeling(msg, text, b, buttons)
+      box.appendChild(b)
+      return b
+    })
+    bubble.append(hint, box)
+  }
+
+  async function sendFeeling(q, word, btn, buttons) {
+    if (!hasConsent()) return document.getElementById('consent').classList.remove('hidden')
+    if (feelingAnswered.has(q.id)) return
+    feelingAnswered.add(q.id)
+    buttons.forEach(b => b.disabled = true)
+    btn.classList.add('picked')
+    setHaloState('thinking')
+    const { data, error } = await sb.from('messages').insert({ match_id: matchId, sender_id: me.id, content: word }).select('id, sender_id, content, meta, created_at').single()
+    if (error) { feelingAnswered.delete(q.id); buttons.forEach(b => b.disabled = false); btn.classList.remove('picked'); setHaloState('idle'); return notice(T.sendFail) }
+    if (!document.querySelector(`[data-id="${data.id}"]`)) appendMessage(data)
+    autoPlayNext = true
+    showTyping()
   }
 
   async function acceptOffer(offer, btn) {

@@ -382,6 +382,9 @@
   .scan-choices { display: grid; gap: 8px; margin-top: 4px; }
   .scan-choice { margin-top: 0; text-align: left; white-space: normal; line-height: 1.45; position: relative; text-transform: none; letter-spacing: 0.01em; }
   .scan-choice.picked { background: rgba(201,169,110,0.16); border-color: var(--gold); padding-right: 38px; opacity: 1; }
+  .feel-choices { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 4px; }
+  .feel-choices .oli-action { width: auto; margin: 0; padding: 8px 14px; text-transform: none; }
+  .feel-choices .oli-action.picked { background: rgba(201,169,110,0.16); border-color: var(--gold); opacity: 1; }
   .scan-choice.picked::after { content: attr(data-mark); position: absolute; right: 12px; top: 9px; font-size: 13px; color: var(--gold); }
   .msg-ai-label {
     display: block; margin-bottom: 4px;
@@ -1134,6 +1137,9 @@ function getConnectionType(origin1, origin2) {
     // An Origin question from Oli comes with its answers as buttons, in the person's language; typing still works.
     if (!isMine && msg.meta?.action === 'scan_q' && Array.isArray(msg.meta.options) && msg.meta.options.length === 4 && currentChat?.type === 'match')
       addScanChoices(row.querySelector('.msg-bubble'), msg)
+    // In tears Oli offers feeling words as buttons; a tap sends the word, the last one opens the input for their own.
+    if (!isMine && msg.meta?.action === 'feelings' && Array.isArray(msg.meta.options) && currentChat?.type === 'match')
+      addFeelingChoices(row.querySelector('.msg-bubble'), msg)
 
     // Oli's links arrive as buttons (meta.links), never as raw URLs in her words.
     if (!isMine && Array.isArray(msg.meta?.links)) {
@@ -1198,6 +1204,37 @@ function getConnectionType(origin1, origin2) {
       : q.meta.kind === 'ranking' ? picks.map((p, n) => `${n + 1}. ${opts[p]}`).join('\n') : opts[picks[0]]
     const { error } = await sb.from('messages').insert({ match_id: currentChat.matchId, sender_id: myUser.id, content, meta: { action: 'scan_pick', step: q.meta.step, picks } })
     if (error) { scanAnswered.delete(q.id); buttons.forEach(b => { b.disabled = false; b.classList.remove('picked'); delete b.dataset.mark }) }
+  }
+
+  const feelingAnswered = new Set()
+  function addFeelingChoices(bubble, msg) {
+    const hint = document.createElement('div')
+    hint.className = 'scan-hint'
+    hint.textContent = msg.meta.hint || ''
+    const box = document.createElement('div')
+    box.className = 'feel-choices'
+    const buttons = [...msg.meta.options, msg.meta.other].filter(Boolean).map((text, i) => {
+      const b = document.createElement('button')
+      b.type = 'button'
+      b.className = 'oli-action'
+      b.textContent = text
+      b.disabled = feelingAnswered.has(msg.id)
+      b.onclick = i === msg.meta.options.length
+        ? () => document.getElementById('msg-input').focus()
+        : () => sendFeeling(msg, text, b, buttons)
+      box.appendChild(b)
+      return b
+    })
+    bubble.append(hint, box)
+  }
+
+  async function sendFeeling(q, word, btn, buttons) {
+    if (feelingAnswered.has(q.id)) return
+    feelingAnswered.add(q.id)
+    buttons.forEach(b => b.disabled = true)
+    btn.classList.add('picked')
+    const { error } = await sb.from('messages').insert({ match_id: currentChat.matchId, sender_id: myUser.id, content: word })
+    if (error) { feelingAnswered.delete(q.id); buttons.forEach(b => b.disabled = false); btn.classList.remove('picked') }
   }
 
   async function acceptOffer(offer, btn) {
