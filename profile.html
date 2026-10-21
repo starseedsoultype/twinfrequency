@@ -1224,6 +1224,9 @@
     user = sessionData.session.user
     const { data } = await sb.from('profiles').select('*').eq('id', user.id).single()
     profile = data || {}
+    // The Telegram link lives in its own table that only the owner can read.
+    const { data: tgLink } = await sb.from('profile_telegram').select('user_id').eq('user_id', user.id).maybeSingle()
+    profile.telegram_linked = Boolean(tgLink)
     // Ban check
     if (profile?.is_banned) {
       await sb.auth.signOut()
@@ -1287,7 +1290,7 @@
     if (p.notif_library !== undefined) document.getElementById('notif-library').checked = p.notif_library
 
     // Telegram connection status
-    if (p.telegram_id) {
+    if (p.telegram_linked) {
       document.getElementById('tg-connected').style.display = 'block'
       document.getElementById('tg-disconnected').style.display = 'none'
     } else {
