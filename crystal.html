@@ -139,69 +139,42 @@ text-decoration:none; border-radius:3px; transition:all 0.2s;
 
 <script>
 const TYPES = [
-  {name:"Siriusian",      funcs:["R","E","M","L"]},
-  {name:"Pleiadian",      funcs:["R","M","L","E"]},
-  {name:"Lemurian",       funcs:["R","E","L","M"]},
-  {name:"Cassiopeian",    funcs:["R","L","M","E"]},
-  {name:"Procyonian",     funcs:["R","M","E","L"]},
-  {name:"Lyran",          funcs:["R","L","E","M"]},
-  {name:"Arcturian",      funcs:["L","E","M","R"]},
-  {name:"Orion",          funcs:["L","M","R","E"]},
-  {name:"Vegan",          funcs:["L","E","R","M"]},
-  {name:"Zeta Reticulan", funcs:["L","R","E","M"]},
-  {name:"Epsilon Eridan", funcs:["L","M","E","R"]},
-  {name:"Atlantean",      funcs:["L","R","M","E"]},
-  {name:"Andromedan",     funcs:["E","R","L","M"]},
-  {name:"Polarisian",     funcs:["E","L","M","R"]},
-  {name:"Nibiruan",       funcs:["E","M","R","L"]},
-  {name:"Egyptian",       funcs:["E","L","R","M"]},
-  {name:"Titanian",          funcs:["E","M","L","R"]},
-  {name:"Blue Avian",     funcs:["E","R","M","L"]},
-  {name:"Tau Cetian",     funcs:["M","R","E","L"]},
-  {name:"Aldebaran",      funcs:["M","L","R","E"]},
-  {name:"Centaurian",     funcs:["M","L","E","R"]},
-  {name:"Herculean",      funcs:["M","E","R","L"]},
-  {name:"Anunnaki",       funcs:["M","E","L","R"]},
-  {name:"Hyperborean",    funcs:["M","R","L","E"]},
+  {name:"Siriusian"},
+  {name:"Pleiadian"},
+  {name:"Lemurian"},
+  {name:"Cassiopeian"},
+  {name:"Procyonian"},
+  {name:"Lyran"},
+  {name:"Arcturian"},
+  {name:"Orion"},
+  {name:"Vegan"},
+  {name:"Zeta Reticulan"},
+  {name:"Epsilon Eridan"},
+  {name:"Atlantean"},
+  {name:"Andromedan"},
+  {name:"Polarisian"},
+  {name:"Nibiruan"},
+  {name:"Egyptian"},
+  {name:"Titanian"},
+  {name:"Blue Avian"},
+  {name:"Tau Cetian"},
+  {name:"Aldebaran"},
+  {name:"Centaurian"},
+  {name:"Herculean"},
+  {name:"Anunnaki"},
+  {name:"Hyperborean"},
 ];
 
 const FC = {
-  E:{r:255,g:185,b:0,   hex:"#ffb900",name:"Energy",   element:"Fire"},
-  M:{r:220,g:40, b:40,  hex:"#dc2828",name:"Matter",   element:"Earth"},
-  R:{r:40, g:190,b:80,  hex:"#28be50",name:"Relationships", element:"Water"},
-  L:{r:60, g:130,b:255, hex:"#3c82ff",name:"Logic",    element:"Air"},
+  up:{r:255,g:185,b:0,   hex:"#ffb900",element:"Fire"},
+  down:{r:220,g:40, b:40,  hex:"#dc2828",element:"Earth"},
+  right:{r:40, g:190,b:80,  hex:"#28be50",element:"Water"},
+  left:{r:60, g:130,b:255, hex:"#3c82ff",element:"Air"},
 };
 
-const AXIS={E:-Math.PI/2, M:Math.PI/2, R:0, L:Math.PI};
+const AXIS={up:-Math.PI/2, down:Math.PI/2, right:0, left:Math.PI};
 const RADII=[0,155,108,66,32];
 const WEIGHTS=[0,0.60,0.25,0.12,0.03];
-
-const PREVIEWS={
-  R:{
-    1:"Connection is the medium you live in. You read the space between people the way others read words on a page. Your greatest gift is invisible to you. For you, it has always simply been there.",
-    2:"You bring people into contact with something real in themselves. In conversation, in presence, in the quality of attention you offer, you are a catalyst for genuine meeting.",
-    3:"Relationships are where your deepest learning happens. You are drawn to the complexity of human connection, sometimes more than is comfortable. This territory is your transformation.",
-    4:"You receive connection easily, without much analysis. When someone offers warmth or belonging, you absorb it naturally, trusting what arrives without needing to verify it first.",
-  },
-  E:{
-    1:"You were born already knowing what you want. The desire runs underneath everything and does not ask permission. Others often feel more alive in your presence without knowing why.",
-    2:"Your aliveness is visible. When you move toward something you want, the room notices. You bring energy into spaces that needed it. This is your creative contribution.",
-    3:"The question of desire, what you truly want, whether you are living your actual life, runs through everything you do. This territory is the ground of your growth.",
-    4:"You receive energy from your environment freely. You absorb it naturally. Other people's charge becomes available to you without resistance.",
-  },
-  M:{
-    1:"You understand the physical world, money, the body, space, time, with an authority that is simply native to you. You arrived here already knowing how to be real.",
-    2:"You make things real. Ideas that float in other people's minds land in the physical world when you are involved. This is your specific creative power, the capacity to bring things into form.",
-    3:"The material world is where you work hardest on yourself, money, health, physical stability. You think deeply about these things. That depth is the gift inside the wound.",
-    4:"In material matters, you receive what comes easily. Someone handles the food, the space, the logistics, and you absorb it, trusting the provision without needing to direct it.",
-  },
-  L:{
-    1:"You understand how things work, the way a fish understands water. Structure, causality, the architecture of systems, this is your native language, arrived before any effort.",
-    2:"You generate ideas and frameworks that others find clarifying. When you speak your thinking aloud, something in the room settles. This is your creative gift.",
-    3:"You are drawn to other people's systems and ideas, evaluating them, questioning them, weighing them. This intelligence is most alive when it is fed by those who think at the deepest level.",
-    4:"You receive frameworks and explanations readily. When something is presented to you coherently, you absorb it and use it, trusting the structure you are given rather than needing to build it from scratch.",
-  },
-};
 
 const GUMROAD_LINKS = {
   "Siriusian":       "https://starseedsoul.gumroad.com/l/soul-20",
@@ -232,10 +205,12 @@ const GUMROAD_LINKS = {
 
 let current=12;
 
-function getChannels(idx){
-  const ch={};
-  TYPES[idx].funcs.forEach((f,i)=>{ch[f]=i+1;});
-  return ch;
+// The shape and the texts come from the server; the page only draws them.
+const VIEW_URL='https://pewgupxikbswhaqxjrwk.supabase.co/functions/v1/origin-view';
+async function loadView(name){
+  const r=await fetch(VIEW_URL,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({crystal:name,lang:'en'})});
+  if(!r.ok)throw new Error('view failed');
+  return r.json();
 }
 
 function blend(ch){
@@ -244,13 +219,18 @@ function blend(ch){
   return{r:Math.round(r),g:Math.round(g),b:Math.round(b)};
 }
 
-function draw(idx){
+let drawSeq=0;
+async function draw(idx){
+  const seq=++drawSeq;
+  const view=await loadView(TYPES[idx].name).catch(()=>null);
+  if(!view||seq!==drawSeq)return;
   const canvas=document.getElementById('crystalCanvas');
   const ctx=canvas.getContext('2d');
   const W=canvas.width,H=canvas.height,cx=W/2,cy=H/2;
   ctx.clearRect(0,0,W,H);
 
-  const ch=getChannels(idx);
+  const ch={};
+  view.axes.forEach((a,i)=>{ch[a]=i+1;});
   const bl=blend(ch);
 
   // tips
@@ -265,14 +245,14 @@ function draw(idx){
   bg.addColorStop(1,'rgba(4,2,10,0)');
   ctx.fillStyle=bg; ctx.fillRect(0,0,W,H);
 
-  const tE=tips.E,tM=tips.M,tR=tips.R,tL=tips.L;
+  const tUp=tips.up,tDown=tips.down,tRight=tips.right,tLeft=tips.left;
 
   // faces — screen blend for vivid colors
   ctx.save(); ctx.globalCompositeOperation='screen';
-  [{pts:[cx,cy,tE.x,tE.y,tR.x,tR.y],f1:'E',f2:'R',b:.85},
-   {pts:[cx,cy,tE.x,tE.y,tL.x,tL.y],f1:'E',f2:'L',b:.65},
-   {pts:[cx,cy,tM.x,tM.y,tR.x,tR.y],f1:'M',f2:'R',b:.55},
-   {pts:[cx,cy,tM.x,tM.y,tL.x,tL.y],f1:'M',f2:'L',b:.38}
+  [{pts:[cx,cy,tUp.x,tUp.y,tRight.x,tRight.y],f1:'up',f2:'right',b:.85},
+   {pts:[cx,cy,tUp.x,tUp.y,tLeft.x,tLeft.y],f1:'up',f2:'left',b:.65},
+   {pts:[cx,cy,tDown.x,tDown.y,tRight.x,tRight.y],f1:'down',f2:'right',b:.55},
+   {pts:[cx,cy,tDown.x,tDown.y,tLeft.x,tLeft.y],f1:'down',f2:'left',b:.38}
   ].forEach(({pts,f1,f2,b})=>{
     const c1=FC[f1],c2=FC[f2];
     const bf={r:Math.round((c1.r+c2.r)/2),g:Math.round((c1.g+c2.g)/2),b:Math.round((c1.b+c2.b)/2)};
@@ -287,12 +267,12 @@ function draw(idx){
   ctx.restore();
 
   // outer edge
-  ctx.beginPath();ctx.moveTo(tE.x,tE.y);ctx.lineTo(tR.x,tR.y);
-  ctx.lineTo(tM.x,tM.y);ctx.lineTo(tL.x,tL.y);ctx.closePath();
+  ctx.beginPath();ctx.moveTo(tUp.x,tUp.y);ctx.lineTo(tRight.x,tRight.y);
+  ctx.lineTo(tDown.x,tDown.y);ctx.lineTo(tLeft.x,tLeft.y);ctx.closePath();
   ctx.strokeStyle=`rgba(${bl.r+100},${bl.g+100},${bl.b+100},.65)`;ctx.lineWidth=1.5;ctx.stroke();
 
   // axis dashes
-  [[tE,tM],[tR,tL]].forEach(([a,b])=>{
+  [[tUp,tDown],[tRight,tLeft]].forEach(([a,b])=>{
     ctx.beginPath();ctx.moveTo(a.x,a.y);ctx.lineTo(b.x,b.y);
     ctx.strokeStyle='rgba(220,200,255,.1)';ctx.lineWidth=.5;
     ctx.setLineDash([3,8]);ctx.stroke();ctx.setLineDash([]);
@@ -363,10 +343,8 @@ function draw(idx){
   }
 
   // update descriptions
-  const funcs=TYPES[idx].funcs;
   [0,1,2,3].forEach(i=>{
-    const f=funcs[i];
-    document.getElementById(`desc${i+1}text`).textContent=PREVIEWS[f][i+1];
+    document.getElementById(`desc${i+1}text`).textContent=view.texts[i];
   });
 }
 

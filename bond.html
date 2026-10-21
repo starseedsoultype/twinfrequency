@@ -231,145 +231,57 @@ select { font-size:14px; min-width:150px; }
 <script>
 // ── DATA ─────────────────────────────────────────────────────────────────────
 const TYPES = [
-  { name:"Siriusian",      funcs:["R","E","M","L"] },
-  { name:"Pleiadian",      funcs:["R","M","L","E"] },
-  { name:"Lemurian",       funcs:["R","E","L","M"] },
-  { name:"Cassiopeian",    funcs:["R","L","M","E"] },
-  { name:"Procyonian",     funcs:["R","M","E","L"] },
-  { name:"Lyran",          funcs:["R","L","E","M"] },
-  { name:"Arcturian",      funcs:["L","E","M","R"] },
-  { name:"Orion",          funcs:["L","M","R","E"] },
-  { name:"Vegan",          funcs:["L","E","R","M"] },
-  { name:"Zeta Reticulan", funcs:["L","R","E","M"] },
-  { name:"Epsilon Eridan", funcs:["L","M","E","R"] },
-  { name:"Atlantean",      funcs:["L","R","M","E"] },
-  { name:"Andromedan",     funcs:["E","R","L","M"] },
-  { name:"Polarisian",     funcs:["E","L","M","R"] },
-  { name:"Nibiruan",       funcs:["E","M","R","L"] },
-  { name:"Egyptian",       funcs:["E","L","R","M"] },
-  { name:"Titanian",          funcs:["E","M","L","R"] },
-  { name:"Blue Avian",     funcs:["E","R","M","L"] },
-  { name:"Tau Cetian",     funcs:["M","R","E","L"] },
-  { name:"Aldebaran",      funcs:["M","L","R","E"] },
-  { name:"Centaurian",     funcs:["M","L","E","R"] },
-  { name:"Herculean",      funcs:["M","E","R","L"] },
-  { name:"Anunnaki",       funcs:["M","E","L","R"] },
-  { name:"Hyperborean",    funcs:["M","R","L","E"] },
+  { name:"Siriusian" },
+  { name:"Pleiadian" },
+  { name:"Lemurian" },
+  { name:"Cassiopeian" },
+  { name:"Procyonian" },
+  { name:"Lyran" },
+  { name:"Arcturian" },
+  { name:"Orion" },
+  { name:"Vegan" },
+  { name:"Zeta Reticulan" },
+  { name:"Epsilon Eridan" },
+  { name:"Atlantean" },
+  { name:"Andromedan" },
+  { name:"Polarisian" },
+  { name:"Nibiruan" },
+  { name:"Egyptian" },
+  { name:"Titanian" },
+  { name:"Blue Avian" },
+  { name:"Tau Cetian" },
+  { name:"Aldebaran" },
+  { name:"Centaurian" },
+  { name:"Herculean" },
+  { name:"Anunnaki" },
+  { name:"Hyperborean" },
 ];
 
-const FUNC_COLORS = {
-  E:{ r:255,g:200,b:20,  hex:"#ffc814", name:"Energy",        sym:"🜂", element:"Fire"  },
-  M:{ r:210,g:40, b:40,  hex:"#d22828", name:"Matter",        sym:"🜔", element:"Earth" },
-  R:{ r:40, g:180,b:80,  hex:"#28b450", name:"Relationships", sym:"🜄", element:"Water" },
-  L:{ r:60, g:120,b:255, hex:"#3c78ff", name:"Logic",         sym:"🜁", element:"Air"   },
+const AXIS_COLORS = {
+  up:{ r:255,g:200,b:20,  hex:"#ffc814" },
+  down:{ r:210,g:40, b:40,  hex:"#d22828" },
+  right:{ r:40, g:180,b:80,  hex:"#28b450" },
+  left:{ r:60, g:120,b:255, hex:"#3c78ff" },
 };
 
-const FUNC_AXIS = { E:-Math.PI/2, M:Math.PI/2, R:0, L:Math.PI };
+const AXIS_ANGLE = { up:-Math.PI/2, down:Math.PI/2, right:0, left:Math.PI };
 const CH_RADIUS = [0,80,56,34,17];
 const CH_WEIGHT = [0,0.60,0.25,0.12,0.03];
 
-const QUALITY_LABEL = {
-  ideal:"Ideal ✦", harmonic:"Harmonic ◈", tandem:"Tandem ◇",
-  mirror_1:"Mirror ○", mirror_2:"Mirror ○", mirror_3:"Mirror ○", mirror_4:"Mirror ○",
-  mismatch:"Mismatch ✕", trap:"Trap ⚠", conflict:"Conflict ✗"
-};
-
-const QUALITY_CSS = {
-  ideal:"q-ideal", harmonic:"q-harmonic", tandem:"q-tandem",
-  mirror_1:"q-mirror", mirror_2:"q-mirror", mirror_3:"q-mirror", mirror_4:"q-mirror",
-  mismatch:"q-mismatch", trap:"q-trap", conflict:"q-conflict"
-};
-
-const QUALITY_DESC = {
-  ideal:"The deepest resonance. What one soul carries, the other receives most naturally.",
-  harmonic:"A natural creative flow. One soul generates what the other grows through.",
-  tandem:"Two souls who create together. Different approaches, real collaboration.",
-  mirror_1:"The same foundational frequency. Deep recognition without words.",
-  mirror_2:"The same way of expressing. A shared creative language.",
-  mirror_3:"The same territory of growth. Shared sensitivity and depth.",
-  mirror_4:"The same blind spot. Shared patterns, shared questions.",
-  mismatch:"What one offers deeply, the other receives without much awareness.",
-  trap:"One soul reaches; the other cannot fully meet it here. A recurring gap.",
-  conflict:"Both souls lead in the same territory. Tension is structural, not personal.",
-};
-
-const BONDS = {
-  "Frequency Twins":   { sym:"⚡", tension:3, color:"#cfe4ff" },
-  "Twin Stars":        { sym:"🌟", tension:13, color:"#bbddff" },
-  "Cosmic Flow":       { sym:"✨", tension:23, color:"#aaccff" },
-  "Mirror Portals":    { sym:"🪞", tension:38, color:"#ccbbff" },
-  "Celestial Mentor":  { sym:"📚", tension:43, color:"#ddddaa" },
-  "Karmic Bonds":      { sym:"🔗", tension:60, color:"#ffcc88" },
-  "Shadow Contracts":  { sym:"🌓", tension:55, color:"#ffaa66" },
-  "Black Holes":       { sym:"🕳", tension:83, color:"#ff7755" },
-  "Star Alchemy":      { sym:"⚖️", tension:41, color:"#ff5544" },
-  "Eternal Reflection":{ sym:"♾", tension:33,  color:"#aaaaaa" },
-};
-
-const BOND_WHY = {
-  "Twin Stars":"Two frequencies in these souls complete each other at the deepest level. The rest mirrors — the same expression, the same recognition. Two very different kinds of meeting happen at once: one soul fills what the other most needs, and both see themselves reflected in what remains.",
-  "Cosmic Flow":"These souls move at the same pace without needing to adjust. What one generates, the other absorbs naturally. What one expresses, the other recognises. The connection does not require effort to sustain. It simply runs.",
-  "Mirror Portals":"Real resonance alongside one persistent gap. These souls see each other clearly in most places and find one territory where they cannot quite reach each other no matter how they try. The recognition creates pull; the gap creates recurring friction in one specific area.",
-  "Celestial Mentor":"Genuine connection alongside genuine friction. These souls give each other real things — insight, perspective, challenge — but one frequency creates consistent tension. Growth happens here, and it arrives through difficulty rather than ease.",
-  "Karmic Bonds":"Enough resonance to keep drawing them back, enough friction to keep it unresolved. These souls meet in real ways and miss each other in real ways. The pattern tends to repeat until something shifts in how both people meet it.",
-  "Shadow Contracts":"These souls activate something deep in each other. The connection is real — but what surfaces tends toward the uncomfortable. The pattern is transformative for those who can meet what comes up, and destabilising for those who cannot.",
-  "Black Holes":"One soul reaches persistently toward the other; the other cannot fully meet that reach. The pull is intense precisely because the need is strong and the gap is structural. These connections generate enormous charge and tend to drain rather than sustain.",
-  "Star Alchemy":"Each soul's deepest certainty meets the other's deepest insecurity — in both directions. The tension is maximum and so is the potential. These are the connections that leave a mark regardless of how they resolve.",
-  "Eternal Reflection":"The same soul origin meeting itself. Total recognition, complete familiarity, no friction. Also no difference — and growth requires difference. This connection offers profound belonging and very little expansion.",
-};
-
-const BOND_HOW = {
-  "Twin Stars":"Deep completion alongside deep recognition. These souls feel like they fill each other where it matters most, and see themselves in what remains. The pull is strong and tends to feel both personal and larger than personal at once.",
-  "Cosmic Flow":"Easy, flowing, mutually supportive. These souls speak a similar language and tend to bring out each other's steadiness. The connection sustains rather than charges. A current more than a wave.",
-  "Mirror Portals":"Inspiring with a persistent edge. These souls see something real in each other and find one recurring place where they cannot quite close the distance. The resonance is genuine. So is the gap.",
-  "Celestial Mentor":"Requires maturity but the return is real. The teaching dynamic can move in both directions depending on which frequency is most alive between them. Growth is genuine and arrives through friction rather than flow.",
-  "Karmic Bonds":"Magnetic and unresolved. The souls keep returning to each other. Something real passes between them every time, and something fails to land every time. What is unfinished here tends to stay unfinished until both people bring real attention to the pattern.",
-  "Shadow Contracts":"Activating and rarely comfortable. These souls do not bore each other. What gets activated between them tends toward the difficult. The connection can become transformative or it can become a cycle — the difference is awareness.",
-  "Black Holes":"Intense and costly. The charge is real and so is the depletion. These connections tend to become the most significant in a person's life precisely because they are so activating. Sustaining them requires more than most people bring.",
-  "Star Alchemy":"This connection leaves a mark. Each person's deepest certainty collides with the other's deepest insecurity, and vice versa. The outcome depends entirely on what both people do with what surfaces. Transformation or damage — both are possible.",
-  "Eternal Reflection":"Instant understanding and complete recognition. No friction — and no expansion through difference. These souls offer each other profound belonging. What they cannot offer is growth through contact with something genuinely other.",
-};
-
-// ── HELPERS ──────────────────────────────────────────────────────────────────
-function chPairQuality(a, b) {
-  if (a === b) return `mirror_${a}`;
-  const pair = [Math.min(a,b), Math.max(a,b)];
-  const map = {
-    "1,4":"ideal","2,3":"harmonic","1,2":"tandem",
-    "3,4":"trap","2,4":"mismatch","1,3":"conflict"
-  };
-  return map[pair.join(",")] || "unknown";
+// ── PAIR READING ─────────────────────────────────────────────────────────────
+// The reading of a pair and both crystal shapes come from the server; the page only shows them.
+const VIEW_URL = 'https://pewgupxikbswhaqxjrwk.supabase.co/functions/v1/origin-view';
+async function loadBond(a, b) {
+  const r = await fetch(VIEW_URL, { method:'POST', headers:{ 'Content-Type':'application/json' }, body: JSON.stringify({ bond:[a, b], set:'tf' }) });
+  if (!r.ok) throw new Error('bond failed');
+  return r.json();
 }
 
-function analyzePair(t1, t2) {
-  const result = {};
-  for (const f of ["R","E","M","L"]) {
-    const c1 = t1.funcs.indexOf(f) + 1;
-    const c2 = t2.funcs.indexOf(f) + 1;
-    result[f] = { c1, c2, q: chPairQuality(c1,c2) };
-  }
-  return result;
-}
-
-// ── CANONICAL CONNECTION MATRIX ──────────────────────────────
-// Generated 2026-07-18 from starseed_relations_v2.csv. Single source of truth.
-// Do not edit by hand — regenerate from the CSV.
-const CANON_VERDICT_NAMES = ["Cosmic Flow", "Twin Stars", "Mirror Portals", "Celestial Mentor", "Karmic Bonds", "Shadow Contracts", "Black Holes", "Star Alchemy", "Eternal Reflection", "Frequency Twins"];
-const CANON_PAIRS = {"Aldebaran|Aldebaran":[8,33,33,0],"Aldebaran|Andromedan":[9,3,3,1],"Aldebaran|Anunnaki":[7,39,39,0],"Aldebaran|Arcturian":[3,63,63,0],"Aldebaran|Atlantean":[7,36,36,0],"Aldebaran|Blue Avian":[3,43,43,0],"Aldebaran|Cassiopeian":[4,60,60,0],"Aldebaran|Centaurian":[2,43,43,0],"Aldebaran|Egyptian":[0,23,23,0],"Aldebaran|Epsilon Eridan":[2,43,43,0],"Aldebaran|Herculean":[5,55,55,0],"Aldebaran|Hyperborean":[1,13,13,0],"Aldebaran|Lemurian":[3,43,43,0],"Aldebaran|Lyran":[7,46,46,0],"Aldebaran|Nibiruan":[7,39,39,0],"Aldebaran|Orion":[2,33,33,0],"Aldebaran|Pleiadian":[7,36,36,0],"Aldebaran|Polarisian":[7,46,46,0],"Aldebaran|Procyonian":[3,63,63,0],"Aldebaran|Siriusian":[6,83,83,0],"Aldebaran|Tau Cetian":[7,39,39,0],"Aldebaran|Titanian":[3,23,23,0],"Aldebaran|Vegan":[7,39,39,0],"Aldebaran|Zeta Reticulan":[3,23,23,0],"Andromedan|Andromedan":[8,33,33,0],"Andromedan|Anunnaki":[7,39,39,0],"Andromedan|Arcturian":[3,63,63,0],"Andromedan|Atlantean":[7,46,46,0],"Andromedan|Blue Avian":[2,43,43,0],"Andromedan|Cassiopeian":[3,23,23,0],"Andromedan|Centaurian":[3,43,43,0],"Andromedan|Egyptian":[1,13,13,0],"Andromedan|Epsilon Eridan":[6,83,83,0],"Andromedan|Herculean":[3,23,23,0],"Andromedan|Hyperborean":[0,23,23,0],"Andromedan|Lemurian":[2,33,33,0],"Andromedan|Lyran":[7,36,36,0],"Andromedan|Nibiruan":[7,39,39,0],"Andromedan|Orion":[3,43,43,0],"Andromedan|Pleiadian":[7,39,39,0],"Andromedan|Polarisian":[7,39,39,0],"Andromedan|Procyonian":[3,63,63,0],"Andromedan|Siriusian":[2,43,43,0],"Andromedan|Tau Cetian":[7,46,46,0],"Andromedan|Titanian":[5,55,55,0],"Andromedan|Vegan":[7,36,36,0],"Andromedan|Zeta Reticulan":[4,60,60,0],"Anunnaki|Anunnaki":[8,33,33,0],"Anunnaki|Arcturian":[4,60,60,0],"Anunnaki|Atlantean":[6,83,83,0],"Anunnaki|Blue Avian":[3,63,63,0],"Anunnaki|Cassiopeian":[3,43,43,0],"Anunnaki|Centaurian":[1,13,13,0],"Anunnaki|Egyptian":[3,23,23,0],"Anunnaki|Epsilon Eridan":[7,36,36,0],"Anunnaki|Herculean":[2,43,43,0],"Anunnaki|Hyperborean":[5,55,55,0],"Anunnaki|Lemurian":[0,23,23,0],"Anunnaki|Lyran":[9,3,3,1],"Anunnaki|Nibiruan":[2,43,43,0],"Anunnaki|Orion":[3,63,63,0],"Anunnaki|Pleiadian":[7,39,39,0],"Anunnaki|Polarisian":[7,36,36,0],"Anunnaki|Procyonian":[3,23,23,0],"Anunnaki|Siriusian":[7,46,46,0],"Anunnaki|Tau Cetian":[7,39,39,0],"Anunnaki|Titanian":[2,33,33,0],"Anunnaki|Vegan":[7,46,46,0],"Anunnaki|Zeta Reticulan":[3,43,43,0],"Arcturian|Arcturian":[8,33,33,0],"Arcturian|Atlantean":[5,55,55,0],"Arcturian|Blue Avian":[7,39,39,0],"Arcturian|Cassiopeian":[7,39,39,0],"Arcturian|Centaurian":[7,36,36,0],"Arcturian|Egyptian":[2,43,43,0],"Arcturian|Epsilon Eridan":[1,13,13,0],"Arcturian|Herculean":[7,46,46,0],"Arcturian|Hyperborean":[6,83,83,0],"Arcturian|Lemurian":[7,46,46,0],"Arcturian|Lyran":[3,23,23,0],"Arcturian|Nibiruan":[3,23,23,0],"Arcturian|Orion":[7,39,39,0],"Arcturian|Pleiadian":[3,43,43,0],"Arcturian|Polarisian":[2,33,33,0],"Arcturian|Procyonian":[9,3,3,1],"Arcturian|Siriusian":[0,23,23,0],"Arcturian|Tau Cetian":[3,43,43,0],"Arcturian|Titanian":[7,36,36,0],"Arcturian|Vegan":[2,43,43,0],"Arcturian|Zeta Reticulan":[7,39,39,0],"Atlantean|Atlantean":[8,33,33,0],"Atlantean|Blue Avian":[0,23,23,0],"Atlantean|Cassiopeian":[2,33,33,0],"Atlantean|Centaurian":[3,63,63,0],"Atlantean|Egyptian":[3,23,23,0],"Atlantean|Epsilon Eridan":[7,39,39,0],"Atlantean|Herculean":[3,43,43,0],"Atlantean|Hyperborean":[4,60,60,0],"Atlantean|Lemurian":[3,63,63,0],"Atlantean|Lyran":[2,43,43,0],"Atlantean|Nibiruan":[9,3,3,1],"Atlantean|Orion":[1,13,13,0],"Atlantean|Pleiadian":[7,36,36,0],"Atlantean|Polarisian":[7,39,39,0],"Atlantean|Procyonian":[3,23,23,0],"Atlantean|Siriusian":[7,39,39,0],"Atlantean|Tau Cetian":[7,46,46,0],"Atlantean|Titanian":[3,43,43,0],"Atlantean|Vegan":[7,39,39,0],"Atlantean|Zeta Reticulan":[2,43,43,0],"Blue Avian|Blue Avian":[8,33,33,0],"Blue Avian|Cassiopeian":[7,39,39,0],"Blue Avian|Centaurian":[6,83,83,0],"Blue Avian|Egyptian":[7,39,39,0],"Blue Avian|Epsilon Eridan":[3,43,43,0],"Blue Avian|Herculean":[7,36,36,0],"Blue Avian|Hyperborean":[7,46,46,0],"Blue Avian|Lemurian":[2,43,43,0],"Blue Avian|Lyran":[3,63,63,0],"Blue Avian|Nibiruan":[1,13,13,0],"Blue Avian|Orion":[9,3,3,1],"Blue Avian|Pleiadian":[3,23,23,0],"Blue Avian|Polarisian":[5,55,55,0],"Blue Avian|Procyonian":[7,36,36,0],"Blue Avian|Siriusian":[2,33,33,0],"Blue Avian|Tau Cetian":[4,60,60,0],"Blue Avian|Titanian":[7,39,39,0],"Blue Avian|Vegan":[3,23,23,0],"Blue Avian|Zeta Reticulan":[7,46,46,0],"Cassiopeian|Cassiopeian":[8,33,33,0],"Cassiopeian|Centaurian":[7,46,46,0],"Cassiopeian|Egyptian":[7,46,46,0],"Cassiopeian|Epsilon Eridan":[3,23,23,0],"Cassiopeian|Herculean":[6,83,83,0],"Cassiopeian|Hyperborean":[7,36,36,0],"Cassiopeian|Lemurian":[7,39,39,0],"Cassiopeian|Lyran":[2,43,43,0],"Cassiopeian|Nibiruan":[3,43,43,0],"Cassiopeian|Orion":[7,36,36,0],"Cassiopeian|Pleiadian":[1,13,13,0],"Cassiopeian|Polarisian":[0,23,23,0],"Cassiopeian|Procyonian":[7,39,39,0],"Cassiopeian|Siriusian":[5,55,55,0],"Cassiopeian|Tau Cetian":[3,63,63,0],"Cassiopeian|Titanian":[9,3,3,1],"Cassiopeian|Vegan":[3,63,63,0],"Cassiopeian|Zeta Reticulan":[2,43,43,0],"Centaurian|Centaurian":[8,33,33,0],"Centaurian|Egyptian":[7,46,46,0],"Centaurian|Epsilon Eridan":[2,33,33,0],"Centaurian|Herculean":[7,39,39,0],"Centaurian|Hyperborean":[7,39,39,0],"Centaurian|Lemurian":[9,3,3,1],"Centaurian|Lyran":[0,23,23,0],"Centaurian|Nibiruan":[3,63,63,0],"Centaurian|Orion":[2,43,43,0],"Centaurian|Pleiadian":[3,23,23,0],"Centaurian|Polarisian":[4,60,60,0],"Centaurian|Procyonian":[7,39,39,0],"Centaurian|Siriusian":[3,43,43,0],"Centaurian|Tau Cetian":[5,55,55,0],"Centaurian|Titanian":[7,36,36,0],"Centaurian|Vegan":[3,23,23,0],"Centaurian|Zeta Reticulan":[7,39,39,0],"Egyptian|Egyptian":[8,33,33,0],"Egyptian|Epsilon Eridan":[3,63,63,0],"Egyptian|Herculean":[7,39,39,0],"Egyptian|Hyperborean":[9,3,3,1],"Egyptian|Lemurian":[7,36,36,0],"Egyptian|Lyran":[4,60,60,0],"Egyptian|Nibiruan":[5,55,55,0],"Egyptian|Orion":[7,39,39,0],"Egyptian|Pleiadian":[3,43,43,0],"Egyptian|Polarisian":[2,43,43,0],"Egyptian|Procyonian":[6,83,83,0],"Egyptian|Siriusian":[3,63,63,0],"Egyptian|Tau Cetian":[3,43,43,0],"Egyptian|Titanian":[7,39,39,0],"Egyptian|Vegan":[2,33,33,0],"Egyptian|Zeta Reticulan":[7,36,36,0],"Epsilon Eridan|Epsilon Eridan":[8,33,33,0],"Epsilon Eridan|Herculean":[3,23,23,0],"Epsilon Eridan|Hyperborean":[3,63,63,0],"Epsilon Eridan|Lemurian":[3,43,43,0],"Epsilon Eridan|Lyran":[7,39,39,0],"Epsilon Eridan|Nibiruan":[7,46,46,0],"Epsilon Eridan|Orion":[2,43,43,0],"Epsilon Eridan|Pleiadian":[7,46,46,0],"Epsilon Eridan|Polarisian":[7,36,36,0],"Epsilon Eridan|Procyonian":[0,23,23,0],"Epsilon Eridan|Siriusian":[9,3,3,1],"Epsilon Eridan|Tau Cetian":[7,39,39,0],"Epsilon Eridan|Titanian":[4,60,60,0],"Epsilon Eridan|Vegan":[7,39,39,0],"Epsilon Eridan|Zeta Reticulan":[5,55,55,0],"Herculean|Herculean":[8,33,33,0],"Herculean|Hyperborean":[7,39,39,0],"Herculean|Lemurian":[7,46,46,0],"Herculean|Lyran":[3,43,43,0],"Herculean|Nibiruan":[2,33,33,0],"Herculean|Orion":[7,39,39,0],"Herculean|Pleiadian":[3,63,63,0],"Herculean|Polarisian":[3,63,63,0],"Herculean|Procyonian":[7,36,36,0],"Herculean|Siriusian":[4,60,60,0],"Herculean|Tau Cetian":[1,13,13,0],"Herculean|Titanian":[2,43,43,0],"Herculean|Vegan":[0,23,23,0],"Herculean|Zeta Reticulan":[9,3,3,1],"Hyperborean|Hyperborean":[8,33,33,0],"Hyperborean|Lemurian":[7,39,39,0],"Hyperborean|Lyran":[3,23,23,0],"Hyperborean|Nibiruan":[3,23,23,0],"Hyperborean|Orion":[7,36,36,0],"Hyperborean|Pleiadian":[2,33,33,0],"Hyperborean|Polarisian":[3,43,43,0],"Hyperborean|Procyonian":[2,43,43,0],"Hyperborean|Siriusian":[3,63,63,0],"Hyperborean|Tau Cetian":[2,43,43,0],"Hyperborean|Titanian":[7,39,39,0],"Hyperborean|Vegan":[3,43,43,0],"Hyperborean|Zeta Reticulan":[7,46,46,0],"Lemurian|Lemurian":[8,33,33,0],"Lemurian|Lyran":[1,13,13,0],"Lemurian|Nibiruan":[3,63,63,0],"Lemurian|Orion":[6,83,83,0],"Lemurian|Pleiadian":[5,55,55,0],"Lemurian|Polarisian":[3,23,23,0],"Lemurian|Procyonian":[7,39,39,0],"Lemurian|Siriusian":[2,43,43,0],"Lemurian|Tau Cetian":[3,23,23,0],"Lemurian|Titanian":[7,39,39,0],"Lemurian|Vegan":[4,60,60,0],"Lemurian|Zeta Reticulan":[7,36,36,0],"Lyran|Lyran":[8,33,33,0],"Lyran|Nibiruan":[6,83,83,0],"Lyran|Orion":[3,63,63,0],"Lyran|Pleiadian":[7,39,39,0],"Lyran|Polarisian":[7,46,46,0],"Lyran|Procyonian":[5,55,55,0],"Lyran|Siriusian":[7,39,39,0],"Lyran|Tau Cetian":[7,39,39,0],"Lyran|Titanian":[3,43,43,0],"Lyran|Vegan":[7,36,36,0],"Lyran|Zeta Reticulan":[2,33,33,0],"Nibiruan|Nibiruan":[8,33,33,0],"Nibiruan|Orion":[0,23,23,0],"Nibiruan|Pleiadian":[7,46,46,0],"Nibiruan|Polarisian":[7,39,39,0],"Nibiruan|Procyonian":[4,60,60,0],"Nibiruan|Siriusian":[7,36,36,0],"Nibiruan|Tau Cetian":[7,36,36,0],"Nibiruan|Titanian":[2,43,43,0],"Nibiruan|Vegan":[7,39,39,0],"Nibiruan|Zeta Reticulan":[3,43,43,0],"Orion|Orion":[8,33,33,0],"Orion|Pleiadian":[4,60,60,0],"Orion|Polarisian":[3,23,23,0],"Orion|Procyonian":[7,46,46,0],"Orion|Siriusian":[3,43,43,0],"Orion|Tau Cetian":[3,23,23,0],"Orion|Titanian":[7,46,46,0],"Orion|Vegan":[5,55,55,0],"Orion|Zeta Reticulan":[7,39,39,0],"Pleiadian|Pleiadian":[8,33,33,0],"Pleiadian|Polarisian":[9,3,3,1],"Pleiadian|Procyonian":[2,43,43,0],"Pleiadian|Siriusian":[7,39,39,0],"Pleiadian|Tau Cetian":[2,43,43,0],"Pleiadian|Titanian":[0,23,23,0],"Pleiadian|Vegan":[6,83,83,0],"Pleiadian|Zeta Reticulan":[3,63,63,0],"Polarisian|Polarisian":[8,33,33,0],"Polarisian|Procyonian":[3,43,43,0],"Polarisian|Siriusian":[7,39,39,0],"Polarisian|Tau Cetian":[6,83,83,0],"Polarisian|Titanian":[1,13,13,0],"Polarisian|Vegan":[2,43,43,0],"Polarisian|Zeta Reticulan":[3,63,63,0],"Procyonian|Procyonian":[8,33,33,0],"Procyonian|Siriusian":[1,13,13,0],"Procyonian|Tau Cetian":[2,33,33,0],"Procyonian|Titanian":[7,46,46,0],"Procyonian|Vegan":[3,43,43,0],"Procyonian|Zeta Reticulan":[7,39,39,0],"Siriusian|Siriusian":[8,33,33,0],"Siriusian|Tau Cetian":[7,36,36,0],"Siriusian|Titanian":[3,23,23,0],"Siriusian|Vegan":[7,46,46,0],"Siriusian|Zeta Reticulan":[3,23,23,0],"Tau Cetian|Tau Cetian":[8,33,33,0],"Tau Cetian|Titanian":[3,63,63,0],"Tau Cetian|Vegan":[9,3,3,1],"Tau Cetian|Zeta Reticulan":[0,23,23,0],"Titanian|Titanian":[8,33,33,0],"Titanian|Vegan":[3,63,63,0],"Titanian|Zeta Reticulan":[6,83,83,0],"Vegan|Vegan":[8,33,33,0],"Vegan|Zeta Reticulan":[1,13,13,0],"Zeta Reticulan|Zeta Reticulan":[8,33,33,0]};
-function canonPair(a, b) {
-  const d = CANON_PAIRS[a + "|" + b] || CANON_PAIRS[b + "|" + a];
-  return d ? { verdict: CANON_VERDICT_NAMES[d[0]], tension_peak: d[1], tension_avg: d[2], pure: !!d[3] } : null;
-}
-function classifyBond(t1, t2) {
-  const p = canonPair(t1.name, t2.name);
-  return p ? p.verdict : "Eternal Reflection";
-}
-
-function blendColors(funcs) {
+function blendColors(axes) {
   let r=0,g=0,b=0;
-  funcs.forEach((f,i) => {
+  axes.forEach((f,i) => {
     const w = CH_WEIGHT[i+1];
-    const c = FUNC_COLORS[f];
+    const c = AXIS_COLORS[f];
     r += c.r*w; g += c.g*w; b += c.b*w;
   });
   return { r:Math.round(r), g:Math.round(g), b:Math.round(b) };
@@ -387,8 +299,8 @@ function drawMergedCrystals(t1, t2, bondName) {
   ctx.fillStyle = '#07050f';
   ctx.fillRect(0,0,W,H);
 
-  const blend1 = blendColors(t1.funcs);
-  const blend2 = blendColors(t2.funcs);
+  const blend1 = blendColors(t1.axes);
+  const blend2 = blendColors(t2.axes);
   const blendC = {
     r: Math.round((blend1.r + blend2.r) / 2),
     g: Math.round((blend1.g + blend2.g) / 2),
@@ -422,34 +334,34 @@ function drawMergedCrystals(t1, t2, bondName) {
 
 function drawCrystalOnContextRotated(ctx, type, cx, cy, scale, globalAlpha, rotation) {
   const channels = {};
-  type.funcs.forEach((f,i) => channels[f] = i+1);
-  const blend = blendColors(type.funcs);
+  type.axes.forEach((f,i) => channels[f] = i+1);
+  const blend = blendColors(type.axes);
 
   const R = [0, 80, 56, 34, 17].map(r => r * scale);
 
   // Apply rotation to axes
   const tips = {};
   for (const [f,ch] of Object.entries(channels)) {
-    const baseAngle = FUNC_AXIS[f];
+    const baseAngle = AXIS_ANGLE[f];
     const angle = baseAngle + rotation;
     tips[f] = { x: cx + Math.cos(angle)*R[ch], y: cy + Math.sin(angle)*R[ch] };
   }
 
-  const tE=tips.E, tM=tips.M, tR=tips.R, tL=tips.L;
+  const tUp=tips.up, tDown=tips.down, tRight=tips.right, tLeft=tips.left;
 
   ctx.save();
   ctx.globalAlpha = globalAlpha;
   ctx.globalCompositeOperation = 'screen';
 
   const faces = [
-    {pts:[cx,cy,tE.x,tE.y,tR.x,tR.y], f1:'E',f2:'R', b:0.85},
-    {pts:[cx,cy,tE.x,tE.y,tL.x,tL.y], f1:'E',f2:'L', b:0.65},
-    {pts:[cx,cy,tM.x,tM.y,tR.x,tR.y], f1:'M',f2:'R', b:0.55},
-    {pts:[cx,cy,tM.x,tM.y,tL.x,tL.y], f1:'M',f2:'L', b:0.40},
+    {pts:[cx,cy,tUp.x,tUp.y,tRight.x,tRight.y], f1:'up',f2:'right', b:0.85},
+    {pts:[cx,cy,tUp.x,tUp.y,tLeft.x,tLeft.y], f1:'up',f2:'left', b:0.65},
+    {pts:[cx,cy,tDown.x,tDown.y,tRight.x,tRight.y], f1:'down',f2:'right', b:0.55},
+    {pts:[cx,cy,tDown.x,tDown.y,tLeft.x,tLeft.y], f1:'down',f2:'left', b:0.40},
   ];
 
   faces.forEach(face => {
-    const c1=FUNC_COLORS[face.f1], c2=FUNC_COLORS[face.f2];
+    const c1=AXIS_COLORS[face.f1], c2=AXIS_COLORS[face.f2];
     const bf={ r:Math.round((c1.r+c2.r)/2), g:Math.round((c1.g+c2.g)/2), b:Math.round((c1.b+c2.b)/2) };
     const alpha = 0.14 + face.b * 0.18;
     const pts = face.pts;
@@ -471,7 +383,7 @@ function drawCrystalOnContextRotated(ctx, type, cx, cy, scale, globalAlpha, rota
 
   // Outer silhouette
   ctx.beginPath();
-  ctx.moveTo(tE.x,tE.y); ctx.lineTo(tR.x,tR.y); ctx.lineTo(tM.x,tM.y); ctx.lineTo(tL.x,tL.y);
+  ctx.moveTo(tUp.x,tUp.y); ctx.lineTo(tRight.x,tRight.y); ctx.lineTo(tDown.x,tDown.y); ctx.lineTo(tLeft.x,tLeft.y);
   ctx.closePath();
   ctx.strokeStyle=`rgba(${blend.r+100},${blend.g+100},${blend.b+100},0.65)`;
   ctx.lineWidth=1.5; ctx.stroke();
@@ -491,7 +403,7 @@ function drawCrystalOnContextRotated(ctx, type, cx, cy, scale, globalAlpha, rota
 
   // Tip glows
   for (const [f,ch] of Object.entries(channels)) {
-    const tip=tips[f], fc=FUNC_COLORS[f];
+    const tip=tips[f], fc=AXIS_COLORS[f];
     const size=[0,7,5,3.5,2][ch]*scale;
     const glowR=[0,20,13,8,5][ch]*scale;
     const a=[0,0.5,0.35,0.22,0.12][ch];
@@ -507,59 +419,56 @@ function drawCrystalOnContextRotated(ctx, type, cx, cy, scale, globalAlpha, rota
 }
 
 // ── CALCULATE ─────────────────────────────────────────────────────────────────
-function calculate() {
+let calcSeq = 0;
+async function calculate() {
   const i1 = parseInt(document.getElementById('type1').value);
   const i2 = parseInt(document.getElementById('type2').value);
   const t1 = TYPES[i1], t2 = TYPES[i2];
-
-  const analysis = analyzePair(t1, t2);
-  const bond = classifyBond(t1, t2);
-  const bondData = BONDS[bond];
-  const cp = canonPair(t1.name, t2.name);
-  const canonTension = cp ? cp.tension_peak : bondData.tension;
+  const seq = ++calcSeq;
+  const v = await loadBond(t1.name, t2.name).catch(() => null);
+  if (!v || seq !== calcSeq) return;
 
   // Bond banner
-  document.getElementById('bondSymbol').textContent = bondData.sym;
-  document.getElementById('bondName').textContent = bond;
-  document.getElementById('bondName').style.color = bondData.color;
-  document.getElementById('bondTension').textContent = `Tension: ${canonTension}%`;
+  document.getElementById('bondSymbol').textContent = v.sym;
+  document.getElementById('bondName').textContent = v.verdict;
+  document.getElementById('bondName').style.color = v.color;
+  document.getElementById('bondTension').textContent = `Tension: ${v.tension}%`;
 
   // Tension bar
   const fill = document.getElementById('tensionFill');
-  const pct = canonTension;
+  const pct = v.tension;
   const barColor = pct <= 25 ? '#44cc88' : pct <= 50 ? '#ccaa44' : pct <= 75 ? '#ff8844' : '#ff4444';
   fill.style.width = pct + '%';
   fill.style.background = `linear-gradient(90deg, ${barColor}88, ${barColor})`;
   document.getElementById('tensionPct').textContent = `${pct}% tension`;
 
   // Merged crystal
-  drawMergedCrystals(t1, t2, bond);
+  drawMergedCrystals({ axes: v.axes[0] }, { axes: v.axes[1] }, v.verdict);
   document.getElementById('cname1').textContent = t1.name;
   document.getElementById('cname2').textContent = t2.name;
   document.getElementById('ctagline1').textContent = 'Soul Origin';
   document.getElementById('ctagline2').textContent = 'Soul Origin';
 
-  // Function grid
+  // Element grid
   const grid = document.getElementById('funcGrid');
   grid.innerHTML = '';
-  for (const f of ['R','E','M','L']) {
-    const {c1,c2,q} = analysis[f];
-    const fc = FUNC_COLORS[f];
+  for (const c of v.cells) {
+    const fc = AXIS_COLORS[c.axis];
     const cell = document.createElement('div');
-    cell.className = `func-cell ${QUALITY_CSS[q]}`;
+    cell.className = `func-cell ${c.css}`;
     cell.style.borderColor = `rgba(${fc.r},${fc.g},${fc.b},0.2)`;
     cell.innerHTML = `
-      <div class="func-sym">${fc.sym}</div>
-      <div class="func-name" style="color:${fc.hex}">${fc.element}</div>
-      <div class="pair-quality ${QUALITY_CSS[q]}">${QUALITY_LABEL[q]}</div>
-      <div class="pair-desc">${QUALITY_DESC[q]}</div>
+      <div class="func-sym">${c.sym}</div>
+      <div class="func-name" style="color:${fc.hex}">${c.element}</div>
+      <div class="pair-quality ${c.css}">${c.label}</div>
+      <div class="pair-desc">${c.desc}</div>
     `;
     grid.appendChild(cell);
   }
 
   // Bond description
-  document.getElementById('bondWhy').textContent = BOND_WHY[bond] || '';
-  document.getElementById('bondHow').textContent = BOND_HOW[bond] || '';
+  document.getElementById('bondWhy').textContent = v.why;
+  document.getElementById('bondHow').textContent = v.how;
 
   // Show result
   const resultEl = document.getElementById('result');
