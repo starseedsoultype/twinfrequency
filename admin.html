@@ -416,14 +416,15 @@ Welcome to the new TwinF experience.</textarea>
 
   // ─── Stats ─────────────────────────────────────────────────
   async function loadStats() {
-    const today = new Date().toISOString().split('T')[0]
+    // "Today" starts at midnight in Bangkok, where Alexandra reads the admin.
+    const today = new Date(Date.now() + 7 * 3600_000).toISOString().split('T')[0]
 
     const [users, matches, messages, reports, active, banned] = await Promise.all([
-      sb.from('profiles').select('id', { count: 'exact', head: true }),
+      sb.from('profiles').select('id', { count: 'exact', head: true }).eq('is_bot', false).eq('is_internal', false),
       sb.from('matches').select('id', { count: 'exact', head: true }),
       sb.from('messages').select('id', { count: 'exact', head: true }),
       sb.from('reports').select('id', { count: 'exact', head: true }).eq('status', 'pending'),
-      sb.from('profiles').select('id', { count: 'exact', head: true }).gte('last_active_at', today + 'T00:00:00'),
+      sb.from('profiles').select('id', { count: 'exact', head: true }).eq('is_bot', false).eq('is_internal', false).gte('last_active_at', today + 'T00:00:00+07:00'),
       sb.from('profiles').select('id', { count: 'exact', head: true }).eq('is_banned', true),
     ])
 
@@ -654,7 +655,7 @@ Welcome to the new TwinF experience.</textarea>
     box.innerHTML = `
       ${h('Люди')}
       <div style="${grid}">
-        ${card(s.talkers, 'Писали Oli', 'все, кто хоть раз написал, включая TwinF')}
+        ${card(s.talkers, 'Писали Oli', 'живые люди, хоть раз написавшие, включая TwinF; без твоих и тестовых аккаунтов')}
         ${card(s.from_oli_page, 'Пришли через /oli', `за 7 дней: ${s.new_page_7d}`)}
         ${card(s.consented, 'Дали согласие на AI')}
         ${card(s.active_today, 'Писали сегодня')}
