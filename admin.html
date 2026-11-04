@@ -234,6 +234,11 @@ Welcome to the new TwinF experience.</textarea>
         </div>
       </div>
 
+      <div style="margin-bottom:28px">
+        <div style="font-size:9px;letter-spacing:0.25em;text-transform:uppercase;color:var(--muted);margin-bottom:6px">Button image (optional GIF URL)</div>
+        <input id="bc-btn-img" placeholder="https://...gif" style="width:100%;background:var(--surface);border:1px solid var(--border);border-radius:4px;padding:10px 12px;color:var(--text);font-family:'Jost',sans-serif;font-size:13px;outline:none">
+      </div>
+
       <div style="margin-bottom:20px">
         <div style="font-size:9px;letter-spacing:0.25em;text-transform:uppercase;color:var(--muted);margin-bottom:10px">Audience</div>
         <div style="display:flex;flex-wrap:wrap;gap:8px">
@@ -748,32 +753,26 @@ Welcome to the new TwinF experience.</textarea>
     return session?.access_token
   }
 
-  function buildEmailHtml(bodyText, btnText, btnUrl) {
-    const lines = bodyText.split('\n')
-    let html = ''
-    for (const line of lines) {
-      if (line.trim() === '') {
-        html += '<p style="margin:0 0 20px;"></p>'
-      } else {
-        html += `<p style="margin:0 0 6px;">${escHtml(line)}</p>`
-      }
-    }
+  function buildEmailHtml(bodyText, btnText, btnUrl, subject, btnImg) {
+    const btnStyle = "display:inline-block;background-color:#E8308F;color:#FFFFFF;font-family:Arial,Helvetica,sans-serif;font-weight:700;font-size:15px;text-decoration:none;border-radius:13px;"
     const buttonBlock = (btnText && btnUrl)
-      ? `<div style="text-align:center;margin:40px 0 48px;">
-<a href="${escHtml(btnUrl)}" style="display:inline-block;padding:15px 48px;border:1px solid rgba(201,169,110,0.35);background:transparent;color:#C9A96E;font-family:'Inter',-apple-system,sans-serif;font-weight:300;font-size:11px;letter-spacing:4px;text-transform:uppercase;text-decoration:none;">${escHtml(btnText)}</a>
+      ? `<div style="text-align:center;margin:28px 0;">
+<a href="${escHtml(btnUrl)}" style="${btnStyle}${btnImg ? '' : 'padding:15px 32px;'}">${btnImg
+          ? `<img src="${escHtml(btnImg)}" width="280" height="48" alt="${escHtml(btnText)}" style="display:block;width:280px;height:48px;border:0;border-radius:13px;">`
+          : escHtml(btnText)}</a>
 </div>`
       : ''
+    const paragraphs = bodyText.trim().split(/\n\s*\n/)
+    const toP = para => `<p style="margin:0 0 18px;">${escHtml(para.trim()).replace(/\n/g, '<br>')}</p>`
+    const signoff = paragraphs.length > 1 ? paragraphs.pop() : ''
+    const html = paragraphs.map(toP).join('') + buttonBlock + (signoff ? toP(signoff) : '')
     return `<!DOCTYPE html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400&family=Inter:wght@200;300&display=swap" rel="stylesheet">
-</head><body style="margin:0;padding:0;background:#0A0A0A;font-family:'Inter',-apple-system,sans-serif;">
-<div style="max-width:520px;margin:0 auto;padding:48px 24px;">
-<div style="font-family:'Cormorant Garamond',Georgia,serif;font-size:13px;letter-spacing:5px;color:#5F5A55;text-transform:uppercase;margin-bottom:48px;text-align:center;">TwinF by StarSeedSoul</div>
-<div style="text-align:center;margin-bottom:48px;"><span style="font-family:'Cormorant Garamond',Georgia,serif;font-size:28px;color:#C9A96E;opacity:0.6;letter-spacing:12px;">✦ ✦ ✦</span></div>
-<div style="font-size:14px;line-height:1.9;color:#C9C1B8;font-weight:300;">${html}</div>
-${buttonBlock}
-<div style="text-align:center;margin-bottom:40px;"><span style="font-family:'Cormorant Garamond',Georgia,serif;font-size:28px;color:#C9A96E;opacity:0.6;letter-spacing:12px;">✦ ✦ ✦</span></div>
-<div style="font-size:13px;color:#5F5A55;">TwinF by StarSeedSoul</div>
-<div style="margin-top:48px;text-align:center;"><a href="%%UNSUB_URL%%" style="font-size:12px;color:#C9C1B8;text-decoration:underline;letter-spacing:1px;font-weight:300;">unsubscribe</a></div>
+</head><body style="margin:0;padding:0;background:#FFFFFF;">
+<div style="max-width:520px;margin:0 auto;padding:40px 24px;color:#000000;font-family:Lora,Georgia,serif;font-size:16px;line-height:1.6;">
+<div style="font-family:Arial,Helvetica,sans-serif;font-weight:800;font-size:30px;line-height:1.15;color:#000000;margin:0 0 8px;">${escHtml(subject || '')}</div>
+<div style="font-size:14px;color:#555555;margin:0 0 28px;">Alexandra</div>
+${html}
+<div style="margin-top:40px;text-align:center;font-family:Arial,Helvetica,sans-serif;"><a href="%%UNSUB_URL%%" style="font-size:12px;color:#777777;text-decoration:underline;">unsubscribe</a></div>
 </div></body></html>`
   }
 
@@ -807,7 +806,9 @@ ${buttonBlock}
     const html = buildEmailHtml(
       document.getElementById('bc-body').value,
       document.getElementById('bc-btn-text').value.trim(),
-      document.getElementById('bc-btn-url').value.trim()
+      document.getElementById('bc-btn-url').value.trim(),
+      document.getElementById('bc-subject').value,
+      document.getElementById('bc-btn-img').value.trim()
     )
     const subject = document.getElementById('bc-subject').value
     document.getElementById('bc-result').textContent = 'Sending test...'
@@ -828,7 +829,9 @@ ${buttonBlock}
     const html = buildEmailHtml(
       document.getElementById('bc-body').value,
       document.getElementById('bc-btn-text').value.trim(),
-      document.getElementById('bc-btn-url').value.trim()
+      document.getElementById('bc-btn-url').value.trim(),
+      document.getElementById('bc-subject').value,
+      document.getElementById('bc-btn-img').value.trim()
     )
     const subject = document.getElementById('bc-subject').value
     document.getElementById('bc-result').textContent = 'Sending...'
