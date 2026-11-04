@@ -234,11 +234,6 @@ Welcome to the new TwinF experience.</textarea>
         </div>
       </div>
 
-      <div style="margin-bottom:28px">
-        <div style="font-size:9px;letter-spacing:0.25em;text-transform:uppercase;color:var(--muted);margin-bottom:6px">Button image (optional GIF URL)</div>
-        <input id="bc-btn-img" placeholder="https://...gif" style="width:100%;background:var(--surface);border:1px solid var(--border);border-radius:4px;padding:10px 12px;color:var(--text);font-family:'Jost',sans-serif;font-size:13px;outline:none">
-      </div>
-
       <div style="margin-bottom:20px">
         <div style="font-size:9px;letter-spacing:0.25em;text-transform:uppercase;color:var(--muted);margin-bottom:10px">Audience</div>
         <div style="display:flex;flex-wrap:wrap;gap:8px">
@@ -753,7 +748,9 @@ Welcome to the new TwinF experience.</textarea>
     return session?.access_token
   }
 
-  function buildEmailHtml(bodyText, btnText, btnUrl, subject, btnImg) {
+  function buildEmailHtml(bodyText, btnText, btnUrl, subject) {
+    const HEADER_IMG = 'https://www.starseedsoultype.com/assets/email/header-gift-1111.png'
+    const btnImg = 'https://www.starseedsoultype.com/assets/email/origin-scan-button.gif'
     const btnStyle = "display:inline-block;background-color:#E8308F;color:#FFFFFF;font-family:Arial,Helvetica,sans-serif;font-weight:700;font-size:15px;text-decoration:none;border-radius:13px;"
     const buttonBlock = (btnText && btnUrl)
       ? `<div style="text-align:center;margin:28px 0;">
@@ -768,6 +765,7 @@ Welcome to the new TwinF experience.</textarea>
     const html = paragraphs.map(toP).join('') + buttonBlock + (signoff ? toP(signoff) : '')
     return `<!DOCTYPE html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 </head><body style="margin:0;padding:0;background:#FFFFFF;">
+<div style="max-width:520px;margin:0 auto;"><img src="${HEADER_IMG}" width="520" alt="A gift from StarSeed Soul" style="display:block;width:100%;max-width:520px;height:auto;border:0;"></div>
 <div style="max-width:520px;margin:0 auto;padding:40px 24px;color:#000000;font-family:Lora,Georgia,serif;font-size:16px;line-height:1.6;">
 <div style="font-family:Arial,Helvetica,sans-serif;font-weight:800;font-size:30px;line-height:1.15;color:#000000;margin:0 0 8px;">${escHtml(subject || '')}</div>
 <div style="font-size:14px;color:#555555;margin:0 0 28px;">Alexandra</div>
@@ -807,8 +805,7 @@ ${html}
       document.getElementById('bc-body').value,
       document.getElementById('bc-btn-text').value.trim(),
       document.getElementById('bc-btn-url').value.trim(),
-      document.getElementById('bc-subject').value,
-      document.getElementById('bc-btn-img').value.trim()
+      document.getElementById('bc-subject').value
     )
     const subject = document.getElementById('bc-subject').value
     document.getElementById('bc-result').textContent = 'Sending test...'
@@ -830,8 +827,7 @@ ${html}
       document.getElementById('bc-body').value,
       document.getElementById('bc-btn-text').value.trim(),
       document.getElementById('bc-btn-url').value.trim(),
-      document.getElementById('bc-subject').value,
-      document.getElementById('bc-btn-img').value.trim()
+      document.getElementById('bc-subject').value
     )
     const subject = document.getElementById('bc-subject').value
     document.getElementById('bc-result').textContent = 'Sending...'
