@@ -175,6 +175,7 @@
     <button class="tab" onclick="switchTab('broadcast')">Broadcast</button>
     <button class="tab" onclick="switchTab('telegram')">Telegram</button>
     <button class="tab" onclick="switchTab('oli')">Oli</button>
+    <button class="tab" onclick="switchTab('letters')">Letters</button>
   </div>
 
   <!-- Reports Tab -->
@@ -292,6 +293,11 @@ Alexandra</textarea>
   <!-- Oli Tab -->
   <div class="tab-panel" id="tab-oli">
     <div id="oli-container"></div>
+  </div>
+
+  <!-- Letters Tab: the Origin letter sequence -->
+  <div class="tab-panel" id="tab-letters">
+    <div id="seq-container" style="max-width:620px"></div>
   </div>
 
   <!-- Telegram Tab -->
@@ -621,7 +627,7 @@ Alexandra</textarea>
   // ─── Tabs ──────────────────────────────────────────────────
   function switchTab(tab) {
     currentTab = tab
-    const tabNames = ['reports','users','broadcast','telegram','oli']
+    const tabNames = ['reports','users','broadcast','telegram','oli','letters']
     document.querySelectorAll('.tab').forEach((t, i) => {
       t.classList.toggle('active', tabNames[i] === tab)
     })
@@ -632,6 +638,82 @@ Alexandra</textarea>
     if (tab === 'broadcast') broadcastDryRun()
     if (tab === 'telegram') tgDryRun()
     if (tab === 'oli') loadOliStats()
+    if (tab === 'letters') loadSeq()
+  }
+
+  // ─── Letters: Origin letter sequence ───────────────────────
+  const SEQ_URL = 'https://pewgupxikbswhaqxjrwk.supabase.co/functions/v1/origin-sequence'
+
+  async function seqCall(payload) {
+    const token = await getToken()
+    const res = await fetch(SEQ_URL, {
+      method: 'POST',
+      headers: { 'Authorization': 'Bearer ' + token, 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+    })
+    const data = await res.json()
+    if (!res.ok || data.error) throw new Error(data.error || ('HTTP ' + res.status))
+    return data
+  }
+
+  async function loadSeq() {
+    const box = document.getElementById('seq-container')
+    box.innerHTML = '<div style="color:var(--muted);font-size:12px">Считаю…</div>'
+    let s
+    try { s = await seqCall({ action: 'status' }) }
+    catch (e) { box.innerHTML = '<div style="color:var(--red);font-size:12px">' + escHtml(e.message) + '</div>'; return }
+
+    const card = (value, label) => `<div class="stat-card"><div class="stat-value">${value}</div><div class="stat-label">${label}</div></div>`
+    const rows = s.perLetter.map(l => `<tr><td>${l.letter}</td><td>${l.texts}</td><td>${l.approved}</td><td>${l.sent}</td><td>${l.errors}</td></tr>`).join('')
+    const options = s.types.map(t => `<option value="${escHtml(t)}">${escHtml(t)}</option>`).join('')
+
+    box.innerHTML = `
+      <div style="font-size:13px;margin-bottom:6px;color:${s.enabled ? 'var(--green)' : 'var(--gold)'}">
+        ${s.enabled ? 'Цепочка включена, старт ' + escHtml(s.start) : 'Цепочка выключена, ничего не отправляется'}
+      </div>
+      <div style="font-size:11px;color:var(--muted);margin-bottom:18px">Раз в день, не больше ${s.cap} писем. Письмо 3 ${s.pairBlockReady ? 'с блоком заказа' : 'ждёт блок заказа PDF о паре'}.</div>
+      <button class="action-btn ${s.enabled ? 'btn-ban' : 'btn-review'}" onclick="seqToggle(${!s.enabled})" style="padding:10px 20px;font-size:10px;margin-bottom:24px">
+        ${s.enabled ? 'Остановить' : 'Включить'}
+      </button>
+      <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:12px;margin-bottom:24px">
+        ${card(s.dueNow, 'К отправке')}
+        ${card(s.notDue, 'Ещё не время')}
+        ${card(s.finished, 'Прошли все 4')}
+        ${card(s.waitingText, 'Ждут проверки текста')}
+        ${card(s.waitingBlock, 'Ждут блок')}
+        ${card(s.failed, 'Адрес с ошибкой')}
+      </div>
+      <table class="data-table" style="margin-bottom:28px">
+        <thead><tr><th>Письмо</th><th>Текстов</th><th>Проверено</th><th>Ушло</th><th>Ошибок</th></tr></thead>
+        <tbody>${rows}</tbody>
+      </table>
+      <div style="font-size:9px;letter-spacing:0.25em;text-transform:uppercase;color:var(--muted);margin-bottom:8px">Тест: 4 письма одного типа</div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:10px">
+        <select id="seq-test-type" style="background:var(--surface);border:1px solid var(--border);border-radius:4px;padding:10px 12px;color:var(--text);font-size:12px">${options}</select>
+        <input id="seq-test-email" placeholder="test@email.com" style="flex:1;min-width:180px;background:var(--surface);border:1px solid var(--border);border-radius:4px;padding:10px 12px;color:var(--text);font-size:12px">
+        <button class="action-btn btn-review" onclick="seqTest()" style="padding:10px 20px;font-size:10px">Отправить тест</button>
+      </div>
+      <div id="seq-result" style="font-size:12px;color:var(--gold);line-height:1.7"></div>`
+  }
+
+  async function seqToggle(enabled) {
+    const question = enabled
+      ? 'Включить цепочку? Ближайший запуск (19:00 по Нью-Йорку) начнёт отправлять проверенные письма всем лидам квиза.'
+      : 'Остановить цепочку? Письма перестанут уходить, потом можно продолжить с того же места.'
+    if (!confirm(question)) return
+    try { await seqCall({ action: 'set_enabled', enabled }); loadSeq() }
+    catch (e) { document.getElementById('seq-result').textContent = e.message }
+  }
+
+  async function seqTest() {
+    const to = document.getElementById('seq-test-email').value.trim()
+    const box = document.getElementById('seq-result')
+    if (!to) { box.textContent = 'Впиши адрес'; return }
+    box.textContent = 'Отправляю…'
+    try {
+      const r = await seqCall({ action: 'test', type_name: document.getElementById('seq-test-type').value, to })
+      box.innerHTML = Object.entries(r.results).map(([n, v]) => 'Письмо ' + n + ': ' + escHtml(v)).join('<br>')
+    } catch (e) { box.textContent = e.message }
   }
 
   // ─── Oli: numbers only, never message text ─────────────────
